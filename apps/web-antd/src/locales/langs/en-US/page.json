@@ -17,7 +17,12 @@
   "system": {
     "title": "System",
     "user": {
-      "title": "User"
+      "title": "User",
+      "username": "Username",
+      "email": "Email",
+      "nickname": "Nickname",
+      "phone": "Phone",
+      "password": "Password"
     },
     "role": {
       "title": "Role"

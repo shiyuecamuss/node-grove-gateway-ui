@@ -24,7 +24,9 @@
   },
   "placeholder": {
     "input": "请输入",
-    "select": "请选择"
+    "select": "请选择",
+    "inputWithName": "请输入{name}",
+    "selectWithName": "请选择{name}"
   },
   "captcha": {
     "title": "请完成安全验证",
