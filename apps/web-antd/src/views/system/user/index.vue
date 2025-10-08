@@ -7,11 +7,10 @@ import type { OnActionClickParams, VxeGridProps } from '#/adapter/vxe-table';
 import { confirm, Page, useVbenDrawer } from '@vben/common-ui';
 import { FormOpenType } from '@vben/constants';
 import { useRequestHandler } from '@vben/hooks';
-import { IconifyIcon } from '@vben/icons';
 import { $t } from '@vben/locales';
 import { CommonStatus, EntityType } from '@vben/types';
 
-import { Button, message, Switch, Tooltip } from 'ant-design-vue';
+import { Button, message, Switch } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
@@ -192,8 +191,8 @@ const handleFormSubmit = async (
     <Grid>
       <template #status="{ row }">
         <Switch
-          :value="row.status === CommonStatus.ENABLED"
-          @update:value="toggleStatus(row)"
+          :checked="row.status === CommonStatus.ENABLED"
+          @update:checked="toggleStatus(row)"
         />
       </template>
       <template #toolbar-tools>
@@ -202,34 +201,6 @@ const handleFormSubmit = async (
             `${$t('common.createWithName', { name: $t('page.system.user.title') })}`
           }}</span>
         </Button>
-      </template>
-      <template #action="{ row }">
-        <Tooltip side="top" :title="$t('common.edit')">
-          <Button
-            circle
-            size="small"
-            tertiary
-            type="primary"
-            @click.stop="handleEdit(row)"
-          >
-            <template #icon>
-              <IconifyIcon icon="lucide:edit" />
-            </template>
-          </Button>
-        </Tooltip>
-        <Tooltip side="top" :title="$t('common.delete')">
-          <Button
-            circle
-            size="small"
-            tertiary
-            danger
-            @click.stop="handleDelete(row)"
-          >
-            <template #icon>
-              <IconifyIcon icon="lucide:trash-2" />
-            </template>
-          </Button>
-        </Tooltip>
       </template>
     </Grid>
     <FormDrawer @submit="handleFormSubmit" />

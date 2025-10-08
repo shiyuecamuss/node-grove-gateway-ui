@@ -50,10 +50,12 @@ export function useColumns(
           {
             code: 'edit',
             icon: 'lucide:edit',
+            tooltip: $t('common.edit'),
           },
           {
             code: 'delete',
             icon: 'lucide:trash-2',
+            tooltip: $t('common.delete'),
           },
         ],
       },

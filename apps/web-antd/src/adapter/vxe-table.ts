@@ -14,7 +14,7 @@ import {
 import { get, isFunction, isString } from '@vben/utils';
 
 import { objectOmit } from '@vueuse/core';
-import { Button, Image, Popconfirm, Switch, Tag } from 'ant-design-vue';
+import { Button, Image, Switch, Tag, Tooltip } from 'ant-design-vue';
 
 import { $t } from '#/locales';
 
@@ -145,34 +145,21 @@ setupVbenVxeTable({
             break;
           }
           default: {
-            align = 'end';
+            align = 'center';
             break;
           }
         }
-        const presets: Recordable<Recordable<any>> = {
-          delete: {
-            danger: true,
-            text: $t('common.delete'),
-          },
-          edit: {
-            text: $t('common.edit'),
-          },
-        };
         const operations: Array<Recordable<any>> = (
           options || ['edit', 'delete']
         )
           .map((opt) => {
-            if (isString(opt)) {
-              return presets[opt]
-                ? { code: opt, ...presets[opt], ...defaultProps }
-                : {
-                    code: opt,
-                    text: $te(`common.${opt}`) ? $t(`common.${opt}`) : opt,
-                    ...defaultProps,
-                  };
-            } else {
-              return { ...defaultProps, ...presets[opt.code], ...opt };
-            }
+            return isString(opt)
+              ? {
+                  code: opt,
+                  text: $te(`common.${opt}`) ? $t(`common.${opt}`) : opt,
+                  ...defaultProps,
+                }
+              : { ...defaultProps, ...opt };
           })
           .map((opt) => {
             const optBtn: Recordable<any> = {};
@@ -184,11 +171,12 @@ setupVbenVxeTable({
           .filter((opt) => opt.show !== false);
 
         function renderBtn(opt: Recordable<any>, listen = true) {
-          return h(
+          const buttonVNode = h(
             Button,
             {
               ...props,
-              ...opt,
+              // omit non-Button props like tooltip
+              ...objectOmit(opt, ['tooltip']),
               icon: undefined,
               onClick: listen
                 ? () =>
@@ -200,7 +188,7 @@ setupVbenVxeTable({
             },
             {
               default: () => {
-                const content = [];
+                const content = [] as any[];
                 if (opt.icon) {
                   content.push(
                     h(IconifyIcon, { class: 'size-5', icon: opt.icon }),
@@ -211,61 +199,20 @@ setupVbenVxeTable({
               },
             },
           );
+
+          // Wrap with Tooltip when tooltip is provided in options
+          const tooltip = (opt as Recordable<any>).tooltip;
+          if (tooltip) {
+            const tooltipProps = isString(tooltip)
+              ? { title: tooltip }
+              : tooltip;
+            return h(Tooltip, tooltipProps, { default: () => buttonVNode });
+          }
+
+          return buttonVNode;
         }
 
-        function renderConfirm(opt: Recordable<any>) {
-          let viewportWrapper: HTMLElement | null = null;
-          return h(
-            Popconfirm,
-            {
-              /**
-               * 当popconfirm用在固定列中时，将固定列作为弹窗的容器时可能会因为固定列较窄而无法容纳弹窗
-               * 将表格主体区域作为弹窗容器时又会因为固定列的层级较高而遮挡弹窗
-               * 将body或者表格视口区域作为弹窗容器时又会导致弹窗无法跟随表格滚动。
-               * 鉴于以上各种情况，一种折中的解决方案是弹出层展示时，禁止操作表格的滚动条。
-               * 这样既解决了弹窗的遮挡问题，又不至于让弹窗随着表格的滚动而跑出视口区域。
-               */
-              getPopupContainer(el) {
-                viewportWrapper = el.closest('.vxe-table--viewport-wrapper');
-                return document.body;
-              },
-              placement: 'topLeft',
-              title: $t('ui.actionTitle.delete', [attrs?.nameTitle || '']),
-              ...props,
-              ...opt,
-              icon: undefined,
-              onOpenChange: (open: boolean) => {
-                // 当弹窗打开时，禁止表格的滚动
-                if (open) {
-                  viewportWrapper?.style.setProperty('pointer-events', 'none');
-                } else {
-                  viewportWrapper?.style.removeProperty('pointer-events');
-                }
-              },
-              onConfirm: () => {
-                attrs?.onClick?.({
-                  code: opt.code,
-                  row,
-                });
-              },
-            },
-            {
-              default: () => renderBtn({ ...opt }, false),
-              description: () =>
-                h(
-                  'div',
-                  { class: 'truncate' },
-                  $t('ui.actionMessage.deleteConfirm', [
-                    row[attrs?.nameField || 'name'],
-                  ]),
-                ),
-            },
-          );
-        }
-
-        const btns = operations.map((opt) =>
-          opt.code === 'delete' ? renderConfirm(opt) : renderBtn(opt),
-        );
+        const btns = operations.map((opt) => renderBtn(opt));
         return h(
           'div',
           {
