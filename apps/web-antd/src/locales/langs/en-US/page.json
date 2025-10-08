@@ -10,5 +10,29 @@
     "title": "Dashboard",
     "analytics": "Analytics",
     "workspace": "Workspace"
+  },
+  "home": {
+    "title": "Home"
+  },
+  "system": {
+    "title": "System",
+    "user": {
+      "title": "User"
+    },
+    "role": {
+      "title": "Role"
+    },
+    "menu": {
+      "title": "Menu"
+    }
+  },
+  "northward": {
+    "title": "Northward"
+  },
+  "southward": {
+    "title": "Southward"
+  },
+  "driver": {
+    "title": "Driver"
   }
 }

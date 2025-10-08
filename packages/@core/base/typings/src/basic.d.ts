@@ -7,23 +7,38 @@ type SelectOption = BasicOption;
 
 type TabOption = BasicOption;
 
+interface SimpleRole {
+  /**
+   * 编码
+   */
+  code: string;
+  /**
+   * id
+   */
+  id: number | string;
+}
+
 interface BasicUserInfo {
   /**
    * 头像
    */
   avatar: string;
   /**
+   * 用户id
+   */
+  id: number | string;
+  /**
    * 用户昵称
    */
-  realName: string;
+  nickname: string;
   /**
    * 用户角色
    */
-  roles?: string[];
+  roles?: SimpleRole[];
   /**
-   * 用户id
+   * 状态
    */
-  userId: string;
+  status?: number;
   /**
    * 用户名
    */
@@ -32,4 +47,11 @@ interface BasicUserInfo {
 
 type ClassType = Array<object | string> | object | string;
 
-export type { BasicOption, BasicUserInfo, ClassType, SelectOption, TabOption };
+export type {
+  BasicOption,
+  BasicUserInfo,
+  ClassType,
+  SelectOption,
+  SimpleRole,
+  TabOption,
+};

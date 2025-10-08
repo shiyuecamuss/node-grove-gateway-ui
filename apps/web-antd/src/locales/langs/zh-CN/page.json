@@ -10,5 +10,29 @@
     "title": "概览",
     "analytics": "分析页",
     "workspace": "工作台"
+  },
+  "home": {
+    "title": "首页"
+  },
+  "system": {
+    "title": "系统管理",
+    "user": {
+      "title": "用户"
+    },
+    "role": {
+      "title": "角色"
+    },
+    "menu": {
+      "title": "菜单"
+    }
+  },
+  "northward": {
+    "title": "北向平台"
+  },
+  "southward": {
+    "title": "南向设备"
+  },
+  "driver": {
+    "title": "驱动管理"
   }
 }
