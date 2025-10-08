@@ -58,6 +58,7 @@ const [Modal, modalApi] = useVbenDrawer({
       recordId.value = i;
 
       if (t === FormOpenType.EDIT) {
+        await formApi.removeSchemaByFields(['password']);
         loading.value = true;
         await handleRequest(
           () => getUserById(recordId.value as IdType),
