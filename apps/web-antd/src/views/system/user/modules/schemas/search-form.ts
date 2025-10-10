@@ -9,8 +9,8 @@ import { CommonStatus } from '@vben/types';
 export const searchFormSchema: VbenFormSchema[] = [
   {
     component: 'Input',
-    fieldName: 'name',
-    label: $t('common.baseInfo.name'),
+    fieldName: 'username',
+    label: $t('page.system.user.username'),
     componentProps: {
       clearable: true,
     },
@@ -41,6 +41,8 @@ export const searchFormSchema: VbenFormSchema[] = [
     componentProps: {
       type: 'datetime',
       clearable: true,
+      showTime: true,
+      valueFormat: 'YYYY-MM-DDTHH:mm:ss.SSS[Z]',
     },
   },
   {
@@ -50,6 +52,8 @@ export const searchFormSchema: VbenFormSchema[] = [
     componentProps: {
       type: 'datetime',
       clearable: true,
+      showTime: true,
+      valueFormat: 'YYYY-MM-DDTHH:mm:ss.SSS[Z]',
     },
   },
 ];
