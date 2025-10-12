@@ -42,7 +42,7 @@ export const searchFormSchema: VbenFormSchema[] = [
       type: 'datetime',
       clearable: true,
       showTime: true,
-      valueFormat: 'YYYY-MM-DDTHH:mm:ss.SSS[Z]',
+      valueFormat: 'YYYY-MM-DDTHH:mm:ss.SSSZZ',
     },
   },
   {
@@ -53,7 +53,7 @@ export const searchFormSchema: VbenFormSchema[] = [
       type: 'datetime',
       clearable: true,
       showTime: true,
-      valueFormat: 'YYYY-MM-DDTHH:mm:ss.SSS[Z]',
+      valueFormat: 'YYYY-MM-DDTHH:mm:ss.SSSZZ',
     },
   },
 ];

@@ -22,7 +22,10 @@
       "email": "邮箱",
       "nickname": "昵称",
       "phone": "手机号",
-      "password": "密码"
+      "password": "密码",
+      "newPassword": "新密码",
+      "resetPassword": "重置密码",
+      "assignRole": "分配角色"
     },
     "role": {
       "title": "角色"

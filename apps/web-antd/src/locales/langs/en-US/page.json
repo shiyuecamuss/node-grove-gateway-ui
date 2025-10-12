@@ -22,7 +22,10 @@
       "email": "Email",
       "nickname": "Nickname",
       "phone": "Phone",
-      "password": "Password"
+      "password": "Password",
+      "newPassword": "New Password",
+      "resetPassword": "Reset Password",
+      "assignRole": "Assign Role"
     },
     "role": {
       "title": "Role"

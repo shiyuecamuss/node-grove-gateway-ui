@@ -4,13 +4,21 @@ import type { IdType, Recordable, UserInfo } from '@vben/types';
 
 import type { OnActionClickParams, VxeGridProps } from '#/adapter/vxe-table';
 
-import { confirm, Page, useVbenDrawer } from '@vben/common-ui';
+import { h } from 'vue';
+
+import {
+  confirm,
+  Page,
+  prompt,
+  useAlertContext,
+  useVbenDrawer,
+} from '@vben/common-ui';
 import { FormOpenType } from '@vben/constants';
 import { useRequestHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
 import { CommonStatus, EntityType } from '@vben/types';
 
-import { Button, message, Switch } from 'ant-design-vue';
+import { Button, Input, message, Switch } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
@@ -18,6 +26,7 @@ import {
   createUser,
   deleteUser,
   fetchUserPage,
+  resetUserPassword,
   updateUser,
 } from '#/api';
 
@@ -82,12 +91,20 @@ const [FormDrawer, formDrawerApi] = useVbenDrawer({
 
 function onActionClick({ code, row }: OnActionClickParams<UserInfo>) {
   switch (code) {
+    case 'assignRole': {
+      handleAssignRole(row);
+      break;
+    }
     case 'delete': {
       handleDelete(row);
       break;
     }
     case 'edit': {
       handleEdit(row);
+      break;
+    }
+    case 'resetPassword': {
+      handleResetPassword(row);
       break;
     }
     default: {
@@ -122,6 +139,42 @@ const handleEdit = (row: UserInfo) => {
     })
     .open();
 };
+
+const handleResetPassword = (row: UserInfo) => {
+  prompt({
+    component: () => {
+      // 获取弹窗上下文。注意：只能在setup或者函数式组件中调用
+      const { doConfirm } = useAlertContext();
+      return h(Input, {
+        onKeydown(e: KeyboardEvent) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            // 调用弹窗提供的确认方法
+            doConfirm();
+          }
+        },
+        placeholder: $t('ui.placeholder.inputWithName', {
+          name: $t('page.system.user.newPassword'),
+        }),
+      });
+    },
+    icon: 'question',
+    modelPropName: 'value',
+    content: '',
+    title: $t('page.system.user.resetPassword'),
+  }).then(async (val) => {
+    if (val) {
+      await handleRequest(
+        () => resetUserPassword(row.id, val),
+        (_) => {
+          message.success($t('common.action.resetSuccess'));
+        },
+      );
+    }
+  });
+};
+
+const handleAssignRole = (_row: UserInfo) => {};
 
 const handleDelete = async (row: UserInfo) => {
   confirm({

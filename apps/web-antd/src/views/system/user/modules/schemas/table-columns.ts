@@ -48,6 +48,16 @@ export function useColumns(
         name: 'CellOperation',
         options: [
           {
+            code: 'resetPassword',
+            icon: 'lucide:key',
+            tooltip: $t('page.system.user.resetPassword'),
+          },
+          {
+            code: 'assignRole',
+            icon: 'lucide:users',
+            tooltip: $t('page.system.user.assignRole'),
+          },
+          {
             code: 'edit',
             icon: 'lucide:edit',
             tooltip: $t('common.edit'),
@@ -56,6 +66,7 @@ export function useColumns(
             code: 'delete',
             icon: 'lucide:trash-2',
             tooltip: $t('common.delete'),
+            danger: true,
           },
         ],
       },
