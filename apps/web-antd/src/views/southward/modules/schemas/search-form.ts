@@ -4,13 +4,13 @@ import { $t } from '@vben/locales';
 import { CommonStatus } from '@vben/types';
 
 /**
- * Search form schema for user package list
+ * Search form schema for southward package list
  */
 export const searchFormSchema: VbenFormSchema[] = [
   {
     component: 'Input',
-    fieldName: 'username',
-    label: $t('page.system.user.username'),
+    fieldName: 'name',
+    label: $t('page.southward.channel.name'),
     componentProps: {
       clearable: true,
     },

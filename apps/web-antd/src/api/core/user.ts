@@ -56,7 +56,7 @@ export async function createUser(data: UserInfo) {
 /**
  * update user
  * @param data - User data
- * @returns Promise with update tenant response
+ * @returns Promise with update user response
  */
 export async function updateUser(data: UserInfo) {
   return requestClient.put(UserApi.base, data);
@@ -73,7 +73,7 @@ export async function deleteUser(id: IdType) {
 
 /**
  * get user by id
- * @param id - Tenant ID
+ * @param id - User ID
  * @returns Promise with user response
  */
 export async function getUserById(id: IdType) {

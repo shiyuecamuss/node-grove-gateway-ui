@@ -24,6 +24,10 @@ interface BasicUserInfo {
    */
   avatar: string;
   /**
+   * 邮箱
+   */
+  email?: string;
+  /**
    * 用户id
    */
   id: number | string;
@@ -31,6 +35,10 @@ interface BasicUserInfo {
    * 用户昵称
    */
   nickname: string;
+  /**
+   * 手机号码
+   */
+  phone?: string;
   /**
    * 用户角色
    */

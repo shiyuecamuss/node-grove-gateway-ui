@@ -38,7 +38,25 @@
     "title": "Northward"
   },
   "southward": {
-    "title": "Southward"
+    "title": "Southward",
+    "channel": {
+      "title": "Channel",
+      "name": "Name",
+      "driverType": "Driver Type",
+      "collectionType": {
+        "title": "Collection Type",
+        "collection": "Active Collection",
+        "report": "Passive Report"
+      },
+      "period": "Collection Period",
+      "reportType": {
+        "title": "Report Type",
+        "change": "Changed",
+        "always": "Always"
+      },
+      "subDevice": "Sub Device",
+      "configView": "Config View"
+    }
   },
   "driver": {
     "title": "Driver"

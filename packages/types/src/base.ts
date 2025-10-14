@@ -1,6 +1,6 @@
 import { TagColor } from './color';
 
-export type IdType = number | string;
+export type IdType = number | string | undefined;
 
 export const CommonStatus = {
   /**
