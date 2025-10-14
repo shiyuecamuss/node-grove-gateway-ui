@@ -38,7 +38,25 @@
     "title": "北向平台"
   },
   "southward": {
-    "title": "南向设备"
+    "title": "南向通道",
+    "channel": {
+      "title": "通道",
+      "name": "名称",
+      "driverType": "驱动类型",
+      "collectionType": {
+        "title": "采集类型",
+        "collection": "采集",
+        "report": "上报"
+      },
+      "period": "采集周期",
+      "reportType": {
+        "title": "上报类型",
+        "change": "变更上报",
+        "always": "固定上报"
+      },
+      "subDevice": "子设备",
+      "configView": "配置预览"
+    }
   },
   "driver": {
     "title": "驱动管理"
