@@ -45,8 +45,8 @@
       "driverType": "Driver Type",
       "collectionType": {
         "title": "Collection Type",
-        "collection": "Collection",
-        "report": "Report"
+        "collection": "Active Collection",
+        "report": "Passive Report"
       },
       "period": "Collection Period",
       "reportType": {

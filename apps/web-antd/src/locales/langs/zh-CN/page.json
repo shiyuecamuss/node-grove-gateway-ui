@@ -45,8 +45,8 @@
       "driverType": "驱动类型",
       "collectionType": {
         "title": "采集类型",
-        "collection": "采集",
-        "report": "上报"
+        "collection": "主动采集",
+        "report": "被动上报"
       },
       "period": "采集周期",
       "reportType": {
