@@ -16,7 +16,7 @@ export namespace ChannelApi {
   export const deleteChannel = (id: IdType) => `${base}/${id}`;
   export const getById = (id: IdType) => `${base}/detail/${id}`;
   export const changeStatus = `${base}/change-status`;
-  export const resetPassword = `${base}/reset-password`;
+
   /** channel page params */
   export interface ChannelPageParams
     extends CommonPageRequest,

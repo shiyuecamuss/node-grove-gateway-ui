@@ -17,6 +17,7 @@ export namespace UserApi {
   export const getById = (id: IdType) => `${base}/detail/${id}`;
   export const changeStatus = `${base}/change-status`;
   export const resetPassword = `${base}/reset-password`;
+
   /** user page params */
   export interface UserPageParams
     extends CommonPageRequest,

@@ -4,5 +4,7 @@ export type * from './channel';
 export * from './channel';
 export * from './color';
 export type * from './common';
+export * from './driver';
+export type * from './driver';
 export type * from './user';
 export type * from '@vben-core/typings';

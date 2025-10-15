@@ -59,6 +59,35 @@
     }
   },
   "driver": {
-    "title": "驱动管理"
+    "title": "驱动",
+    "name": "名称",
+    "description": "描述",
+    "driverType": "驱动类型",
+    "source": {
+      "title": "来源",
+      "builtIn": "内置",
+      "custom": "自定义"
+    },
+    "version": "版本",
+    "apiVersion": "API版本",
+    "sdkVersion": "SDK版本",
+    "osType": {
+      "title": "操作系统类型",
+      "windows": "Windows",
+      "linux": "Linux",
+      "macos": "Mac OS",
+      "unknown": "Unknown"
+    },
+    "osArch": {
+      "title": "操作系统架构",
+      "x86": "X86",
+      "arm64": "ARM64",
+      "arm": "ARM",
+      "unknown": "Unknown"
+    },
+    "size": "大小",
+    "path": "路径",
+    "checksum": "校验和",
+    "metadata": "元数据"
   }
 }

@@ -59,6 +59,35 @@
     }
   },
   "driver": {
-    "title": "Driver"
+    "title": "Driver",
+    "name": "Name",
+    "description": "Description",
+    "driverType": "Driver Type",
+    "source": {
+      "title": "Source",
+      "builtIn": "Built In",
+      "custom": "Custom"
+    },
+    "version": "Version",
+    "apiVersion": "API Version",
+    "sdkVersion": "SDK Version",
+    "osType": {
+      "title": "OS Type",
+      "windows": "Windows",
+      "linux": "Linux",
+      "macos": "Mac OS",
+      "unknown": "Unknown"
+    },
+    "osArch": {
+      "title": "OS Arch",
+      "x86": "X86",
+      "arm64": "ARM64",
+      "arm": "ARM",
+      "unknown": "Unknown"
+    },
+    "size": "Size",
+    "path": "Path",
+    "checksum": "Checksum",
+    "metadata": "Metadata"
   }
 }
