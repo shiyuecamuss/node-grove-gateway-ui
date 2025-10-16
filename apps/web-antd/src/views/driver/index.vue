@@ -1,11 +1,10 @@
 <script lang="ts" setup>
 import type { VbenFormProps } from '@vben/common-ui';
-import type { DriverInfo, IdType, Recordable, UserInfo } from '@vben/types';
+import type { DriverInfo } from '@vben/types';
 
 import type { OnActionClickParams, VxeGridProps } from '#/adapter/vxe-table';
 
-import { confirm, Page, useVbenDrawer } from '@vben/common-ui';
-import { FormOpenType } from '@vben/constants';
+import { confirm, Page, useVbenModal } from '@vben/common-ui';
 import { useRequestHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
 import { EntityType } from '@vben/types';
@@ -13,14 +12,9 @@ import { EntityType } from '@vben/types';
 import { Button, message } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import {
-  createUser,
-  fetchDriverPage,
-  uninstallDriver,
-  updateUser,
-} from '#/api';
+import { fetchDriverPage, uninstallDriver } from '#/api';
 
-import DriverForm from './modules/form.vue';
+import InstallDriver from './modules/install.vue';
 import { searchFormSchema, useColumns } from './modules/schemas';
 
 const { handleRequest } = useRequestHandler();
@@ -75,8 +69,8 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions,
 });
 
-const [FormDrawer, formDrawerApi] = useVbenDrawer({
-  connectedComponent: DriverForm,
+const [InstallDriverModal, installDriverModalApi] = useVbenModal({
+  connectedComponent: InstallDriver,
 });
 
 function onActionClick({ code, row }: OnActionClickParams<DriverInfo>) {
@@ -92,16 +86,7 @@ function onActionClick({ code, row }: OnActionClickParams<DriverInfo>) {
 }
 
 const handleInstall = () => {
-  formDrawerApi
-    .setData({
-      type: FormOpenType.CREATE,
-    })
-    .setState({
-      title: $t('common.createWithName', {
-        name: $t('page.system.user.title'),
-      }),
-    })
-    .open();
+  installDriverModalApi.open();
 };
 
 const handleUninstall = async (row: DriverInfo) => {
@@ -126,31 +111,6 @@ const handleUninstall = async (row: DriverInfo) => {
     })
     .catch(() => {});
 };
-
-const handleFormSubmit = async (
-  type: FormOpenType,
-  id: IdType | undefined,
-  values: Recordable<any>,
-) => {
-  await (type === FormOpenType.CREATE
-    ? handleRequest(
-        () => createUser(values as UserInfo),
-        (_) => {
-          message.success($t('common.action.createSuccess'));
-        },
-      )
-    : handleRequest(
-        () =>
-          updateUser({
-            id,
-            ...values,
-          } as UserInfo),
-        (_) => {
-          message.success($t('common.action.updateSuccess'));
-        },
-      ));
-  await gridApi.query();
-};
 </script>
 
 <template>
@@ -164,6 +124,6 @@ const handleFormSubmit = async (
         </Button>
       </template>
     </Grid>
-    <FormDrawer @submit="handleFormSubmit" />
+    <InstallDriverModal />
   </Page>
 </template>

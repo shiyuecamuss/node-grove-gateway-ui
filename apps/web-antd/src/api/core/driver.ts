@@ -4,6 +4,7 @@ import type {
   CommonStatus,
   CommonTimeRangeRequest,
   DriverInfo,
+  DriverProbeInfo,
   IdType,
 } from '@vben/types';
 
@@ -14,6 +15,7 @@ export namespace DriverApi {
   export const list = `${base}/list`;
   export const page = `${base}/page`;
   export const install = `${base}/install`;
+  export const preview = `${base}/probe`;
   export const uninstall = (id: IdType) => `${base}/${id}`;
   export const getById = (id: IdType) => `${base}/detail/${id}`;
 
@@ -23,6 +25,13 @@ export namespace DriverApi {
       CommonTimeRangeRequest {
     name?: string;
     status?: (typeof CommonStatus)[keyof typeof CommonStatus];
+  }
+
+  export interface InstallDriverParams {
+    file: File;
+    onError?: (error: Error) => void;
+    onProgress?: (progress: { percent: number }) => void;
+    onSuccess?: (data: any, file: File) => void;
   }
 }
 
@@ -39,11 +48,45 @@ export async function fetchDriverPage(params: DriverApi.DriverPageParams) {
 
 /**
  * install driver
- * @param data - Driver data
+ * @param params - Install driver params
  * @returns Promise with install driver response
  */
-export async function installDriver(data: DriverInfo) {
-  return requestClient.post(DriverApi.install, data);
+export async function installDriver(params: DriverApi.InstallDriverParams) {
+  try {
+    params.onProgress?.({ percent: 0 });
+
+    const data = await requestClient.upload(DriverApi.install, {
+      file: params.file,
+    });
+
+    params.onProgress?.({ percent: 100 });
+    params.onSuccess?.(data, params.file);
+  } catch (error) {
+    params.onError?.(error instanceof Error ? error : new Error(String(error)));
+  }
+}
+
+/**
+ * preview driver
+ * @param params - Preview driver params
+ * @returns Promise with preview response
+ */
+export async function previewDriver(params: DriverApi.InstallDriverParams) {
+  try {
+    params.onProgress?.({ percent: 0 });
+
+    const data: DriverProbeInfo = await requestClient.upload(
+      DriverApi.preview,
+      {
+        file: params.file,
+      },
+    );
+
+    params.onProgress?.({ percent: 100 });
+    params.onSuccess?.(data, params.file);
+  } catch (error) {
+    params.onError?.(error instanceof Error ? error : new Error(String(error)));
+  }
 }
 
 /**

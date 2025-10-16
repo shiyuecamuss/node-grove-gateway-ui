@@ -60,6 +60,9 @@ const TreeSelect = defineAsyncComponent(
   () => import('ant-design-vue/es/tree-select'),
 );
 const Upload = defineAsyncComponent(() => import('ant-design-vue/es/upload'));
+const UploadDragger = defineAsyncComponent(() =>
+  import('ant-design-vue/es/upload').then((res) => res.UploadDragger),
+);
 
 const withDefaultPlaceholder = <T extends Component>(
   component: T,
@@ -190,6 +193,7 @@ async function initComponentAdapter() {
     TimePicker,
     TreeSelect: withDefaultPlaceholder(TreeSelect, 'select'),
     Upload,
+    UploadDragger,
   };
 
   // 将组件注册到全局共享状态中

@@ -88,6 +88,12 @@
     "size": "Size",
     "path": "Path",
     "checksum": "Checksum",
-    "metadata": "Metadata"
+    "metadata": "Metadata",
+    "install": {
+      "uploadText": "Please upload the driver file",
+      "step1": "Upload",
+      "step2": "Preview",
+      "step3": "Install"
+    }
   }
 }

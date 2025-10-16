@@ -7,4 +7,4 @@ export type * from './common';
 export * from './driver';
 export type * from './driver';
 export type * from './user';
-export type * from '@vben-core/typings';
+export * from '@vben-core/typings';
