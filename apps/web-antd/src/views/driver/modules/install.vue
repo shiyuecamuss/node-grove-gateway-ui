@@ -50,6 +50,9 @@ async function handlePreviewUpload(options: any) {
         options.onSuccess?.(data, f);
         message.success($t('common.action.importSuccess'));
       },
+      onError: (err) => {
+        options.onError?.(err);
+      },
     });
   } catch (error: any) {
     options.onError?.(error);
