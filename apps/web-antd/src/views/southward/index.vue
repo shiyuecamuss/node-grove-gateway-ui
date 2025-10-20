@@ -22,7 +22,7 @@ import {
 } from '#/api';
 
 import ConfigViewer from './modules/config-viewer.vue';
-import UserForm from './modules/form.vue';
+import ChannelForm from './modules/form.vue';
 import { searchFormSchema, useColumns } from './modules/schemas';
 
 const { handleRequest } = useRequestHandler();
@@ -78,7 +78,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
 });
 
 const [FormDrawer, formDrawerApi] = useVbenDrawer({
-  connectedComponent: UserForm,
+  connectedComponent: ChannelForm,
 });
 
 const [ConfigViewerModal, configViewerModalApi] = useVbenModal({
@@ -112,7 +112,7 @@ const handleCreate = () => {
     })
     .setState({
       title: $t('common.createWithName', {
-        name: $t('page.system.user.title'),
+        name: $t('page.southward.title'),
       }),
     })
     .open();

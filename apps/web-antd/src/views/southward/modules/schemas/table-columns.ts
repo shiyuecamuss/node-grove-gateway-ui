@@ -4,7 +4,8 @@ import type { ChannelInfo } from '@vben/types';
 import type { OnActionClickFn } from '#/adapter/vxe-table';
 
 import { $t } from '@vben/locales';
-import { CollectionType, ReportType } from '@vben/types';
+
+import { collectionTypeOptions, reportTypeOptions } from '.';
 
 /**
  * Table columns configuration for tenant package list
@@ -87,36 +88,6 @@ export function useColumns(
       showOverflow: false,
       title: $t('common.actions'),
       width: 200,
-    },
-  ];
-}
-
-function collectionTypeOptions() {
-  return [
-    {
-      color: 'cyan',
-      label: $t('page.southward.channel.collectionType.collection'),
-      value: CollectionType.Collection,
-    },
-    {
-      color: 'purple',
-      label: $t('page.southward.channel.collectionType.report'),
-      value: CollectionType.Report,
-    },
-  ];
-}
-
-function reportTypeOptions() {
-  return [
-    {
-      color: 'volcano',
-      label: $t('page.southward.channel.reportType.change'),
-      value: ReportType.Change,
-    },
-    {
-      color: 'magenta',
-      label: $t('page.southward.channel.reportType.always'),
-      value: ReportType.Always,
     },
   ];
 }

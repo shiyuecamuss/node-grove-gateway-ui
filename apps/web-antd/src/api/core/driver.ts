@@ -18,6 +18,7 @@ export namespace DriverApi {
   export const preview = `${base}/probe`;
   export const uninstall = (id: IdType) => `${base}/${id}`;
   export const getById = (id: IdType) => `${base}/detail/${id}`;
+  export const getSchemasById = (id: IdType) => `${base}/metadata/${id}`;
 
   /** driver page params */
   export interface DriverPageParams
@@ -44,6 +45,14 @@ export async function fetchDriverPage(params: DriverApi.DriverPageParams) {
   return requestClient.get<CommonPageResponse<DriverInfo>>(DriverApi.page, {
     params,
   });
+}
+
+/**
+ * fetch all drivers
+ * @returns Promise with all drivers response
+ */
+export async function fetchAllDrivers() {
+  return requestClient.get<Array<DriverInfo>>(DriverApi.list);
 }
 
 /**
@@ -105,4 +114,12 @@ export async function uninstallDriver(id: IdType) {
  */
 export async function getDriverById(id: IdType) {
   return requestClient.get<DriverInfo>(DriverApi.getById(id));
+}
+
+/**
+ * get driver schemas (DriverSchemas) by id
+ * @param id - Driver ID
+ */
+export async function fetchDriverSchemasById(id: IdType) {
+  return requestClient.get<any>(DriverApi.getSchemasById(id));
 }

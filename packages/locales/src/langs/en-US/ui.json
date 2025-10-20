@@ -15,6 +15,14 @@
     "delete": "Delete {0}",
     "view": "View {0}"
   },
+  "help": {
+    "unit": "Unit",
+    "unitWithName": "Unit: {unit}"
+  },
+  "unit": {
+    "seconds": "Seconds",
+    "milliseconds": "Milliseconds"
+  },
   "actionMessage": {
     "deleteConfirm": "Are you sure to delete {0}?",
     "deleting": "Deleting {0} ...",

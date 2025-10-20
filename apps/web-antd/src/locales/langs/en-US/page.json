@@ -39,9 +39,14 @@
   },
   "southward": {
     "title": "Southward",
+    "form": {
+      "step1": "Basic Configuration",
+      "step2": "Channel Configuration"
+    },
     "channel": {
       "title": "Channel",
       "name": "Name",
+      "driver": "Driver",
       "driverType": "Driver Type",
       "collectionType": {
         "title": "Collection Type",

@@ -1,88 +1,80 @@
 import type { VbenFormSchema as FormSchema } from '@vben/common-ui';
 
-import { z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
+import { CollectionType, ReportType } from '@vben/types';
 
-import { parsePhoneNumber } from 'awesome-phonenumber';
+import { collectionTypeOptions, reportTypeOptions } from '.';
 
-export const formSchema: FormSchema[] = [
-  {
-    component: 'Input',
-    componentProps: {
-      clearable: true,
-      placeholder: $t('ui.placeholder.inputWithName', {
-        name: $t('page.system.user.username'),
-      }),
+export function useBasicFormSchema(): FormSchema[] {
+  return [
+    {
+      component: 'Input',
+      componentProps: {
+        clearable: true,
+        placeholder: $t('ui.placeholder.inputWithName', {
+          name: $t('page.southward.channel.name'),
+        }),
+      },
+      fieldName: 'name',
+      label: $t('page.southward.channel.name'),
+      rules: 'required',
     },
-    fieldName: 'username',
-    label: $t('page.system.user.username'),
-    rules: 'required',
-  },
-  {
-    component: 'Input',
-    componentProps: {
-      clearable: true,
-      placeholder: $t('ui.placeholder.inputWithName', {
-        name: $t('page.system.user.nickname'),
-      }),
+    {
+      component: 'Input',
+      fieldName: 'driverId',
+      label: $t('page.southward.channel.driver'),
+      rules: 'required',
+      controlClass: 'w-full',
     },
-    fieldName: 'nickname',
-    label: $t('page.system.user.nickname'),
-    rules: 'required',
-  },
-  {
-    component: 'Input',
-    componentProps: {
-      clearable: true,
-      placeholder: $t('ui.placeholder.inputWithName', {
-        name: $t('page.system.user.phone'),
-      }),
+    {
+      component: 'Select',
+      componentProps: {
+        clearable: true,
+        placeholder: $t('ui.placeholder.selectWithName', {
+          name: $t('page.southward.channel.collectionType.title'),
+        }),
+        options: collectionTypeOptions(),
+      },
+      fieldName: 'collectionType',
+      label: $t('page.southward.channel.collectionType.title'),
+      rules: 'required',
+      controlClass: 'w-full',
+      defaultValue: CollectionType.Collection,
     },
-    fieldName: 'phone',
-    label: $t('page.system.user.phone'),
-    rules: z
-      .string()
-      .refine(
-        (value) => {
-          // 如果值为空或只包含国家代码（如+86），不进行验证
-          if (
-            !value ||
-            value.trim() === '' ||
-            /^\+\d{1,3}$/.test(value.trim())
-          ) {
-            return true;
-          }
-          const phone = parsePhoneNumber(value);
-          return phone.valid;
+    {
+      component: 'InputNumber',
+      fieldName: 'period',
+      label: $t('page.southward.channel.period'),
+      help: $t('ui.help.unitWithName', {
+        unit: $t('ui.unit.milliseconds'),
+      }),
+      controlClass: 'w-full',
+      dependencies: {
+        triggerFields: ['collectionType'],
+        if: (values) => {
+          return values.collectionType === CollectionType.Collection;
         },
-        {
-          message: $t('errors.invalidPhone'),
+        rules: (values) => {
+          return values.collectionType === CollectionType.Collection
+            ? 'required'
+            : null;
         },
-      )
-      .optional(),
-  },
-  {
-    component: 'Input',
-    componentProps: {
-      clearable: true,
-      placeholder: $t('ui.placeholder.inputWithName', {
-        name: $t('page.system.user.email'),
-      }),
+      },
     },
-    fieldName: 'email',
-    label: $t('page.system.user.email'),
-    rules: z.string().email($t('errors.invalidEmail')).optional(),
-  },
-  {
-    component: 'InputPassword',
-    componentProps: {
-      clearable: true,
-      placeholder: $t('ui.placeholder.inputWithName', {
-        name: $t('page.system.user.password'),
-      }),
+    {
+      component: 'Select',
+      componentProps: {
+        clearable: true,
+        placeholder: $t('ui.placeholder.selectWithName', {
+          name: $t('page.southward.channel.reportType.title'),
+        }),
+        options: reportTypeOptions(),
+      },
+      fieldName: 'reportType',
+      label: $t('page.southward.channel.reportType.title'),
+      rules: 'required',
+      controlClass: 'w-full',
+      defaultValue: ReportType.Change,
     },
-    fieldName: 'password',
-    label: $t('page.system.user.password'),
-    rules: 'required',
-  },
-];
+  ];
+}
