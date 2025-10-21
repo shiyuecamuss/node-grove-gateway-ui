@@ -4,7 +4,7 @@ import type { DriverInfo, IdType, Recordable } from '@vben/types';
 
 import type { DriverSchemas } from './schemas/driver';
 
-import { nextTick, ref, watch } from 'vue';
+import { nextTick, ref } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
 import { FormOpenType } from '@vben/constants';
@@ -14,11 +14,11 @@ import { $t } from '@vben/locales';
 import { Card, Select, Step, Steps, Tag } from 'ant-design-vue';
 
 import { useVbenForm } from '#/adapter/form';
-import { fetchAllDrivers, getUserById } from '#/api/core';
+import { fetchAllDrivers, getChannelById } from '#/api/core';
 import { fetchDriverSchemasById } from '#/api/core/driver';
 
 import { useBasicFormSchema } from './schemas';
-import { assignByPath, mapChannelSchemasToForm } from './schemas/driver';
+import { mapChannelSchemasToForm, sortDriverSchemas } from './schemas/driver';
 
 defineOptions({ name: 'ChannelForm' });
 
@@ -33,7 +33,6 @@ const type = ref(FormOpenType.CREATE);
 const recordId = ref<IdType | undefined>(undefined);
 const loading = ref(false);
 const drivers = ref<DriverInfo[]>([]);
-const driverSchemas = ref<DriverSchemas | null>(null);
 
 // 初始化表单
 const [Form, formApi] = useVbenForm({
@@ -62,8 +61,13 @@ const [DriverForm, driverFormApi] = useVbenForm({
   commonConfig: {
     labelClass: 'text-[14px] w-1/6',
   },
-  submitButtonOptions: { show: false },
-  resetButtonOptions: { show: false },
+  handleReset: () => {
+    currentTab.value = 0;
+  },
+  resetButtonOptions: {
+    content: $t('common.previous'),
+  },
+  wrapperClass: 'grid-cols-2 md:grid-cols-2 lg:grid-cols-2',
 });
 
 const [Modal, modalApi] = useVbenDrawer({
@@ -76,17 +80,8 @@ const [Modal, modalApi] = useVbenDrawer({
   onConfirm: async () => {
     const step1 = await formApi.validateAndSubmitForm();
     if (!step1) return;
-    const step2 = await driverFormApi.getValues<Recordable<any>>();
-    const driverConfig: Recordable<any> = {};
-    if (driverSchemas.value) {
-      // take fields from channel schema to compose nested object
-      const flatten = Object.entries(step2 || {});
-      for (const [k, v] of flatten) {
-        assignByPath(driverConfig, k, v);
-      }
-    }
+    const driverConfig = await formApi.merge(driverFormApi).submitAllForm(true);
     const payload = { ...step1, driver_config: driverConfig };
-
     console.warn('payload', payload);
     // modalApi.close();
   },
@@ -110,7 +105,7 @@ const [Modal, modalApi] = useVbenDrawer({
         await formApi.removeSchemaByFields(['password']);
         loading.value = true;
         await handleRequest(
-          () => getUserById(recordId.value as IdType),
+          () => getChannelById(recordId.value as IdType),
           (data) => {
             formApi.setValues(data);
             loading.value = false;
@@ -132,29 +127,23 @@ function filterOption(
   return option?.label?.toLowerCase().includes(input.toLowerCase()) ?? false;
 }
 
-// watch driverId change to fetch dynamic schemas
-watch(
-  async () => {
-    const vals = await formApi.getValues();
-    return vals?.driverId;
-  },
-  async (driverId) => {
-    if (!driverId) {
-      driverSchemas.value = null;
-      driverFormApi.setState({ schema: [] });
-      return;
-    }
-    await handleRequest(
-      () => fetchDriverSchemasById(driverId as unknown as IdType),
-      (schemas: DriverSchemas) => {
-        driverSchemas.value = schemas;
-        const schema = mapChannelSchemasToForm(schemas);
-        driverFormApi.setState({ schema });
-      },
-    );
-  },
-  { immediate: false },
-);
+async function onDriverIdChange(value: any, _option?: any) {
+  const id = Array.isArray(value) ? value[0] : value;
+  if (id === undefined || id === null) {
+    driverFormApi.updateSchema([]);
+    return;
+  }
+  console.warn('value', id);
+  await handleRequest(
+    () => fetchDriverSchemasById(id as unknown as IdType),
+    (schemas: DriverSchemas) => {
+      const sorted = sortDriverSchemas(schemas);
+      const formSchemas = mapChannelSchemasToForm(sorted);
+      driverFormApi.setValues({});
+      driverFormApi.updateSchema(formSchemas);
+    },
+  );
+}
 </script>
 
 <template>
@@ -169,6 +158,7 @@ watch(
           <template #driverId="slotProps">
             <Select
               v-bind="slotProps"
+              @change="onDriverIdChange"
               :allow-clear="true"
               :show-search="true"
               :filter-option="filterOption"

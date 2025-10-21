@@ -1,8 +1,9 @@
 import type { VbenFormSchema as FormSchema } from '@vben/common-ui';
+import type { Nullable } from '@vben/types';
 
 import { $t } from '@vben/locales';
 
-// ---------- Types aligned with backend DriverSchemas ----------
+import { z } from '#/adapter/form';
 
 export interface DriverSchemas {
   channel: Node[];
@@ -21,7 +22,8 @@ export interface FieldNode {
   data_type: UiDataType;
   required: boolean;
   default_value?: any;
-  format?: null | string;
+  // Prefer node-level order; fallback to ui.order for backward compatibility
+  order?: Nullable<number>;
   ui?: UiProps;
   rules?: Rules;
   when?: When[];
@@ -31,13 +33,17 @@ export interface GroupNode {
   kind: 'Group';
   id: string;
   label: string;
-  description?: null | string;
+  description?: Nullable<string>;
   collapsible: boolean;
+  // Prefer node-level order for groups
+  order?: Nullable<number>;
   children: Node[];
 }
 
 export interface UnionNode {
   kind: 'Union';
+  // Prefer node-level order for unions
+  order?: Nullable<number>;
   discriminator: string; // fieldName used as switcher
   mapping: UnionCase[];
 }
@@ -63,26 +69,25 @@ export interface EnumItem {
 }
 
 export interface UiProps {
-  widget?: null | string;
-  placeholder?: null | string;
-  help?: null | string;
-  prefix?: null | string;
-  suffix?: null | string;
-  col_span?: null | number;
-  order?: null | number;
-  read_only?: boolean | null;
-  disabled?: boolean | null;
+  placeholder?: Nullable<string>;
+  format?: Nullable<string>;
+  help?: Nullable<string>;
+  prefix?: Nullable<string>;
+  suffix?: Nullable<string>;
+  col_span?: Nullable<number>;
+  read_only?: Nullable<boolean>;
+  disabled?: Nullable<boolean>;
 }
 
 export interface Rules {
-  min?: null | number;
-  max?: null | number;
-  min_length?: null | number;
-  max_length?: null | number;
-  pattern?: null | string;
-  min_items?: null | number;
-  max_items?: null | number;
-  unique_items?: boolean | null;
+  min?: Nullable<number>;
+  max?: Nullable<number>;
+  min_length?: Nullable<number>;
+  max_length?: Nullable<number>;
+  pattern?: Nullable<string>;
+  min_items?: Nullable<number>;
+  max_items?: Nullable<number>;
+  unique_items?: Nullable<boolean>;
 }
 
 export interface When {
@@ -103,7 +108,7 @@ export interface When {
     | 'Prefix'
     | 'Regex'
     | 'Suffix';
-  value?: ConditionValue | null;
+  value?: Nullable<ConditionValue>;
   effect:
     | 'Disable'
     | 'Enable'
@@ -111,6 +116,50 @@ export interface When {
     | 'Optional'
     | 'Require'
     | 'Visible';
+}
+
+function getNodeOrder(node: Node): number {
+  const order = (node as any).order;
+  return order === null || order === undefined ? 0 : Number(order);
+}
+
+function sortNodes(nodes: Node[] | undefined): Node[] {
+  if (!nodes || nodes.length === 0) return [];
+  return nodes
+    .map((n) => sortNode(n))
+    .sort((a, b) => getNodeOrder(a) - getNodeOrder(b));
+}
+
+function sortNode(node: Node): Node {
+  switch (node.kind) {
+    case 'Field': {
+      return node;
+    }
+    case 'Group': {
+      return {
+        ...node,
+        children: sortNodes(node.children),
+      };
+    }
+    case 'Union': {
+      return {
+        ...node,
+        mapping: node.mapping.map((m) => ({
+          ...m,
+          children: sortNodes(m.children),
+        })),
+      };
+    }
+  }
+}
+
+export function sortDriverSchemas(schemas: DriverSchemas): DriverSchemas {
+  return {
+    channel: sortNodes(schemas.channel),
+    device: sortNodes(schemas.device),
+    point: sortNodes(schemas.point),
+    action: sortNodes(schemas.action),
+  };
 }
 
 // serde enum is represented like { StringValue: "..." } etc.
@@ -134,10 +183,49 @@ function extractConditionPrimitive(val?: ConditionValue | null): any {
 
 export function mapChannelSchemasToForm(schemas: DriverSchemas): FormSchema[] {
   const result: FormSchema[] = [];
-  for (const node of schemas.channel ?? []) {
-    result.push(...mapNode(node, undefined));
+  const flattened = flattenForFormOrdering(
+    schemas.channel ?? [],
+    undefined,
+  ).sort((a, b) => getNodeOrder(a.node) - getNodeOrder(b.node));
+  for (const item of flattened) {
+    result.push(...mapNode(item.node, item.discriminator));
   }
   return result;
+}
+
+type DiscriminatorGuard = { equals: string; field: string };
+type FlattenItem = { discriminator?: DiscriminatorGuard; node: Node };
+
+function flattenForFormOrdering(
+  nodes: Node[],
+  discriminator?: DiscriminatorGuard,
+): FlattenItem[] {
+  const out: FlattenItem[] = [];
+  for (const node of nodes) {
+    switch (node.kind) {
+      case 'Field': {
+        out.push({ discriminator, node });
+        break;
+      }
+      case 'Group': {
+        out.push({ discriminator, node });
+        break;
+      }
+      case 'Union': {
+        for (const c of node.mapping) {
+          const next: DiscriminatorGuard = {
+            equals: c.case_value,
+            field: node.discriminator,
+          };
+          for (const child of c.children ?? []) {
+            out.push(...flattenForFormOrdering([child], next));
+          }
+        }
+        break;
+      }
+    }
+  }
+  return out;
 }
 
 function mapNode(
@@ -181,12 +269,21 @@ function mapField(
     fieldName: node.path,
     label: $t(node.label),
     defaultValue: node.default_value ?? undefined,
+    formItemClass: `col-span-${node.ui?.col_span ?? 2}`,
   };
 
   // ui props
   if (node.ui?.placeholder) {
     const prev = (base.componentProps ?? {}) as Record<string, any>;
     base.componentProps = { ...prev, placeholder: $t(node.ui.placeholder) };
+  }
+  if (node.ui?.prefix) {
+    const prev = (base.componentProps ?? {}) as Record<string, any>;
+    base.componentProps = { ...prev, prefix: node.ui.prefix } as any;
+  }
+  if (node.ui?.suffix) {
+    const prev = (base.componentProps ?? {}) as Record<string, any>;
+    base.componentProps = { ...prev, suffix: node.ui.suffix } as any;
   }
   if (
     node.ui &&
@@ -201,8 +298,7 @@ function mapField(
     base.componentProps = { ...prev, disabled: !!node.ui.disabled } as any;
   }
 
-  // required & number ranges
-  if (node.required) base.rules = 'required';
+  // component prop hints (min/max, maxLength, etc.)
   if (node.data_type.kind === 'Integer' || node.data_type.kind === 'Float') {
     const cp: any = { ...((base.componentProps ?? {}) as any) };
     if (node.rules?.min !== null && node.rules?.min !== undefined)
@@ -211,6 +307,14 @@ function mapField(
       cp.max = node.rules?.max;
     base.componentProps = cp;
   }
+
+  if (node.data_type.kind === 'String') {
+    const cp: any = { ...((base.componentProps ?? {}) as any) };
+    if (node.rules?.max_length !== null && node.rules?.max_length !== undefined)
+      cp.maxLength = node.rules?.max_length;
+    base.componentProps = cp;
+  }
+
   if (node.data_type.kind === 'Enum') {
     const prev = (base.componentProps ?? {}) as Record<string, any>;
     base.componentProps = {
@@ -223,7 +327,10 @@ function mapField(
     } as any;
   }
 
-  // when conditions: implement Visible/Require minimal support
+  // base rules using z or tokens
+  base.rules = buildRuleForNode(node, node.required);
+
+  // when conditions: implement Visible/Require/Optional/Enable/Disable support
   if ((node.when && node.when.length > 0) || discriminator) {
     base.dependencies = base.dependencies || ({ triggerFields: [] } as any);
     const dep: any = base.dependencies;
@@ -261,43 +368,40 @@ function mapField(
           }
         }
       }
-      return required ? 'required' : null;
+      return buildRuleForNode(node, required);
+    };
+    dep.disabled = (values: Record<string, any>) => {
+      let disabled = !!node.ui?.disabled;
+      if (node.when) {
+        for (const w of node.when) {
+          const val = values[w.target];
+          const target = extractConditionPrimitive(w.value);
+          if (evalOperator(w.operator, val, target)) {
+            if (w.effect === 'Disable') disabled = true;
+            if (w.effect === 'Enable') disabled = false;
+          }
+        }
+      }
+      return disabled;
     };
   }
 
   return base;
 }
 
+const COMPONENT_BY_KIND: Record<UiDataType['kind'], any> = {
+  Array: 'InputTextArea',
+  Boolean: 'Switch',
+  Enum: 'Select',
+  Float: 'InputNumber',
+  Integer: 'InputNumber',
+  Json: 'InputTextArea',
+  Object: 'InputTextArea',
+  String: 'Input',
+};
+
 function resolveComponent(node: FieldNode): any {
-  switch (node.data_type.kind) {
-    case 'Array': {
-      return 'Input';
-    }
-    case 'Boolean': {
-      return 'Switch';
-    }
-    case 'Enum': {
-      return 'Select';
-    }
-    case 'Float': {
-      return 'InputNumber';
-    }
-    case 'Integer': {
-      return 'InputNumber';
-    }
-    case 'Json': {
-      return 'Input';
-    }
-    case 'Object': {
-      return 'Input';
-    }
-    case 'String': {
-      return 'Input';
-    }
-    default: {
-      return 'Input';
-    }
-  }
+  return COMPONENT_BY_KIND[node.data_type.kind] ?? 'Input';
 }
 
 function evalOperator(op: When['operator'], left: any, right: any): boolean {
@@ -366,16 +470,59 @@ function evalOperator(op: When['operator'], left: any, right: any): boolean {
   }
 }
 
-// ---------- Helpers ----------
+// ---------------- zod rule builders ----------------
+function buildRuleForNode(node: FieldNode, required: boolean) {
+  const schema = buildZodSchema(node.data_type, node.rules);
+  if (!schema) return required ? 'required' : null;
+  return required ? schema : schema.optional();
+}
 
-export function assignByPath(target: any, path: string, value: any) {
-  const segments: string[] = path.split('.');
-  let cur: Record<string, any> = target as Record<string, any>;
-  for (let i = 0; i < segments.length - 1; i++) {
-    const seg = segments[i] as string;
-    if (!cur[seg] || typeof cur[seg] !== 'object') cur[seg] = {};
-    cur = cur[seg] as Record<string, any>;
-  }
-  const last = segments[segments.length - 1] as string;
-  cur[last] = value;
+type ZodBuilder = (dataType: UiDataType, rules?: Rules) => any;
+
+const ZOD_BUILDERS: Partial<Record<UiDataType['kind'], ZodBuilder>> = {
+  Array: (dataType, rules) => {
+    const dt = dataType as Extract<UiDataType, { kind: 'Array' }>;
+    const inner = buildZodSchema(dt.items, rules) ?? z.any();
+    let s = z.array(inner);
+    if (rules?.min_items !== null && rules?.min_items !== undefined)
+      s = s.min(rules.min_items);
+    if (rules?.max_items !== null && rules?.max_items !== undefined)
+      s = s.max(rules.max_items);
+    return s;
+  },
+  Boolean: () => z.boolean(),
+  Enum: () => null,
+  Float: (_dataType, rules) => {
+    let s = z.number();
+    if (rules?.min !== null && rules?.min !== undefined) s = s.min(rules.min);
+    if (rules?.max !== null && rules?.max !== undefined) s = s.max(rules.max);
+    return s;
+  },
+  Integer: (_dataType, rules) => {
+    let s = z.number();
+    if (rules?.min !== null && rules?.min !== undefined) s = s.min(rules.min);
+    if (rules?.max !== null && rules?.max !== undefined) s = s.max(rules.max);
+    return s;
+  },
+  Json: () => null,
+  Object: () => null,
+  String: (_dataType, rules) => {
+    let s = z.string();
+    if (rules?.min_length !== null && rules?.min_length !== undefined)
+      s = s.min(rules.min_length);
+    if (rules?.max_length !== null && rules?.max_length !== undefined)
+      s = s.max(rules.max_length);
+    if (rules?.pattern) {
+      try {
+        s = s.regex(new RegExp(rules.pattern));
+      } catch {}
+    }
+    return s;
+  },
+};
+
+function buildZodSchema(dataType: UiDataType, rules?: Rules): any {
+  const builder = ZOD_BUILDERS[dataType.kind];
+  if (!builder) return null;
+  return builder(dataType as any, rules);
 }
