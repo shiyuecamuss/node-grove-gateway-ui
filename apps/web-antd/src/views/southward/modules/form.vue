@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { FormOpenData } from '@vben/constants';
-import type { DriverInfo, IdType, Recordable } from '@vben/types';
+import type { ChannelInfo, DriverInfo, IdType, Recordable } from '@vben/types';
 
 import type { DriverSchemas } from './schemas/driver';
 
@@ -16,7 +16,7 @@ import { set } from '@vben-core/shared/utils';
 import { Card, Select, Step, Steps, Tag } from 'ant-design-vue';
 
 import { useVbenForm } from '#/adapter/form';
-import { fetchAllDrivers, getChannelById } from '#/api/core';
+import { createChannel, fetchAllDrivers, getChannelById } from '#/api/core';
 import { fetchDriverSchemasById } from '#/api/core/driver';
 
 import { useBasicFormSchema, useConnectPolicyFormSchema } from './schemas';
@@ -80,13 +80,16 @@ const [DriverForm, driverFormApi] = useVbenForm({
     const config = await basicFormApi
       .merge(connectPolicyFormApi)
       .submitAllForm(true);
-    console.warn('config', config);
-    console.warn('driverConfig', driverConfig);
     const payload = {
       ...config,
       driverConfig,
     };
-    console.warn('payload', payload);
+    handleRequest(
+      () => createChannel(payload as ChannelInfo),
+      () => {
+        modalApi.close();
+      },
+    );
   },
   schema: [],
   commonConfig: {
