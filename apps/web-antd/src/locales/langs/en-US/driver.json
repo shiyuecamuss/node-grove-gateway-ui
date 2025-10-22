@@ -1,0 +1,61 @@
+{
+  "builtin": {
+    "modbus": {
+      "connection": {
+        "kind": "Connection Type",
+        "tcp": "TCP",
+        "rtu": "RTU",
+        "address": "Address",
+        "port": "Port",
+        "baudRate": "Baud Rate",
+        "dataBits": {
+          "title": "Data Bits",
+          "five": "5",
+          "six": "6",
+          "seven": "7",
+          "eight": "8"
+        },
+        "stopBits": {
+          "title": "Stop Bits",
+          "one": "1",
+          "two": "2"
+        },
+        "parity": {
+          "title": "Parity",
+          "none": "None",
+          "odd": "Odd",
+          "even": "Even"
+        },
+        "timeout": "Timeout"
+      },
+      "readTimeout": "Read Timeout",
+      "writeTimeout": "Write Timeout",
+      "byteOrder": {
+        "title": "Byte Order",
+        "bigEndian": "Big Endian",
+        "littleEndian": "Little Endian"
+      },
+      "wordOrder": {
+        "title": "Word Order",
+        "bigEndian": "Big Endian",
+        "littleEndian": "Little Endian"
+      },
+      "maxGap": "Max Gap",
+      "maxBatch": "Max Batch",
+      "slaveId": "Slave ID",
+      "functionCode": {
+        "title": "Function Code",
+        "readCoils": "Read Coils",
+        "readDiscreteInputs": "Read Discrete Inputs",
+        "readHoldingRegisters": "Read Holding Registers",
+        "readInputRegisters": "Read Input Registers",
+        "writeSingleCoil": "Write Single Coil",
+        "writeSingleRegister": "Write Single Register",
+        "writeMultipleCoils": "Write Multiple Coils",
+        "writeMultipleRegisters": "Write Multiple Registers"
+      },
+      "address": "Address",
+      "quantity": "Quantity"
+    }
+  }
+}

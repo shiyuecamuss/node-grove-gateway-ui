@@ -54,8 +54,12 @@ const [Form, formApi] = useVbenForm({
 
 // Step 2 dynamic driver form
 const [DriverForm, driverFormApi] = useVbenForm({
-  handleSubmit: (_record: Recordable<any>) => {
-    // no-op, submit via outer confirm
+  handleSubmit: async (_record: Recordable<any>) => {
+    const step1 = await formApi.validateAndSubmitForm();
+    if (!step1) return;
+    const driverConfig = await formApi.merge(driverFormApi).submitAllForm(true);
+    const payload = { ...step1, driver_config: driverConfig };
+    console.warn('payload', payload);
   },
   schema: [],
   commonConfig: {
@@ -78,11 +82,6 @@ const [Modal, modalApi] = useVbenDrawer({
     modalApi.close();
   },
   onConfirm: async () => {
-    const step1 = await formApi.validateAndSubmitForm();
-    if (!step1) return;
-    const driverConfig = await formApi.merge(driverFormApi).submitAllForm(true);
-    const payload = { ...step1, driver_config: driverConfig };
-    console.warn('payload', payload);
     // modalApi.close();
   },
   onOpenChange: async (isOpen: boolean) => {
@@ -133,14 +132,13 @@ async function onDriverIdChange(value: any, _option?: any) {
     driverFormApi.updateSchema([]);
     return;
   }
-  console.warn('value', id);
   await handleRequest(
     () => fetchDriverSchemasById(id as unknown as IdType),
     (schemas: DriverSchemas) => {
       const sorted = sortDriverSchemas(schemas);
       const formSchemas = mapChannelSchemasToForm(sorted);
       driverFormApi.setValues({});
-      driverFormApi.updateSchema(formSchemas);
+      driverFormApi.setState({ schema: formSchemas });
     },
   );
 }

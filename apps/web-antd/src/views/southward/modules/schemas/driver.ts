@@ -2,6 +2,7 @@ import type { VbenFormSchema as FormSchema } from '@vben/common-ui';
 import type { Nullable } from '@vben/types';
 
 import { $t } from '@vben/locales';
+import { get, isEqual } from '@vben/utils';
 
 import { z } from '#/adapter/form';
 
@@ -16,7 +17,6 @@ export type Node = FieldNode | GroupNode | UnionNode;
 
 export interface FieldNode {
   kind: 'Field';
-  id: string;
   path: string; // dotted path, used as form fieldName
   label: string; // i18n key
   data_type: UiDataType;
@@ -49,7 +49,7 @@ export interface UnionNode {
 }
 
 export interface UnionCase {
-  case_value: string;
+  case_value: any;
   children: Node[];
 }
 
@@ -183,54 +183,17 @@ function extractConditionPrimitive(val?: ConditionValue | null): any {
 
 export function mapChannelSchemasToForm(schemas: DriverSchemas): FormSchema[] {
   const result: FormSchema[] = [];
-  const flattened = flattenForFormOrdering(
-    schemas.channel ?? [],
-    undefined,
-  ).sort((a, b) => getNodeOrder(a.node) - getNodeOrder(b.node));
-  for (const item of flattened) {
-    result.push(...mapNode(item.node, item.discriminator));
+  const sorted =
+    schemas.channel ?? [].sort((a, b) => getNodeOrder(a) - getNodeOrder(b));
+  for (const item of sorted) {
+    result.push(...mapNode(item, undefined));
   }
   return result;
 }
 
-type DiscriminatorGuard = { equals: string; field: string };
-type FlattenItem = { discriminator?: DiscriminatorGuard; node: Node };
-
-function flattenForFormOrdering(
-  nodes: Node[],
-  discriminator?: DiscriminatorGuard,
-): FlattenItem[] {
-  const out: FlattenItem[] = [];
-  for (const node of nodes) {
-    switch (node.kind) {
-      case 'Field': {
-        out.push({ discriminator, node });
-        break;
-      }
-      case 'Group': {
-        out.push({ discriminator, node });
-        break;
-      }
-      case 'Union': {
-        for (const c of node.mapping) {
-          const next: DiscriminatorGuard = {
-            equals: c.case_value,
-            field: node.discriminator,
-          };
-          for (const child of c.children ?? []) {
-            out.push(...flattenForFormOrdering([child], next));
-          }
-        }
-        break;
-      }
-    }
-  }
-  return out;
-}
-
 function mapNode(
   node: Node,
-  discriminator?: { equals: string; field: string },
+  discriminator?: { equals: any; field: string },
 ): FormSchema[] {
   switch (node.kind) {
     case 'Field': {
@@ -262,7 +225,7 @@ function mapNode(
 
 function mapField(
   node: FieldNode,
-  discriminator?: { equals: string; field: string },
+  discriminator?: { equals: any; field: string },
 ): FormSchema {
   const base: FormSchema = {
     component: resolveComponent(node),
@@ -270,6 +233,7 @@ function mapField(
     label: $t(node.label),
     defaultValue: node.default_value ?? undefined,
     formItemClass: `col-span-${node.ui?.col_span ?? 2}`,
+    controlClass: 'w-full',
   };
 
   // ui props
@@ -338,15 +302,24 @@ function mapField(
     if (discriminator) targets.add(discriminator.field);
     for (const w of node.when || []) targets.add(w.target);
     dep.triggerFields = [...targets];
+    console.warn('triggerFields', dep.triggerFields);
     dep.if = (values: Record<string, any>) => {
       let visible = true;
       if (discriminator) {
+        console.warn('field', discriminator.field);
+        console.warn('values', values);
+        console.warn(
+          'discriminator',
+          get(values, discriminator.field),
+          discriminator.equals,
+        );
         visible =
-          visible && values[discriminator.field] === discriminator.equals;
+          visible &&
+          isEqual(get(values, discriminator.field), discriminator.equals);
       }
       if (node.when) {
         for (const w of node.when) {
-          const val = values[w.target];
+          const val = get(values, w.target);
           const target = extractConditionPrimitive(w.value);
           if (!evalOperator(w.operator, val, target)) continue; // only apply when matched
           if (w.effect === 'Invisible') visible = false;
@@ -360,7 +333,7 @@ function mapField(
       let required = node.required;
       if (node.when) {
         for (const w of node.when) {
-          const val = values[w.target];
+          const val = get(values, w.target);
           const target = extractConditionPrimitive(w.value);
           if (evalOperator(w.operator, val, target)) {
             if (w.effect === 'Require') required = true;
@@ -374,7 +347,7 @@ function mapField(
       let disabled = !!node.ui?.disabled;
       if (node.when) {
         for (const w of node.when) {
-          const val = values[w.target];
+          const val = get(values, w.target);
           const target = extractConditionPrimitive(w.value);
           if (evalOperator(w.operator, val, target)) {
             if (w.effect === 'Disable') disabled = true;
