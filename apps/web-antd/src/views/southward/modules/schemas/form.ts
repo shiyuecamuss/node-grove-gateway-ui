@@ -84,7 +84,7 @@ export function useConnectPolicyFormSchema(): FormSchema[] {
     // Connection timeouts
     {
       component: 'InputNumber',
-      fieldName: 'connectPolicy.connectTimeoutMs',
+      fieldName: 'connectionPolicy.connectTimeoutMs',
       label: $t('page.southward.channel.connectPolicy.connectTimeout'),
       help: $t('ui.help.unitWithName', { unit: $t('ui.unit.milliseconds') }),
       controlClass: 'w-full',
@@ -94,7 +94,7 @@ export function useConnectPolicyFormSchema(): FormSchema[] {
     },
     {
       component: 'InputNumber',
-      fieldName: 'connectPolicy.readTimeoutMs',
+      fieldName: 'connectionPolicy.readTimeoutMs',
       label: $t('page.southward.channel.connectPolicy.readTimeout'),
       help: $t('ui.help.unitWithName', { unit: $t('ui.unit.milliseconds') }),
       controlClass: 'w-full',
@@ -104,7 +104,7 @@ export function useConnectPolicyFormSchema(): FormSchema[] {
     },
     {
       component: 'InputNumber',
-      fieldName: 'connectPolicy.writeTimeoutMs',
+      fieldName: 'connectionPolicy.writeTimeoutMs',
       label: $t('page.southward.channel.connectPolicy.writeTimeout'),
       help: $t('ui.help.unitWithName', { unit: $t('ui.unit.milliseconds') }),
       controlClass: 'w-full',
@@ -126,7 +126,7 @@ export function useConnectPolicyFormSchema(): FormSchema[] {
     // Backoff configuration
     {
       component: 'InputNumber',
-      fieldName: 'connectPolicy.backoff.initialIntervalMs',
+      fieldName: 'connectionPolicy.backoff.initialIntervalMs',
       label: $t('page.southward.channel.connectPolicy.backoff.initialInterval'),
       help: $t('ui.help.unitWithName', { unit: $t('ui.unit.milliseconds') }),
       controlClass: 'w-full',
@@ -136,7 +136,7 @@ export function useConnectPolicyFormSchema(): FormSchema[] {
     },
     {
       component: 'InputNumber',
-      fieldName: 'connectPolicy.backoff.maxIntervalMs',
+      fieldName: 'connectionPolicy.backoff.maxIntervalMs',
       label: $t('page.southward.channel.connectPolicy.backoff.maxInterval'),
       help: $t('ui.help.unitWithName', { unit: $t('ui.unit.milliseconds') }),
       controlClass: 'w-full',
@@ -146,7 +146,7 @@ export function useConnectPolicyFormSchema(): FormSchema[] {
     },
     {
       component: 'InputNumber',
-      fieldName: 'connectPolicy.backoff.randomizationFactor',
+      fieldName: 'connectionPolicy.backoff.randomizationFactor',
       label: $t(
         'page.southward.channel.connectPolicy.backoff.randomizationFactor',
       ),
@@ -157,7 +157,7 @@ export function useConnectPolicyFormSchema(): FormSchema[] {
     },
     {
       component: 'InputNumber',
-      fieldName: 'connectPolicy.backoff.multiplier',
+      fieldName: 'connectionPolicy.backoff.multiplier',
       label: $t('page.southward.channel.connectPolicy.backoff.multiplier'),
       controlClass: 'w-full',
       componentProps: { min: 1, step: 0.1 },
@@ -166,7 +166,7 @@ export function useConnectPolicyFormSchema(): FormSchema[] {
     },
     {
       component: 'InputNumber',
-      fieldName: 'connectPolicy.backoff.maxElapsedTimeMs',
+      fieldName: 'connectionPolicy.backoff.maxElapsedTimeMs',
       label: $t('page.southward.channel.connectPolicy.backoff.maxElapsedTime'),
       help: $t('ui.help.unitWithName', { unit: $t('ui.unit.milliseconds') }),
       controlClass: 'w-full',

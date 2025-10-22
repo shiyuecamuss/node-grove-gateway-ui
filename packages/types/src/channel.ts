@@ -14,14 +14,14 @@ export const ReportType = {
   Always: 1,
 } as const;
 
-export interface ChannelConnectPolicy {
+export interface ConnectionPolicy {
   connectTimeoutMs: number;
   readTimeoutMs: number;
   writeTimeoutMs: number;
-  backoff: ChannelBackoff;
+  backoff: Backoff;
 }
 
-export interface ChannelBackoff {
+export interface Backoff {
   initialIntervalMs: number;
   maxIntervalMs: number;
   randomizationFactor: number;
@@ -36,7 +36,7 @@ interface ChannelInfo extends BaseEntity, StatusInfo {
   collectionType: (typeof CollectionType)[keyof typeof CollectionType];
   period?: number;
   reportType: (typeof ReportType)[keyof typeof ReportType];
-  connectPolicy: ChannelConnectPolicy;
+  connectionPolicy: ConnectionPolicy;
   driverConfig?: Recordable<any>;
 }
 
