@@ -11,6 +11,8 @@ import { FormOpenType } from '@vben/constants';
 import { useRequestHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
 
+import { set } from '@vben-core/shared/utils';
+
 import { Card, Select, Step, Steps, Tag } from 'ant-design-vue';
 
 import { useVbenForm } from '#/adapter/form';
@@ -137,8 +139,22 @@ async function onDriverIdChange(value: any, _option?: any) {
     (schemas: DriverSchemas) => {
       const sorted = sortDriverSchemas(schemas);
       const formSchemas = mapChannelSchemasToForm(sorted);
-      driverFormApi.setValues({});
+      // Update dynamic schema first, then apply defaults
       driverFormApi.setState({ schema: formSchemas });
+      nextTick().then(async () => {
+        const defaults: Record<string, any> = {};
+        for (const item of formSchemas) {
+          if (
+            item &&
+            'fieldName' in item &&
+            Reflect.has(item, 'defaultValue') &&
+            item.defaultValue !== undefined
+          ) {
+            set(defaults, (item as any).fieldName, (item as any).defaultValue);
+          }
+        }
+        await driverFormApi.resetForm({ values: defaults });
+      });
     },
   );
 }

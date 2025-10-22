@@ -6,6 +6,9 @@ export { useBasicFormSchema } from './form';
 export { searchFormSchema } from './search-form';
 export { useColumns } from './table-columns';
 
+export const isNullOrUndefined = (v: unknown): v is null | undefined =>
+  v === null || v === undefined;
+
 export function collectionTypeOptions() {
   return [
     {

@@ -1,10 +1,16 @@
 import type { VbenFormSchema as FormSchema } from '@vben/common-ui';
 import type { Nullable } from '@vben/types';
 
-import { $t } from '@vben/locales';
+import type { CustomRenderType } from '@vben-core/shadcn-ui';
+
+import type { UiText } from './i18n';
+
 import { get, isEqual } from '@vben/utils';
 
 import { z } from '#/adapter/form';
+
+import { resolveUiText } from './i18n';
+import { isNullOrUndefined } from './index';
 
 export interface DriverSchemas {
   channel: Node[];
@@ -18,7 +24,7 @@ export type Node = FieldNode | GroupNode | UnionNode;
 export interface FieldNode {
   kind: 'Field';
   path: string; // dotted path, used as form fieldName
-  label: string; // i18n key
+  label: UiText; // tagged union from backend
   data_type: UiDataType;
   required: boolean;
   default_value?: any;
@@ -32,8 +38,8 @@ export interface FieldNode {
 export interface GroupNode {
   kind: 'Group';
   id: string;
-  label: string;
-  description?: Nullable<string>;
+  label: UiText;
+  description?: Nullable<UiText>;
   collapsible: boolean;
   // Prefer node-level order for groups
   order?: Nullable<number>;
@@ -65,13 +71,12 @@ export type UiDataType =
 
 export interface EnumItem {
   key: any;
-  label: string; // i18n key or raw
+  label: UiText;
 }
 
 export interface UiProps {
-  placeholder?: Nullable<string>;
-  format?: Nullable<string>;
-  help?: Nullable<string>;
+  placeholder?: Nullable<UiText>;
+  help?: Nullable<UiText>;
   prefix?: Nullable<string>;
   suffix?: Nullable<string>;
   col_span?: Nullable<number>;
@@ -119,12 +124,10 @@ export interface When {
 }
 
 function getNodeOrder(node: Node): number {
-  const order = (node as any).order;
-  return order === null || order === undefined ? 0 : Number(order);
+  return isNullOrUndefined(node.order) ? 0 : Number(node.order);
 }
 
-function sortNodes(nodes: Node[] | undefined): Node[] {
-  if (!nodes || nodes.length === 0) return [];
+function sortNodes(nodes: Node[]): Node[] {
   return nodes
     .map((n) => sortNode(n))
     .sort((a, b) => getNodeOrder(a) - getNodeOrder(b));
@@ -183,8 +186,7 @@ function extractConditionPrimitive(val?: ConditionValue | null): any {
 
 export function mapChannelSchemasToForm(schemas: DriverSchemas): FormSchema[] {
   const result: FormSchema[] = [];
-  const sorted =
-    schemas.channel ?? [].sort((a, b) => getNodeOrder(a) - getNodeOrder(b));
+  const sorted = sortNodes(schemas.channel);
   for (const item of sorted) {
     result.push(...mapNode(item, undefined));
   }
@@ -203,7 +205,7 @@ function mapNode(
       const divider: FormSchema = {
         component: 'Divider',
         fieldName: `__divider__${node.id}`,
-        label: $t(node.label),
+        label: resolveUiText(node.label),
       };
       const children = node.children.flatMap((n) => mapNode(n, discriminator));
       return [divider, ...children];
@@ -230,7 +232,7 @@ function mapField(
   const base: FormSchema = {
     component: resolveComponent(node),
     fieldName: node.path,
-    label: $t(node.label),
+    label: resolveUiText(node.label),
     defaultValue: node.default_value ?? undefined,
     formItemClass: `col-span-${node.ui?.col_span ?? 2}`,
     controlClass: 'w-full',
@@ -239,7 +241,10 @@ function mapField(
   // ui props
   if (node.ui?.placeholder) {
     const prev = (base.componentProps ?? {}) as Record<string, any>;
-    base.componentProps = { ...prev, placeholder: $t(node.ui.placeholder) };
+    base.componentProps = {
+      ...prev,
+      placeholder: resolveUiText(node.ui.placeholder),
+    };
   }
   if (node.ui?.prefix) {
     const prev = (base.componentProps ?? {}) as Record<string, any>;
@@ -249,32 +254,29 @@ function mapField(
     const prev = (base.componentProps ?? {}) as Record<string, any>;
     base.componentProps = { ...prev, suffix: node.ui.suffix } as any;
   }
-  if (
-    node.ui &&
-    node.ui.read_only !== null &&
-    node.ui.read_only !== undefined
-  ) {
+  if (node.ui && !isNullOrUndefined(node.ui.read_only)) {
     const prev = (base.componentProps ?? {}) as Record<string, any>;
     base.componentProps = { ...prev, readonly: !!node.ui.read_only } as any;
   }
-  if (node.ui && node.ui.disabled !== null && node.ui.disabled !== undefined) {
+  if (node.ui && !isNullOrUndefined(node.ui.disabled)) {
     const prev = (base.componentProps ?? {}) as Record<string, any>;
     base.componentProps = { ...prev, disabled: !!node.ui.disabled } as any;
+  }
+  if (node.ui?.help !== null && node.ui?.help !== undefined) {
+    base.help = resolveUiText(node.ui.help) as CustomRenderType;
   }
 
   // component prop hints (min/max, maxLength, etc.)
   if (node.data_type.kind === 'Integer' || node.data_type.kind === 'Float') {
     const cp: any = { ...((base.componentProps ?? {}) as any) };
-    if (node.rules?.min !== null && node.rules?.min !== undefined)
-      cp.min = node.rules?.min;
-    if (node.rules?.max !== null && node.rules?.max !== undefined)
-      cp.max = node.rules?.max;
+    if (!isNullOrUndefined(node.rules?.min)) cp.min = node.rules?.min;
+    if (!isNullOrUndefined(node.rules?.max)) cp.max = node.rules?.max;
     base.componentProps = cp;
   }
 
   if (node.data_type.kind === 'String') {
     const cp: any = { ...((base.componentProps ?? {}) as any) };
-    if (node.rules?.max_length !== null && node.rules?.max_length !== undefined)
+    if (!isNullOrUndefined(node.rules?.max_length))
       cp.maxLength = node.rules?.max_length;
     base.componentProps = cp;
   }
@@ -284,7 +286,7 @@ function mapField(
     base.componentProps = {
       ...prev,
       options: node.data_type.items.map((it) => ({
-        label: $t(it.label),
+        label: resolveUiText(it.label),
         value: it.key,
       })),
       allowClear: true,
@@ -302,20 +304,13 @@ function mapField(
     if (discriminator) targets.add(discriminator.field);
     for (const w of node.when || []) targets.add(w.target);
     dep.triggerFields = [...targets];
-    console.warn('triggerFields', dep.triggerFields);
     dep.if = (values: Record<string, any>) => {
       let visible = true;
       if (discriminator) {
-        console.warn('field', discriminator.field);
-        console.warn('values', values);
-        console.warn(
-          'discriminator',
+        visible = isEqual(
           get(values, discriminator.field),
           discriminator.equals,
         );
-        visible =
-          visible &&
-          isEqual(get(values, discriminator.field), discriminator.equals);
       }
       if (node.when) {
         for (const w of node.when) {
