@@ -41,13 +41,28 @@
     "title": "南向通道",
     "form": {
       "step1": "基础配置",
-      "step2": "通道配置"
+      "step2": "连接策略",
+      "step3": "通道配置"
     },
     "channel": {
       "title": "通道",
       "name": "名称",
       "driver": "驱动",
       "driverType": "驱动类型",
+      "connectPolicy": {
+        "title": "连接策略",
+        "connectTimeout": "连接超时",
+        "readTimeout": "读取超时",
+        "writeTimeout": "写入超时",
+        "backoff": {
+          "title": "重试策略",
+          "initialInterval": "初始间隔",
+          "maxInterval": "最大间隔",
+          "randomizationFactor": "随机因子",
+          "multiplier": "倍增系数",
+          "maxElapsedTime": "最大耗时"
+        }
+      },
       "collectionType": {
         "title": "采集类型",
         "collection": "主动采集",

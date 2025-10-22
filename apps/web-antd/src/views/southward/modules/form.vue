@@ -19,7 +19,7 @@ import { useVbenForm } from '#/adapter/form';
 import { fetchAllDrivers, getChannelById } from '#/api/core';
 import { fetchDriverSchemasById } from '#/api/core/driver';
 
-import { useBasicFormSchema } from './schemas';
+import { useBasicFormSchema, useConnectPolicyFormSchema } from './schemas';
 import { mapChannelSchemasToForm, sortDriverSchemas } from './schemas/driver';
 
 defineOptions({ name: 'ChannelForm' });
@@ -37,7 +37,7 @@ const loading = ref(false);
 const drivers = ref<DriverInfo[]>([]);
 
 // 初始化表单
-const [Form, formApi] = useVbenForm({
+const [BasicForm, basicFormApi] = useVbenForm({
   handleSubmit: (_record: Recordable<any>) => {
     currentTab.value = 1;
     // modalApi.close();
@@ -54,13 +54,38 @@ const [Form, formApi] = useVbenForm({
   },
 });
 
+// Step 2 connect policy form
+const [ConnectPolicyForm, connectPolicyFormApi] = useVbenForm({
+  handleSubmit: async (_record: Recordable<any>) => {
+    currentTab.value = 2;
+  },
+  schema: useConnectPolicyFormSchema(),
+  commonConfig: {
+    labelClass: 'text-[14px] w-1/6',
+  },
+  handleReset: () => {
+    currentTab.value = 0;
+  },
+  resetButtonOptions: {
+    content: $t('common.previous'),
+  },
+  submitButtonOptions: {
+    content: $t('common.next'),
+  },
+});
+
 // Step 2 dynamic driver form
 const [DriverForm, driverFormApi] = useVbenForm({
-  handleSubmit: async (_record: Recordable<any>) => {
-    const step1 = await formApi.validateAndSubmitForm();
-    if (!step1) return;
-    const driverConfig = await formApi.merge(driverFormApi).submitAllForm(true);
-    const payload = { ...step1, driver_config: driverConfig };
+  handleSubmit: async (driverConfig: Recordable<any>) => {
+    const config = await basicFormApi
+      .merge(connectPolicyFormApi)
+      .submitAllForm(true);
+    console.warn('config', config);
+    console.warn('driverConfig', driverConfig);
+    const payload = {
+      ...config,
+      driverConfig,
+    };
     console.warn('payload', payload);
   },
   schema: [],
@@ -103,12 +128,12 @@ const [Modal, modalApi] = useVbenDrawer({
       );
 
       if (t === FormOpenType.EDIT) {
-        await formApi.removeSchemaByFields(['password']);
+        await basicFormApi.removeSchemaByFields(['password']);
         loading.value = true;
         await handleRequest(
           () => getChannelById(recordId.value as IdType),
           (data) => {
-            formApi.setValues(data);
+            basicFormApi.setValues(data);
             loading.value = false;
           },
           (error) => {
@@ -165,10 +190,11 @@ async function onDriverIdChange(value: any, _option?: any) {
     <Steps :current="currentTab" class="steps">
       <Step :title="$t('page.southward.form.step1')" />
       <Step :title="$t('page.southward.form.step2')" />
+      <Step :title="$t('page.southward.form.step3')" />
     </Steps>
     <div class="p-4">
       <Card v-show="currentTab === 0">
-        <Form>
+        <BasicForm>
           <template #driverId="slotProps">
             <Select
               v-bind="slotProps"
@@ -199,10 +225,16 @@ async function onDriverIdChange(value: any, _option?: any) {
               </template>
             </Select>
           </template>
-        </Form>
+        </BasicForm>
       </Card>
 
       <div v-show="currentTab === 1" class="space-y-4">
+        <Card>
+          <ConnectPolicyForm />
+        </Card>
+      </div>
+
+      <div v-show="currentTab === 2" class="space-y-4">
         <Card>
           <DriverForm />
         </Card>

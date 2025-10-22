@@ -41,13 +41,28 @@
     "title": "Southward",
     "form": {
       "step1": "Basic Configuration",
-      "step2": "Channel Configuration"
+      "step2": "Connection Strategy",
+      "step3": "Channel Configuration"
     },
     "channel": {
       "title": "Channel",
       "name": "Name",
       "driver": "Driver",
       "driverType": "Driver Type",
+      "connectPolicy": {
+        "title": "Connection Policy",
+        "connectTimeout": "Connect Timeout",
+        "readTimeout": "Read Timeout",
+        "writeTimeout": "Write Timeout",
+        "backoff": {
+          "title": "Retry Backoff",
+          "initialInterval": "Initial Interval",
+          "maxInterval": "Max Interval",
+          "randomizationFactor": "Randomization Factor",
+          "multiplier": "Multiplier",
+          "maxElapsedTime": "Max Elapsed Time"
+        }
+      },
       "collectionType": {
         "title": "Collection Type",
         "collection": "Active Collection",

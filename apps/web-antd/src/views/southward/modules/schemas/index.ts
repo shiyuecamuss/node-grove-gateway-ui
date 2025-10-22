@@ -2,7 +2,7 @@ import { CollectionType, ReportType } from '@vben/types';
 
 import { $t } from '#/locales';
 
-export { useBasicFormSchema } from './form';
+export { useBasicFormSchema, useConnectPolicyFormSchema } from './form';
 export { searchFormSchema } from './search-form';
 export { useColumns } from './table-columns';
 

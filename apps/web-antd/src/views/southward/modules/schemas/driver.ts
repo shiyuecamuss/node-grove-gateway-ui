@@ -26,7 +26,6 @@ export interface FieldNode {
   path: string; // dotted path, used as form fieldName
   label: UiText; // tagged union from backend
   data_type: UiDataType;
-  required: boolean;
   default_value?: any;
   // Prefer node-level order; fallback to ui.order for backward compatibility
   order?: Nullable<number>;
@@ -65,8 +64,6 @@ export type UiDataType =
   | { kind: 'Boolean' }
   | { kind: 'Float' }
   | { kind: 'Integer' }
-  | { kind: 'Json' }
-  | { kind: 'Object'; properties: Node[] }
   | { kind: 'String' };
 
 export interface EnumItem {
@@ -84,15 +81,27 @@ export interface UiProps {
   disabled?: Nullable<boolean>;
 }
 
+// RuleValue allows either a raw primitive value or an object with value and message
+export type RuleValue<T> = T | { message?: UiText; value: T };
+
 export interface Rules {
-  min?: Nullable<number>;
-  max?: Nullable<number>;
-  min_length?: Nullable<number>;
-  max_length?: Nullable<number>;
-  pattern?: Nullable<string>;
-  min_items?: Nullable<number>;
-  max_items?: Nullable<number>;
-  unique_items?: Nullable<boolean>;
+  // Prefer using required in rules; falls back to Field.required if unset
+  required?: Nullable<RuleValue<boolean>>;
+
+  // Numeric bounds (for Integer/Float)
+  min?: Nullable<RuleValue<number>>;
+  max?: Nullable<RuleValue<number>>;
+
+  // String length bounds
+  min_length?: Nullable<RuleValue<number>>;
+  max_length?: Nullable<RuleValue<number>>;
+
+  // Array item count bounds
+  min_items?: Nullable<RuleValue<number>>;
+  max_items?: Nullable<RuleValue<number>>;
+
+  // Regex pattern for strings
+  pattern?: Nullable<RuleValue<string>>;
 }
 
 export interface When {
@@ -113,7 +122,7 @@ export interface When {
     | 'Prefix'
     | 'Regex'
     | 'Suffix';
-  value?: Nullable<ConditionValue>;
+  value?: Nullable<any>;
   effect:
     | 'Disable'
     | 'Enable'
@@ -163,23 +172,6 @@ export function sortDriverSchemas(schemas: DriverSchemas): DriverSchemas {
     point: sortNodes(schemas.point),
     action: sortNodes(schemas.action),
   };
-}
-
-// serde enum is represented like { StringValue: "..." } etc.
-export type ConditionValue =
-  | { BoolArray: boolean[] }
-  | { BoolValue: boolean }
-  | { FloatArray: number[] }
-  | { FloatValue: number }
-  | { IntArray: number[] }
-  | { IntValue: number }
-  | { StringArray: string[] }
-  | { StringValue: string };
-
-function extractConditionPrimitive(val?: ConditionValue | null): any {
-  if (!val) return undefined;
-  const entry = Object.entries(val)[0] as [string, any];
-  return entry ? entry[1] : undefined;
 }
 
 // ---------- Mapper: DriverSchemas(Channel) -> Vben FormSchema[] ----------
@@ -269,15 +261,17 @@ function mapField(
   // component prop hints (min/max, maxLength, etc.)
   if (node.data_type.kind === 'Integer' || node.data_type.kind === 'Float') {
     const cp: any = { ...((base.componentProps ?? {}) as any) };
-    if (!isNullOrUndefined(node.rules?.min)) cp.min = node.rules?.min;
-    if (!isNullOrUndefined(node.rules?.max)) cp.max = node.rules?.max;
+    const rvMin = extractRuleValue<number>(node.rules?.min);
+    const rvMax = extractRuleValue<number>(node.rules?.max);
+    if (!isNullOrUndefined(rvMin.value)) cp.min = rvMin.value;
+    if (!isNullOrUndefined(rvMax.value)) cp.max = rvMax.value;
     base.componentProps = cp;
   }
 
   if (node.data_type.kind === 'String') {
     const cp: any = { ...((base.componentProps ?? {}) as any) };
-    if (!isNullOrUndefined(node.rules?.max_length))
-      cp.maxLength = node.rules?.max_length;
+    const rvMaxLen = extractRuleValue<number>(node.rules?.max_length);
+    if (!isNullOrUndefined(rvMaxLen.value)) cp.maxLength = rvMaxLen.value;
     base.componentProps = cp;
   }
 
@@ -294,7 +288,7 @@ function mapField(
   }
 
   // base rules using z or tokens
-  base.rules = buildRuleForNode(node, node.required);
+  base.rules = buildRuleForNode(node);
 
   // when conditions: implement Visible/Require/Optional/Enable/Disable support
   if ((node.when && node.when.length > 0) || discriminator) {
@@ -315,8 +309,7 @@ function mapField(
       if (node.when) {
         for (const w of node.when) {
           const val = get(values, w.target);
-          const target = extractConditionPrimitive(w.value);
-          if (!evalOperator(w.operator, val, target)) continue; // only apply when matched
+          if (!evalOperator(w.operator, val, w.value)) continue; // only apply when matched
           if (w.effect === 'Invisible') visible = false;
           if (w.effect === 'Visible') visible = visible && true;
         }
@@ -324,18 +317,18 @@ function mapField(
       return visible;
     };
     dep.rules = (values: Record<string, any>) => {
-      // if any Require matched, mark required; if Optional matched, unset
-      let required = node.required;
+      // start from rules.required; if any Require matched, mark required; if Optional matched, unset
+      let required = !!extractRuleValue<boolean>(node.rules?.required).value;
       if (node.when) {
         for (const w of node.when) {
           const val = get(values, w.target);
-          const target = extractConditionPrimitive(w.value);
-          if (evalOperator(w.operator, val, target)) {
+          if (evalOperator(w.operator, val, w.value)) {
             if (w.effect === 'Require') required = true;
             if (w.effect === 'Optional') required = false;
           }
         }
       }
+      // when effects should override rule-level required
       return buildRuleForNode(node, required);
     };
     dep.disabled = (values: Record<string, any>) => {
@@ -343,8 +336,7 @@ function mapField(
       if (node.when) {
         for (const w of node.when) {
           const val = get(values, w.target);
-          const target = extractConditionPrimitive(w.value);
-          if (evalOperator(w.operator, val, target)) {
+          if (evalOperator(w.operator, val, w.value)) {
             if (w.effect === 'Disable') disabled = true;
             if (w.effect === 'Enable') disabled = false;
           }
@@ -363,8 +355,6 @@ const COMPONENT_BY_KIND: Record<UiDataType['kind'], any> = {
   Enum: 'Select',
   Float: 'InputNumber',
   Integer: 'InputNumber',
-  Json: 'InputTextArea',
-  Object: 'InputTextArea',
   String: 'Input',
 };
 
@@ -439,10 +429,42 @@ function evalOperator(op: When['operator'], left: any, right: any): boolean {
 }
 
 // ---------------- zod rule builders ----------------
-function buildRuleForNode(node: FieldNode, required: boolean) {
+function extractRuleValue<T>(
+  rv?: null | Nullable<RuleValue<T>>,
+):
+  | { message?: string; value: T | undefined }
+  | { message?: string; value: undefined } {
+  if (rv === null || rv === undefined) return { value: undefined } as any;
+  if (typeof rv === 'object' && rv !== null && 'value' in rv) {
+    return {
+      value: (rv as any).value as T,
+      message: (rv as any).message
+        ? String(resolveUiText((rv as any).message))
+        : undefined,
+    };
+  }
+  return { value: rv as any };
+}
+
+function buildRuleForNode(node: FieldNode, requiredOverride?: boolean) {
   const schema = buildZodSchema(node.data_type, node.rules);
+  const rvRequired = extractRuleValue<boolean>(node.rules?.required);
+  const required =
+    typeof requiredOverride === 'boolean'
+      ? requiredOverride
+      : !!rvRequired.value;
+
   if (!schema) return required ? 'required' : null;
-  return required ? schema : schema.optional();
+
+  if (required && node.data_type.kind === 'String') {
+    const msg = rvRequired.message;
+    // if no explicit min_length, enforce non-empty
+    const rvMinLen = extractRuleValue<number>(node.rules?.min_length);
+    if (isNullOrUndefined(rvMinLen.value)) {
+      return (schema as any).min(1, { message: msg } as any);
+    }
+  }
+  return required ? schema : (schema as any).optional();
 }
 
 type ZodBuilder = (dataType: UiDataType, rules?: Rules) => any;
@@ -452,37 +474,70 @@ const ZOD_BUILDERS: Partial<Record<UiDataType['kind'], ZodBuilder>> = {
     const dt = dataType as Extract<UiDataType, { kind: 'Array' }>;
     const inner = buildZodSchema(dt.items, rules) ?? z.any();
     let s = z.array(inner);
-    if (rules?.min_items !== null && rules?.min_items !== undefined)
-      s = s.min(rules.min_items);
-    if (rules?.max_items !== null && rules?.max_items !== undefined)
-      s = s.max(rules.max_items);
+    const rvMinItems = extractRuleValue<number>(rules?.min_items);
+    const rvMaxItems = extractRuleValue<number>(rules?.max_items);
+    if (!isNullOrUndefined(rvMinItems.value))
+      s = (s as any).min(Number(rvMinItems.value), {
+        message: rvMinItems.message,
+      } as any);
+    if (!isNullOrUndefined(rvMaxItems.value))
+      s = (s as any).max(Number(rvMaxItems.value), {
+        message: rvMaxItems.message,
+      } as any);
     return s;
   },
   Boolean: () => z.boolean(),
-  Enum: () => null,
+  Enum: (dataType) => {
+    const dt = dataType as Extract<UiDataType, { kind: 'Enum' }>;
+    const literals = dt.items.map((it) => z.literal(it.key as any));
+    return literals.length > 0 ? (z.union(literals as any) as any) : null;
+  },
   Float: (_dataType, rules) => {
     let s = z.number();
-    if (rules?.min !== null && rules?.min !== undefined) s = s.min(rules.min);
-    if (rules?.max !== null && rules?.max !== undefined) s = s.max(rules.max);
+    const rvMin = extractRuleValue<number>(rules?.min);
+    const rvMax = extractRuleValue<number>(rules?.max);
+    if (!isNullOrUndefined(rvMin.value))
+      s = (s as any).min(Number(rvMin.value), {
+        message: rvMin.message,
+      } as any);
+    if (!isNullOrUndefined(rvMax.value))
+      s = (s as any).max(Number(rvMax.value), {
+        message: rvMax.message,
+      } as any);
     return s;
   },
   Integer: (_dataType, rules) => {
-    let s = z.number();
-    if (rules?.min !== null && rules?.min !== undefined) s = s.min(rules.min);
-    if (rules?.max !== null && rules?.max !== undefined) s = s.max(rules.max);
+    let s = z.number().int();
+    const rvMin = extractRuleValue<number>(rules?.min);
+    const rvMax = extractRuleValue<number>(rules?.max);
+    if (!isNullOrUndefined(rvMin.value))
+      s = (s as any).min(Number(rvMin.value), {
+        message: rvMin.message,
+      } as any);
+    if (!isNullOrUndefined(rvMax.value))
+      s = (s as any).max(Number(rvMax.value), {
+        message: rvMax.message,
+      } as any);
     return s;
   },
-  Json: () => null,
-  Object: () => null,
   String: (_dataType, rules) => {
     let s = z.string();
-    if (rules?.min_length !== null && rules?.min_length !== undefined)
-      s = s.min(rules.min_length);
-    if (rules?.max_length !== null && rules?.max_length !== undefined)
-      s = s.max(rules.max_length);
-    if (rules?.pattern) {
+    const rvMinLen = extractRuleValue<number>(rules?.min_length);
+    const rvMaxLen = extractRuleValue<number>(rules?.max_length);
+    const rvPattern = extractRuleValue<string>(rules?.pattern);
+    if (!isNullOrUndefined(rvMinLen.value))
+      s = (s as any).min(Number(rvMinLen.value), {
+        message: rvMinLen.message,
+      } as any);
+    if (!isNullOrUndefined(rvMaxLen.value))
+      s = (s as any).max(Number(rvMaxLen.value), {
+        message: rvMaxLen.message,
+      } as any);
+    if (!isNullOrUndefined(rvPattern.value)) {
       try {
-        s = s.regex(new RegExp(rules.pattern));
+        s = (s as any).regex(new RegExp(String(rvPattern.value)), {
+          message: rvPattern.message,
+        } as any);
       } catch {}
     }
     return s;
