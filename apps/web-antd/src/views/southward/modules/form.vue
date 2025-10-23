@@ -96,7 +96,7 @@ const [DriverForm, driverFormApi] = useVbenForm({
     labelClass: 'text-[14px] w-1/6',
   },
   handleReset: () => {
-    currentTab.value = 0;
+    currentTab.value = 1;
   },
   resetButtonOptions: {
     content: $t('common.previous'),
