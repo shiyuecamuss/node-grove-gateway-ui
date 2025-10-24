@@ -131,7 +131,6 @@ const [Modal, modalApi] = useVbenDrawer({
       );
 
       if (t === FormOpenType.EDIT) {
-        await basicFormApi.removeSchemaByFields(['password']);
         loading.value = true;
         await handleRequest(
           () => getChannelById(recordId.value as IdType),
@@ -156,8 +155,7 @@ function filterOption(
   return option?.label?.toLowerCase().includes(input.toLowerCase()) ?? false;
 }
 
-async function onDriverIdChange(value: any, _option?: any) {
-  const id = Array.isArray(value) ? value[0] : value;
+async function onDriverIdChange(id: any, _option?: any) {
   if (id === undefined || id === null) {
     driverFormApi.updateSchema([]);
     return;
