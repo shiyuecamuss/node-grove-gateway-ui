@@ -197,7 +197,13 @@ function mapNode(
       const divider: FormSchema = {
         component: 'Divider',
         fieldName: `__divider__${node.id}`,
-        label: resolveUiText(node.label),
+        hideLabel: true,
+        renderComponentContent() {
+          return {
+            default: () => resolveUiText(node.label),
+          };
+        },
+        formItemClass: `col-span-2`,
       };
       const children = node.children.flatMap((n) => mapNode(n, discriminator));
       return [divider, ...children];
@@ -221,13 +227,16 @@ function mapField(
   node: FieldNode,
   discriminator?: { equals: any; field: string },
 ): FormSchema {
+  const component = resolveComponent(node);
+  const colSpan = node.ui?.col_span ?? 2;
+  const controlClass = component === 'Switch' ? '' : 'w-full';
   const base: FormSchema = {
-    component: resolveComponent(node),
+    component,
     fieldName: node.path,
     label: resolveUiText(node.label),
     defaultValue: node.default_value ?? undefined,
-    formItemClass: `col-span-${node.ui?.col_span ?? 2}`,
-    controlClass: 'w-full',
+    formItemClass: `col-span-${colSpan}`,
+    controlClass,
   };
 
   // ui props
