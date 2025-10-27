@@ -1,5 +1,5 @@
 import type { VxeTableGridOptions } from '@vben/plugins/vxe-table';
-import type { ChannelInfo } from '@vben/types';
+import type { ChannelInfo, DeviceInfo } from '@vben/types';
 
 import type { OnActionClickFn } from '#/adapter/vxe-table';
 
@@ -10,7 +10,7 @@ import { collectionTypeOptions, reportTypeOptions } from '.';
 /**
  * Table columns configuration for tenant package list
  */
-export function useColumns(
+export function useChannelColumns(
   onActionClick: OnActionClickFn<ChannelInfo>,
 ): VxeTableGridOptions<ChannelInfo>['columns'] {
   return [
@@ -88,6 +88,42 @@ export function useColumns(
       showOverflow: false,
       title: $t('common.actions'),
       width: 200,
+    },
+  ];
+}
+
+export function useDeviceColumns(
+  onActionClick: OnActionClickFn<DeviceInfo>,
+): VxeTableGridOptions<DeviceInfo>['columns'] {
+  return [
+    { field: 'deviceName', title: $t('page.southward.device.name') },
+    { field: 'deviceType', title: $t('page.southward.device.type') },
+    {
+      field: 'status',
+      title: $t('common.status.title'),
+      slots: { default: 'status' },
+    },
+    {
+      align: 'right',
+      cellRender: {
+        attrs: { nameField: 'deviceName', onClick: onActionClick },
+        name: 'CellOperation',
+        options: [
+          { code: 'edit', icon: 'lucide:edit', tooltip: $t('common.edit') },
+          {
+            code: 'delete',
+            icon: 'lucide:trash-2',
+            tooltip: $t('common.delete'),
+            danger: true,
+          },
+        ],
+      },
+      field: 'operation',
+      fixed: 'right',
+      headerAlign: 'center',
+      showOverflow: false,
+      title: $t('common.actions'),
+      width: 180,
     },
   ];
 }

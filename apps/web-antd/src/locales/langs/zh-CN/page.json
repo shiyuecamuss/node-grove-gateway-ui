@@ -76,6 +76,11 @@
       },
       "subDevice": "子设备",
       "configView": "配置预览"
+    },
+    "device": {
+      "title": "设备",
+      "name": "设备名称",
+      "type": "设备类型"
     }
   },
   "driver": {

@@ -4,6 +4,7 @@ import type {
   CommonPageResponse,
   CommonStatus,
   CommonTimeRangeRequest,
+  DeviceInfo,
   IdType,
 } from '@vben/types';
 
@@ -16,6 +17,7 @@ export namespace ChannelApi {
   export const deleteChannel = (id: IdType) => `${base}/${id}`;
   export const getById = (id: IdType) => `${base}/detail/${id}`;
   export const changeStatus = `${base}/change-status`;
+  export const subDevices = (id: IdType) => `${base}/${id}/sub-devices`;
 
   /** channel page params */
   export interface ChannelPageParams
@@ -87,4 +89,13 @@ export async function changeChannelStatus(
     id,
     status,
   });
+}
+
+/**
+ * get sub devices by channel id
+ * @param id - Channel ID
+ * @returns Promise with sub devices response
+ */
+export async function getSubDevicesById(id: IdType) {
+  return requestClient.get<DeviceInfo[]>(ChannelApi.subDevices(id));
 }

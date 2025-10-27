@@ -4,6 +4,7 @@ export type * from './channel';
 export * from './channel';
 export * from './color';
 export type * from './common';
+export type * from './device';
 export * from './driver';
 export type * from './driver';
 export type * from './user';

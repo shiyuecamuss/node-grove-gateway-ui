@@ -22,6 +22,7 @@ import {
 } from '#/api';
 
 import ConfigViewer from './modules/config-viewer.vue';
+import DeviceModal from './modules/device-modal.vue';
 import ChannelForm from './modules/form.vue';
 import { searchFormSchema, useColumns } from './modules/schemas';
 
@@ -85,6 +86,10 @@ const [ConfigViewerModal, configViewerModalApi] = useVbenModal({
   connectedComponent: ConfigViewer,
 });
 
+const [SubDeviceModal, deviceModalApi] = useVbenModal({
+  connectedComponent: DeviceModal,
+});
+
 function onActionClick({ code, row }: OnActionClickParams<ChannelInfo>) {
   switch (code) {
     case 'configView': {
@@ -97,6 +102,10 @@ function onActionClick({ code, row }: OnActionClickParams<ChannelInfo>) {
     }
     case 'edit': {
       handleEdit(row);
+      break;
+    }
+    case 'subDevice': {
+      handleSubDevice(row);
       break;
     }
     default: {
@@ -173,6 +182,15 @@ const toggleStatus = async (row: ChannelInfo) => {
   );
 };
 
+const handleSubDevice = async (row: ChannelInfo) => {
+  deviceModalApi
+    .setData({ channelId: row.id })
+    .setState({
+      title: `${row.name} - ${$t('page.southward.channel.subDevice')}`,
+    })
+    .open();
+};
+
 const handleFormSubmit = async (
   type: FormOpenType,
   id: IdType | undefined,
@@ -181,8 +199,10 @@ const handleFormSubmit = async (
   await (type === FormOpenType.CREATE
     ? handleRequest(
         () => createChannel(values as ChannelInfo),
-        (_) => {
+        async (_) => {
+          formDrawerApi.close();
           message.success($t('common.action.createSuccess'));
+          await gridApi.query();
         },
       )
     : handleRequest(
@@ -191,11 +211,12 @@ const handleFormSubmit = async (
             id,
             ...values,
           } as ChannelInfo),
-        (_) => {
+        async (_) => {
+          formDrawerApi.close();
           message.success($t('common.action.updateSuccess'));
+          await gridApi.query();
         },
       ));
-  await gridApi.query();
 };
 </script>
 
@@ -218,5 +239,6 @@ const handleFormSubmit = async (
     </Grid>
     <FormDrawer @submit="handleFormSubmit" />
     <ConfigViewerModal />
+    <SubDeviceModal />
   </Page>
 </template>

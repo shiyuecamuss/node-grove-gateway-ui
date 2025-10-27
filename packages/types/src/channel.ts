@@ -37,7 +37,7 @@ interface ChannelInfo extends BaseEntity, StatusInfo {
   period?: number;
   reportType: (typeof ReportType)[keyof typeof ReportType];
   connectionPolicy: ConnectionPolicy;
-  driverConfig?: Recordable<any>;
+  driverConfig: Recordable<any>;
 }
 
 export type { ChannelInfo };

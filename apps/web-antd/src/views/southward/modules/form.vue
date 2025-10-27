@@ -16,7 +16,7 @@ import { set } from '@vben-core/shared/utils';
 import { Card, Select, Step, Steps, Tag } from 'ant-design-vue';
 
 import { useVbenForm } from '#/adapter/form';
-import { createChannel, fetchAllDrivers, getChannelById } from '#/api/core';
+import { fetchAllDrivers, getChannelById } from '#/api/core';
 import { fetchDriverSchemasById } from '#/api/core/driver';
 
 import { useBasicFormSchema, useConnectPolicyFormSchema } from './schemas';
@@ -24,7 +24,7 @@ import { mapChannelSchemasToForm, sortDriverSchemas } from './schemas/driver';
 
 defineOptions({ name: 'ChannelForm' });
 
-defineEmits<{
+const emit = defineEmits<{
   submit: [type: FormOpenType, id: IdType | undefined, values: Recordable<any>];
 }>();
 
@@ -74,22 +74,16 @@ const [ConnectPolicyForm, connectPolicyFormApi] = useVbenForm({
   },
 });
 
-// Step 2 dynamic driver form
+// Step 3 dynamic driver form
 const [DriverForm, driverFormApi] = useVbenForm({
   handleSubmit: async (driverConfig: Recordable<any>) => {
     const config = await basicFormApi
       .merge(connectPolicyFormApi)
       .submitAllForm(true);
-    const payload = {
+    emit('submit', type.value, recordId.value, {
       ...config,
       driverConfig,
-    };
-    handleRequest(
-      () => createChannel(payload as ChannelInfo),
-      () => {
-        modalApi.close();
-      },
-    );
+    });
   },
   schema: [],
   commonConfig: {
@@ -134,8 +128,12 @@ const [Modal, modalApi] = useVbenDrawer({
         loading.value = true;
         await handleRequest(
           () => getChannelById(recordId.value as IdType),
-          (data) => {
+          async (data: ChannelInfo) => {
+            await nextTick();
+            await onDriverIdChange(data.driverId);
             basicFormApi.setValues(data);
+            connectPolicyFormApi.setValues(data.connectionPolicy);
+            driverFormApi.setValues(data.driverConfig);
             loading.value = false;
           },
           (error) => {

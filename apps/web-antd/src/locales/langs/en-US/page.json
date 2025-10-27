@@ -76,6 +76,11 @@
       },
       "subDevice": "Sub Device",
       "configView": "Config View"
+    },
+    "device": {
+      "title": "Device",
+      "name": "Device Name",
+      "type": "Device Type"
     }
   },
   "driver": {

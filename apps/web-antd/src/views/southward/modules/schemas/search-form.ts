@@ -4,9 +4,9 @@ import { $t } from '@vben/locales';
 import { CommonStatus } from '@vben/types';
 
 /**
- * Search form schema for southward package list
+ * Search form schema for channel package list
  */
-export const searchFormSchema: VbenFormSchema[] = [
+export const channelSearchFormSchema: VbenFormSchema[] = [
   {
     component: 'Input',
     fieldName: 'name',
@@ -55,5 +55,21 @@ export const searchFormSchema: VbenFormSchema[] = [
       showTime: true,
       valueFormat: 'YYYY-MM-DDTHH:mm:ss.SSSZZ',
     },
+  },
+];
+
+/**
+ * Search form schema for device package list
+ */
+export const deviceSearchFormSchema: VbenFormSchema[] = [
+  {
+    component: 'Input',
+    fieldName: 'deviceName',
+    label: $t('page.southward.device.name'),
+  },
+  {
+    component: 'Input',
+    fieldName: 'deviceType',
+    label: $t('page.southward.device.type'),
   },
 ];
