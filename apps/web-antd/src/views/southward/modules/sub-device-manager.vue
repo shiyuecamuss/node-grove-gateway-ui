@@ -3,7 +3,9 @@ import type { DeviceInfo, IdType, Recordable } from '@vben/types';
 
 import type { OnActionClickParams, VxeGridProps } from '#/adapter/vxe-table';
 
-import { Page, useVbenModal } from '@vben/common-ui';
+import { nextTick } from 'vue';
+
+import { Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { FormOpenType } from '@vben/constants';
 import { useRequestHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
@@ -20,39 +22,48 @@ import {
   updateDevice,
 } from '#/api';
 
-import DeviceForm from './device-form.vue';
 import { deviceSearchFormSchema } from './schemas/search-form';
 import { useDeviceColumns } from './schemas/table-columns';
+import SubDeviceForm from './sub-device-form.vue';
 
-defineOptions({ name: 'SouthwardDeviceModal' });
+defineOptions({ name: 'SubDeviceModal' });
 
 const { handleRequest } = useRequestHandler();
 
-const [FormModal, formModalApi] = useVbenModal({
-  connectedComponent: DeviceForm,
-  destroyOnClose: true,
+const [FormDrawer, formDrawerApi] = useVbenDrawer({
+  connectedComponent: SubDeviceForm,
 });
 
 const [Modal, modalApi] = useVbenModal({
   class: 'w-4/5',
   destroyOnClose: true,
+  footer: false,
   onCancel() {
     modalApi.close();
   },
   onOpenChange: async (isOpen: boolean) => {
-    if (isOpen) {
-      await gridApi.query();
-    }
+    if (!isOpen) return;
+    await nextTick();
+    await gridApi.query();
   },
 });
 
 const gridOptions: VxeGridProps<DeviceInfo> = {
+  checkboxConfig: {
+    highlight: true,
+    labelField: 'name',
+  },
   columns: useDeviceColumns(onActionClick),
-  height: 'auto',
+  exportConfig: {},
+  height: 'auto', // 如果设置为 auto，则必须确保存在父节点且不允许存在相邻元素，否则会出现高度闪动问题
   keepSource: true,
   proxyConfig: {
-    autoLoad: false,
-    response: { result: 'records', total: 'total', list: 'records' },
+    autoLoad: true,
+    response: {
+      result: 'records',
+      total: 'total',
+      list: 'records',
+    },
     ajax: {
       query: async ({ page }, formValues) => {
         const { channelId } = modalApi.getData<{ channelId: IdType }>();
@@ -68,7 +79,7 @@ const gridOptions: VxeGridProps<DeviceInfo> = {
   toolbarConfig: {
     custom: true,
     export: true,
-    import: false,
+    import: true,
     refresh: true,
     zoom: true,
   },
@@ -101,11 +112,16 @@ function onActionClick({ code, row }: OnActionClickParams<DeviceInfo>) {
 }
 
 const handleCreate = () => {
-  const { channelId } = modalApi.getData<{ channelId: IdType }>();
-  formModalApi
+  const { channelId, driverId } = modalApi.getData<{
+    channelId: IdType;
+    driverId: IdType;
+  }>();
+
+  formDrawerApi
     .setData({
       type: FormOpenType.CREATE,
       channelId,
+      driverId,
     })
     .setState({
       title: $t('common.createWithName', {
@@ -116,10 +132,17 @@ const handleCreate = () => {
 };
 
 const handleEdit = (row: DeviceInfo) => {
-  formModalApi
+  const { channelId, driverId } = modalApi.getData<{
+    channelId: IdType;
+    driverId: IdType;
+  }>();
+
+  formDrawerApi
     .setData({
       type: FormOpenType.EDIT,
       id: row.id,
+      channelId,
+      driverId,
     })
     .setState({
       title: $t('common.editWithName', { name: row.deviceName }),
@@ -165,7 +188,7 @@ const handleFormSubmit = async (
     ? handleRequest(
         () => createDevice(payload),
         async () => {
-          formModalApi.close();
+          formDrawerApi.close();
           message.success($t('common.action.createSuccess') as string);
           await gridApi.query();
         },
@@ -173,7 +196,7 @@ const handleFormSubmit = async (
     : handleRequest(
         () => updateDevice({ ...(payload as any), id } as any),
         async () => {
-          formModalApi.close();
+          formDrawerApi.close();
           message.success($t('common.action.updateSuccess') as string);
           await gridApi.query();
         },
@@ -200,6 +223,6 @@ const handleFormSubmit = async (
         </template>
       </Grid>
     </Page>
-    <FormModal @submit="handleFormSubmit" />
+    <FormDrawer @submit="handleFormSubmit" />
   </Modal>
 </template>

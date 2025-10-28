@@ -175,11 +175,36 @@ export function sortDriverSchemas(schemas: DriverSchemas): DriverSchemas {
 }
 
 // ---------- Mapper: DriverSchemas(Channel) -> Vben FormSchema[] ----------
-
 export function mapChannelSchemasToForm(schemas: DriverSchemas): FormSchema[] {
   const result: FormSchema[] = [];
-  const sorted = sortNodes(schemas.channel);
-  for (const item of sorted) {
+  for (const item of schemas.channel) {
+    result.push(...mapNode(item, undefined));
+  }
+  return result;
+}
+
+// ---------- Mapper: DriverSchemas(Device) -> Vben FormSchema[] ----------
+export function mapDeviceSchemasToForm(schemas: DriverSchemas): FormSchema[] {
+  const result: FormSchema[] = [];
+  for (const item of schemas.device) {
+    result.push(...mapNode(item, undefined));
+  }
+  return result;
+}
+
+// ---------- Mapper: DriverSchemas(Point) -> Vben FormSchema[] ----------
+export function mapPointSchemasToForm(schemas: DriverSchemas): FormSchema[] {
+  const result: FormSchema[] = [];
+  for (const item of schemas.point) {
+    result.push(...mapNode(item, undefined));
+  }
+  return result;
+}
+
+// ---------- Mapper: DriverSchemas(Action) -> Vben FormSchema[] ----------
+export function mapActionSchemasToForm(schemas: DriverSchemas): FormSchema[] {
+  const result: FormSchema[] = [];
+  for (const item of schemas.action) {
     result.push(...mapNode(item, undefined));
   }
   return result;

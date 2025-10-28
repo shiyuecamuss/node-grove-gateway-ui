@@ -49,32 +49,34 @@ const [Modal, modalApi] = useVbenDrawer({
     // modalApi.close();
   },
   onOpenChange: async (isOpen: boolean) => {
-    if (isOpen) {
-      await nextTick();
-
-      const { type: t, id: i } = modalApi.getData<FormOpenData>();
-
-      type.value = t;
-      recordId.value = i;
-
-      if (t === FormOpenType.EDIT) {
-        await formApi.removeSchemaByFields(['password']);
-        loading.value = true;
-        await handleRequest(
-          () => getUserById(recordId.value as IdType),
-          (data) => {
-            formApi.setValues(data);
-            loading.value = false;
-          },
-          (error) => {
-            loading.value = false;
-            console.error(error);
-          },
-        );
-      }
-    }
+    if (!isOpen) return;
+    await nextTick();
+    await init();
   },
 });
+
+async function init() {
+  const { type: t, id: i } = modalApi.getData<FormOpenData>();
+
+  type.value = t;
+  recordId.value = i;
+
+  if (t === FormOpenType.EDIT) {
+    await formApi.removeSchemaByFields(['password']);
+    loading.value = true;
+    await handleRequest(
+      () => getUserById(recordId.value as IdType),
+      (data) => {
+        formApi.setValues(data);
+        loading.value = false;
+      },
+      (error) => {
+        loading.value = false;
+        console.error(error);
+      },
+    );
+  }
+}
 </script>
 
 <template>

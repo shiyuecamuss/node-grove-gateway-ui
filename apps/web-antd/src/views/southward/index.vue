@@ -22,9 +22,9 @@ import {
 } from '#/api';
 
 import ConfigViewer from './modules/config-viewer.vue';
-import DeviceModal from './modules/device-modal.vue';
 import ChannelForm from './modules/form.vue';
 import { searchFormSchema, useColumns } from './modules/schemas';
+import SubDeviceModal from './modules/sub-device-manager.vue';
 
 const { handleRequest } = useRequestHandler();
 
@@ -86,8 +86,8 @@ const [ConfigViewerModal, configViewerModalApi] = useVbenModal({
   connectedComponent: ConfigViewer,
 });
 
-const [SubDeviceModal, deviceModalApi] = useVbenModal({
-  connectedComponent: DeviceModal,
+const [SubDeviceModalRef, deviceModalApi] = useVbenModal({
+  connectedComponent: SubDeviceModal,
 });
 
 function onActionClick({ code, row }: OnActionClickParams<ChannelInfo>) {
@@ -184,7 +184,7 @@ const toggleStatus = async (row: ChannelInfo) => {
 
 const handleSubDevice = async (row: ChannelInfo) => {
   deviceModalApi
-    .setData({ channelId: row.id })
+    .setData({ channelId: row.id, driverId: row.driverId })
     .setState({
       title: `${row.name} - ${$t('page.southward.channel.subDevice')}`,
     })
@@ -239,6 +239,6 @@ const handleFormSubmit = async (
     </Grid>
     <FormDrawer @submit="handleFormSubmit" />
     <ConfigViewerModal />
-    <SubDeviceModal />
+    <SubDeviceModalRef />
   </Page>
 </template>

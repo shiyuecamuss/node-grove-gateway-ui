@@ -18,10 +18,9 @@ const [Modal, modalApi] = useVbenModal({
     modalApi.close();
   },
   onOpenChange: async (isOpen: boolean) => {
-    if (isOpen) {
-      await nextTick();
-      config.value = modalApi.getData<Recordable<any>>();
-    }
+    if (!isOpen) return;
+    await nextTick();
+    config.value = modalApi.getData<Recordable<any>>();
   },
 });
 </script>

@@ -5,7 +5,7 @@ import { CollectionType, ReportType } from '@vben/types';
 
 import { collectionTypeOptions, reportTypeOptions } from '.';
 
-export function useBasicFormSchema(): FormSchema[] {
+export function useChannelBasicFormSchema(): FormSchema[] {
   return [
     {
       component: 'Input',
@@ -75,6 +75,23 @@ export function useBasicFormSchema(): FormSchema[] {
       rules: 'required',
       controlClass: 'w-full',
       defaultValue: ReportType.Change,
+    },
+  ];
+}
+
+export function useSubDeviceBasicFormSchema(): FormSchema[] {
+  return [
+    {
+      component: 'Input',
+      fieldName: 'deviceName',
+      label: $t('page.southward.device.name'),
+      rules: 'required',
+    },
+    {
+      component: 'Input',
+      fieldName: 'deviceType',
+      label: $t('page.southward.device.type'),
+      rules: 'required',
     },
   ];
 }

@@ -80,7 +80,9 @@
     "device": {
       "title": "Device",
       "name": "Device Name",
-      "type": "Device Type"
+      "type": "Device Type",
+      "basic": "Basic Configuration",
+      "driver": "Driver Configuration"
     }
   },
   "driver": {

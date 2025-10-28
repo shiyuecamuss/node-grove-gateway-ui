@@ -2,7 +2,11 @@ import { CollectionType, ReportType } from '@vben/types';
 
 import { $t } from '#/locales';
 
-export { useBasicFormSchema, useConnectPolicyFormSchema } from './form';
+export {
+  useChannelBasicFormSchema,
+  useConnectPolicyFormSchema,
+  useSubDeviceBasicFormSchema,
+} from './form';
 export { channelSearchFormSchema as searchFormSchema } from './search-form';
 export { useChannelColumns as useColumns } from './table-columns';
 

@@ -19,7 +19,10 @@ import { useVbenForm } from '#/adapter/form';
 import { fetchAllDrivers, getChannelById } from '#/api/core';
 import { fetchDriverSchemasById } from '#/api/core/driver';
 
-import { useBasicFormSchema, useConnectPolicyFormSchema } from './schemas';
+import {
+  useChannelBasicFormSchema,
+  useConnectPolicyFormSchema,
+} from './schemas';
 import { mapChannelSchemasToForm, sortDriverSchemas } from './schemas/driver';
 
 defineOptions({ name: 'ChannelForm' });
@@ -42,7 +45,7 @@ const [BasicForm, basicFormApi] = useVbenForm({
     currentTab.value = 1;
     // modalApi.close();
   },
-  schema: useBasicFormSchema(),
+  schema: useChannelBasicFormSchema(),
   commonConfig: {
     labelClass: 'text-[14px] w-1/6',
   },
@@ -109,42 +112,42 @@ const [Modal, modalApi] = useVbenDrawer({
     // modalApi.close();
   },
   onOpenChange: async (isOpen: boolean) => {
-    if (isOpen) {
-      await nextTick();
-
-      const { type: t, id: i } = modalApi.getData<FormOpenData>();
-
-      type.value = t;
-      recordId.value = i;
-
-      await handleRequest(
-        () => fetchAllDrivers(),
-        (data: DriverInfo[]) => {
-          drivers.value = data;
-        },
-      );
-
-      if (t === FormOpenType.EDIT) {
-        loading.value = true;
-        await handleRequest(
-          () => getChannelById(recordId.value as IdType),
-          async (data: ChannelInfo) => {
-            await nextTick();
-            await onDriverIdChange(data.driverId);
-            basicFormApi.setValues(data);
-            connectPolicyFormApi.setValues(data.connectionPolicy);
-            driverFormApi.setValues(data.driverConfig);
-            loading.value = false;
-          },
-          (error) => {
-            loading.value = false;
-            console.error(error);
-          },
-        );
-      }
-    }
+    if (!isOpen) return;
+    await nextTick();
+    await init();
   },
 });
+
+async function init() {
+  const { type: t, id: i } = modalApi.getData<FormOpenData>();
+  type.value = t;
+  recordId.value = i;
+
+  await handleRequest(
+    () => fetchAllDrivers(),
+    (data: DriverInfo[]) => {
+      drivers.value = data;
+    },
+  );
+
+  if (t === FormOpenType.EDIT) {
+    loading.value = true;
+    await handleRequest(
+      () => getChannelById(recordId.value as IdType),
+      async (data: ChannelInfo) => {
+        await onDriverIdChange(data.driverId);
+        basicFormApi.setValues(data);
+        connectPolicyFormApi.setValues(data.connectionPolicy);
+        driverFormApi.setValues(data.driverConfig);
+        loading.value = false;
+      },
+      (error) => {
+        loading.value = false;
+        console.error(error);
+      },
+    );
+  }
+}
 
 function filterOption(
   input: string,
@@ -160,25 +163,24 @@ async function onDriverIdChange(id: any, _option?: any) {
   }
   await handleRequest(
     () => fetchDriverSchemasById(id as unknown as IdType),
-    (schemas: DriverSchemas) => {
+    async (schemas: DriverSchemas) => {
+      await nextTick();
       const sorted = sortDriverSchemas(schemas);
       const formSchemas = mapChannelSchemasToForm(sorted);
       // Update dynamic schema first, then apply defaults
       driverFormApi.setState({ schema: formSchemas });
-      nextTick().then(async () => {
-        const defaults: Record<string, any> = {};
-        for (const item of formSchemas) {
-          if (
-            item &&
-            'fieldName' in item &&
-            Reflect.has(item, 'defaultValue') &&
-            item.defaultValue !== undefined
-          ) {
-            set(defaults, (item as any).fieldName, (item as any).defaultValue);
-          }
+      const defaults: Record<string, any> = {};
+      for (const item of formSchemas) {
+        if (
+          item &&
+          'fieldName' in item &&
+          Reflect.has(item, 'defaultValue') &&
+          item.defaultValue !== undefined
+        ) {
+          set(defaults, (item as any).fieldName, (item as any).defaultValue);
         }
-        await driverFormApi.resetForm({ values: defaults });
-      });
+      }
+      await driverFormApi.resetForm({ values: defaults });
     },
   );
 }
