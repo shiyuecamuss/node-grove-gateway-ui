@@ -124,6 +124,6 @@ const handleUninstall = async (row: DriverInfo) => {
         </Button>
       </template>
     </Grid>
-    <InstallDriverModal />
+    <InstallDriverModal @success="gridApi.reload()" />
   </Page>
 </template>

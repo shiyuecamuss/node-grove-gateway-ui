@@ -27,6 +27,10 @@ import { useFormSchema } from './schemas';
 
 defineOptions({ name: 'InstallDriver' });
 
+const emit = defineEmits<{
+  success: [];
+}>();
+
 const currentTab = ref(0);
 const uploadedFile = ref<File | null>(null);
 const probeInfo = ref<DriverProbeInfo | null>(null);
@@ -107,6 +111,7 @@ async function handleInstallClick() {
         installProgress.value = 100;
         installSuccess.value = true;
         message.success($t('common.action.installSuccess'));
+        emit('success');
       },
     });
   } finally {

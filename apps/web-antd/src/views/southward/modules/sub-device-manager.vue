@@ -5,11 +5,11 @@ import type { OnActionClickParams, VxeGridProps } from '#/adapter/vxe-table';
 
 import { nextTick } from 'vue';
 
-import { Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
+import { confirm, Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { FormOpenType } from '@vben/constants';
 import { useRequestHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
-import { CommonStatus } from '@vben/types';
+import { CommonStatus, EntityType } from '@vben/types';
 
 import { Button, message, Switch } from 'ant-design-vue';
 
@@ -151,17 +151,26 @@ const handleEdit = (row: DeviceInfo) => {
 };
 
 const handleDelete = async (row: DeviceInfo) => {
-  await handleRequest(
-    () => deleteDevice(row.id),
-    async () => {
-      message.success(
-        $t('common.action.deleteSuccessWithName', {
-          name: row.deviceName,
-        }) as string,
+  confirm({
+    content: $t('common.action.deleteConfirm', {
+      entityType: $t(`entity.${EntityType.DEVICE.toLowerCase()}`),
+      name: row.deviceName,
+    }),
+    icon: 'warning',
+    title: $t('common.tips'),
+  })
+    .then(async () => {
+      await handleRequest(
+        () => deleteDevice(row.id),
+        async () => {
+          message.success(
+            $t('common.action.deleteSuccessWithName', { name: row.deviceName }),
+          );
+        },
       );
       await gridApi.query();
-    },
-  );
+    })
+    .catch(() => {});
 };
 
 const toggleStatus = async (row: DeviceInfo) => {
