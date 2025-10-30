@@ -109,6 +109,16 @@ export function useDeviceColumns(
         attrs: { nameField: 'deviceName', onClick: onActionClick },
         name: 'CellOperation',
         options: [
+          {
+            code: 'pointManagement',
+            icon: 'lucide:database',
+            tooltip: $t('page.southward.device.pointManagement'),
+          },
+          {
+            code: 'actionManagement',
+            icon: 'lucide:activity',
+            tooltip: $t('page.southward.device.actionManagement'),
+          },
           { code: 'edit', icon: 'lucide:edit', tooltip: $t('common.edit') },
           {
             code: 'delete',

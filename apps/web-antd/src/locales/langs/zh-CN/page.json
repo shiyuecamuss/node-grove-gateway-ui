@@ -82,7 +82,9 @@
       "name": "设备名称",
       "type": "设备类型",
       "basic": "基础配置",
-      "driver": "驱动配置"
+      "driver": "驱动配置",
+      "pointManagement": "点位管理",
+      "actionManagement": "动作管理"
     }
   },
   "driver": {

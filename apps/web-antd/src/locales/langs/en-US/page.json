@@ -82,7 +82,9 @@
       "name": "Device Name",
       "type": "Device Type",
       "basic": "Basic Configuration",
-      "driver": "Driver Configuration"
+      "driver": "Driver Configuration",
+      "pointManagement": "Point Management",
+      "actionManagement": "Action Management"
     }
   },
   "driver": {
