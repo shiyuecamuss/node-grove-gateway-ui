@@ -32,6 +32,7 @@ const { handleRequest } = useRequestHandler();
 const type = ref(FormOpenType.CREATE);
 const recordId = ref<IdType | undefined>(undefined);
 const channelId = ref<IdType | undefined>(undefined);
+const hasDriverSchema = ref(false);
 
 // 基础字段表单
 const [BasicForm, basicFormApi] = useVbenForm({
@@ -47,17 +48,8 @@ const [BasicForm, basicFormApi] = useVbenForm({
 
 // 动态 driverConfig 表单
 const [DriverForm, driverFormApi] = useVbenForm({
-  handleSubmit: async (driverConfig: Recordable<any>) => {
-    await basicFormApi.validate();
-    const base = await basicFormApi.getValues();
-    emit('submit', type.value, recordId.value, {
-      channelId: channelId.value as IdType,
-      ...base,
-      driverConfig,
-    } as DeviceInfo);
-  },
   schema: [],
-  showDefaultActions: true,
+  showDefaultActions: false,
   commonConfig: {
     labelClass: 'text-[14px] w-1/6',
   },
@@ -68,9 +60,18 @@ const [DriverForm, driverFormApi] = useVbenForm({
 const [Modal, modalApi] = useVbenDrawer({
   class: 'w-1/2',
   destroyOnClose: true,
-  footer: false,
+  showConfirmButton: true,
   onCancel() {
     modalApi.close();
+  },
+  onConfirm: async () => {
+    const base = await basicFormApi.validateAndSubmitForm();
+    const driverConfig = await driverFormApi.validateAndSubmitForm();
+    emit('submit', type.value, recordId.value, {
+      channelId: channelId.value as IdType,
+      ...base,
+      driverConfig: driverConfig as Recordable<any>,
+    } as DeviceInfo);
   },
   onOpenChange: async (isOpen: boolean) => {
     if (!isOpen) return;
@@ -80,8 +81,12 @@ const [Modal, modalApi] = useVbenDrawer({
 });
 
 async function loadDriverSchemaByDriverId(did: IdType | undefined) {
+  hasDriverSchema.value = false;
+  driverFormApi.setState({ schema: [] });
+  await nextTick();
+  await driverFormApi.resetForm({ values: {} });
+
   if (did === undefined || did === null) {
-    driverFormApi.updateSchema([]);
     return;
   }
   await handleRequest(
@@ -89,8 +94,10 @@ async function loadDriverSchemaByDriverId(did: IdType | undefined) {
     async (schemas: DriverSchemas) => {
       const sorted = sortDriverSchemas(schemas);
       const formSchemas = mapDeviceSchemasToForm(sorted);
+      hasDriverSchema.value = formSchemas.length > 0;
       driverFormApi.setState({ schema: formSchemas });
       await nextTick();
+      if (formSchemas.length === 0) return;
       const defaults: Record<string, any> = {};
       for (const item of formSchemas) {
         if (
@@ -157,7 +164,7 @@ async function init() {
         </template>
         <BasicForm />
       </Card>
-      <Card size="small">
+      <Card v-show="hasDriverSchema" size="small">
         <template #title>
           <div class="flex items-center gap-2">
             <IconifyIcon class="size-4" icon="mdi:cog-outline" />
