@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { DeviceInfo, IdType, Recordable } from '@vben/types';
+import type { IdType, PointInfo, Recordable } from '@vben/types';
 
 import type { DriverSchemas } from './schemas/driver';
 
@@ -15,38 +15,35 @@ import { set } from '@vben-core/shared/utils';
 import { Card } from 'ant-design-vue';
 
 import { useVbenForm } from '#/adapter/form';
-import { getDeviceById } from '#/api';
 import { fetchDriverSchemasById } from '#/api/core/driver';
+import { getPointById } from '#/api/core/point';
 
-import { mapDeviceSchemasToForm, sortDriverSchemas } from './schemas/driver';
-import { useSubDeviceBasicFormSchema } from './schemas/form';
+import { mapPointSchemasToForm, sortDriverSchemas } from './schemas/driver';
+import { usePointBasicFormSchema } from './schemas/form';
 
-defineOptions({ name: 'SubDeviceForm' });
+defineOptions({ name: 'PointForm' });
 
 const emit = defineEmits<{
-  submit: [type: FormOpenType, id: IdType, values: DeviceInfo];
+  submit: [type: FormOpenType, id: IdType, values: PointInfo];
 }>();
 
 const { handleRequest } = useRequestHandler();
 
 const type = ref(FormOpenType.CREATE);
 const recordId = ref<IdType>(undefined);
-const channelId = ref<IdType>(undefined);
+const deviceId = ref<IdType>(undefined);
+const driverId = ref<IdType>(undefined);
 const hasDriverSchema = ref(false);
 
-// 基础字段表单
 const [BasicForm, basicFormApi] = useVbenForm({
-  handleSubmit: async (_values) => {
-    // 不直接提交，由 DriverForm 统一触发提交
-  },
-  schema: useSubDeviceBasicFormSchema(),
+  handleSubmit: async (_values) => {},
+  schema: usePointBasicFormSchema(),
   showDefaultActions: false,
   commonConfig: {
     labelClass: 'text-[14px] w-1/6',
   },
 });
 
-// 动态 driverConfig 表单
 const [DriverForm, driverFormApi] = useVbenForm({
   schema: [],
   showDefaultActions: false,
@@ -56,7 +53,6 @@ const [DriverForm, driverFormApi] = useVbenForm({
   wrapperClass: 'grid-cols-2 md:grid-cols-2 lg:grid-cols-2',
 });
 
-// 抽屉
 const [Modal, modalApi] = useVbenDrawer({
   class: 'w-1/2',
   destroyOnClose: true,
@@ -68,10 +64,10 @@ const [Modal, modalApi] = useVbenDrawer({
     const base = await basicFormApi.validateAndSubmitForm();
     const driverConfig = await driverFormApi.validateAndSubmitForm();
     emit('submit', type.value, recordId.value, {
-      channelId: channelId.value as IdType,
+      deviceId: deviceId.value as IdType,
       ...base,
       driverConfig: driverConfig as Recordable<any>,
-    } as DeviceInfo);
+    } as PointInfo);
   },
   onOpenChange: async (isOpen: boolean) => {
     if (!isOpen) return;
@@ -80,23 +76,61 @@ const [Modal, modalApi] = useVbenDrawer({
   },
 });
 
-async function loadDriverSchemaByDriverId(did: IdType) {
+async function init() {
+  const data = modalApi.getData<{
+    deviceId: IdType;
+    driverId: IdType;
+    id?: IdType;
+    type: FormOpenType;
+  }>();
+
+  type.value = data.type;
+  recordId.value = data.id;
+  deviceId.value = data.deviceId;
+  driverId.value = data.driverId;
+
+  await basicFormApi.resetForm({ values: {} });
+  await loadDriverSchema(driverId.value);
+
+  if (type.value === FormOpenType.EDIT && recordId.value !== undefined) {
+    await handleRequest(
+      () => getPointById(recordId.value),
+      async (point: PointInfo) => {
+        await basicFormApi.resetForm({
+          values: {
+            id: point.id,
+            name: point.name,
+            key: point.key,
+            type: point.type,
+            dataType: point.dataType,
+            accessMode: point.accessMode,
+            unit: point.unit,
+            minValue: point.minValue,
+            maxValue: point.maxValue,
+            scale: point.scale,
+          },
+        });
+        await driverFormApi.setValues(point.driverConfig as Recordable<any>);
+      },
+    );
+  }
+}
+
+async function loadDriverSchema(id: IdType) {
   hasDriverSchema.value = false;
   driverFormApi.setState({ schema: [] });
   await nextTick();
   await driverFormApi.resetForm({ values: {} });
 
-  if (did === undefined || did === null) {
-    return;
-  }
+  if (id === undefined || id === null) return;
+
   await handleRequest(
-    () => fetchDriverSchemasById(did),
+    () => fetchDriverSchemasById(id),
     async (schemas: DriverSchemas) => {
       const sorted = sortDriverSchemas(schemas);
-      const formSchemas = mapDeviceSchemasToForm(sorted);
+      const formSchemas = mapPointSchemasToForm(sorted);
       hasDriverSchema.value = formSchemas.length > 0;
       driverFormApi.setState({ schema: formSchemas });
-      await nextTick();
       if (formSchemas.length === 0) return;
       const defaults: Record<string, any> = {};
       for (const item of formSchemas) {
@@ -108,43 +142,6 @@ async function loadDriverSchemaByDriverId(did: IdType) {
     },
   );
 }
-
-async function init() {
-  const {
-    type: t,
-    id: i,
-    driverId: did,
-    channelId: cid,
-  } = modalApi.getData<{
-    channelId: IdType;
-    driverId: IdType;
-    id?: IdType;
-    type: FormOpenType;
-  }>();
-  type.value = t;
-  recordId.value = i;
-  channelId.value = cid;
-
-  await loadDriverSchemaByDriverId(did);
-
-  if (type.value === FormOpenType.EDIT) {
-    await handleRequest(
-      () => getDeviceById(recordId.value as number),
-      async (data: DeviceInfo) => {
-        await basicFormApi.resetForm({
-          values: {
-            id: data.id,
-            channelId: data.channelId,
-            deviceName: data.deviceName,
-            deviceType: data.deviceType,
-            status: data.status,
-          },
-        });
-        await driverFormApi.setValues(data.driverConfig as any);
-      },
-    );
-  }
-}
 </script>
 
 <template>
@@ -154,7 +151,7 @@ async function init() {
         <template #title>
           <div class="flex items-center gap-2">
             <IconifyIcon class="size-4" icon="mdi:information-outline" />
-            {{ $t('page.southward.device.basic') }}
+            {{ $t('page.southward.point.basic') }}
           </div>
         </template>
         <BasicForm />
@@ -163,7 +160,7 @@ async function init() {
         <template #title>
           <div class="flex items-center gap-2">
             <IconifyIcon class="size-4" icon="mdi:cog-outline" />
-            {{ $t('page.southward.device.driver') }}
+            {{ $t('page.southward.point.driver') }}
           </div>
         </template>
         <DriverForm />

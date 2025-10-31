@@ -42,6 +42,24 @@ interface CommonPageResponse<T> {
   records: T[];
 }
 
+// Channel report type
+export const DataType = {
+  Boolean: 0,
+  Int8: 1,
+  UInt8: 2,
+  Int16: 3,
+  UInt16: 4,
+  Int32: 5,
+  UInt32: 6,
+  Int64: 7,
+  UInt64: 8,
+  Float32: 9,
+  Float64: 10,
+  String: 11,
+  Binary: 12,
+  Timestamp: 13,
+} as const;
+
 export type {
   CommonPageRequest,
   CommonPageResponse,

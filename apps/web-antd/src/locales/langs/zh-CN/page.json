@@ -79,12 +79,71 @@
     },
     "device": {
       "title": "设备",
-      "name": "设备名称",
+      "name": "名称",
       "type": "设备类型",
       "basic": "基础配置",
       "driver": "驱动配置",
       "pointManagement": "点位管理",
       "actionManagement": "动作管理"
+    },
+    "point": {
+      "title": "点位",
+      "name": "名称",
+      "key": "键名",
+      "type": "类型",
+      "dataType": "数据类型",
+      "accessMode": "访问模式",
+      "unit": "单位",
+      "minValue": "最小值",
+      "maxValue": "最大值",
+      "scale": "缩放倍率",
+      "basic": "基础配置",
+      "driver": "驱动配置"
+    },
+    "action": {
+      "title": "动作",
+      "name": "名称",
+      "command": "指令",
+      "basic": "基础配置",
+      "driver": "驱动配置",
+      "parameter": {
+        "title": "参数列表",
+        "name": "名称",
+        "key": "键名",
+        "dataType": "数据类型",
+        "required": "是否必填",
+        "defaultValue": "默认值",
+        "minValue": "最小值",
+        "maxValue": "最大值",
+        "count": "参数数量"
+      }
+    },
+    "enums": {
+      "dataType": {
+        "boolean": "boolean",
+        "int8": "int8",
+        "uint8": "uint8",
+        "int16": "int16",
+        "uint16": "uint16",
+        "int32": "int32",
+        "uint32": "uint32",
+        "int64": "int64",
+        "uint64": "uint64",
+        "float32": "float32",
+        "float64": "float64",
+        "string": "string",
+        "binary": "binary",
+        "timestamp": "timestamp"
+      },
+      "pointType": {
+        "attribute": "属性",
+        "telemetry": "遥测"
+      },
+      "accessMode": {
+        "read": "只读",
+        "write": "只写",
+        "readWrite": "读写"
+      }
     }
   },
   "driver": {

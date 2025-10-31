@@ -22,6 +22,8 @@ import {
   updateDevice,
 } from '#/api';
 
+import ActionManager from './action-manager.vue';
+import PointManager from './point-manager.vue';
 import { deviceSearchFormSchema } from './schemas/search-form';
 import { useDeviceColumns } from './schemas/table-columns';
 import SubDeviceForm from './sub-device-form.vue';
@@ -95,14 +97,30 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions,
 });
 
+const [PointModal, pointModalApi] = useVbenModal({
+  connectedComponent: PointManager,
+});
+
+const [ActionModal, actionModalApi] = useVbenModal({
+  connectedComponent: ActionManager,
+});
+
 function onActionClick({ code, row }: OnActionClickParams<DeviceInfo>) {
   switch (code) {
+    case 'actionManagement': {
+      handleActionManagement(row);
+      break;
+    }
     case 'delete': {
       handleDelete(row);
       break;
     }
     case 'edit': {
       handleEdit(row);
+      break;
+    }
+    case 'pointManagement': {
+      handlePointManagement(row);
       break;
     }
     default: {
@@ -150,6 +168,34 @@ const handleEdit = (row: DeviceInfo) => {
     .open();
 };
 
+const handlePointManagement = (row: DeviceInfo) => {
+  const { driverId } = modalApi.getData<{ driverId: IdType }>();
+  pointModalApi
+    .setData({
+      deviceId: row.id,
+      driverId,
+      deviceName: row.deviceName,
+    })
+    .setState({
+      title: `${row.deviceName} - ${$t('page.southward.point.title')}`,
+    })
+    .open();
+};
+
+const handleActionManagement = (row: DeviceInfo) => {
+  const { driverId } = modalApi.getData<{ driverId: IdType }>();
+  actionModalApi
+    .setData({
+      deviceId: row.id,
+      driverId,
+      deviceName: row.deviceName,
+    })
+    .setState({
+      title: `${row.deviceName} - ${$t('page.southward.action.title')}`,
+    })
+    .open();
+};
+
 const handleDelete = async (row: DeviceInfo) => {
   confirm({
     content: $t('common.action.deleteConfirm', {
@@ -189,7 +235,7 @@ const toggleStatus = async (row: DeviceInfo) => {
 
 const handleFormSubmit = async (
   type: FormOpenType,
-  id: IdType | undefined,
+  id: IdType,
   values: Recordable<any>,
 ) => {
   const payload = { ...values } as DeviceInfo;
@@ -233,5 +279,7 @@ const handleFormSubmit = async (
       </Grid>
     </Page>
     <FormDrawer @submit="handleFormSubmit" />
+    <PointModal />
+    <ActionModal />
   </Modal>
 </template>

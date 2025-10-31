@@ -12,6 +12,9 @@ import { z } from '#/adapter/form';
 import { resolveUiText } from './i18n';
 import { isNullOrUndefined } from './index';
 
+export type DriverFormSchema = FormSchema;
+export type DriverFormSchemas = DriverFormSchema[];
+
 export interface DriverSchemas {
   channel: Node[];
   device: Node[];

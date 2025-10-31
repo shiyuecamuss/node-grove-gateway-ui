@@ -3,7 +3,13 @@ import type { VbenFormSchema as FormSchema } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { CollectionType, ReportType } from '@vben/types';
 
-import { collectionTypeOptions, reportTypeOptions } from '.';
+import {
+  accessModeOptions,
+  collectionTypeOptions,
+  dataPointTypeOptions,
+  dataTypeOptions,
+  reportTypeOptions,
+} from './options';
 
 export function useChannelBasicFormSchema(): FormSchema[] {
   return [
@@ -92,6 +98,153 @@ export function useSubDeviceBasicFormSchema(): FormSchema[] {
       fieldName: 'deviceType',
       label: $t('page.southward.device.type'),
       rules: 'required',
+    },
+  ];
+}
+
+export function usePointBasicFormSchema(): FormSchema[] {
+  return [
+    {
+      component: 'Input',
+      fieldName: 'name',
+      label: $t('page.southward.point.name'),
+      rules: 'required',
+    },
+    {
+      component: 'Input',
+      fieldName: 'key',
+      label: $t('page.southward.point.key'),
+      rules: 'required',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: dataPointTypeOptions(),
+      },
+      fieldName: 'type',
+      label: $t('page.southward.point.type'),
+      rules: 'required',
+      controlClass: 'w-full',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: dataTypeOptions(),
+      },
+      fieldName: 'dataType',
+      label: $t('page.southward.point.dataType'),
+      rules: 'required',
+      controlClass: 'w-full',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: accessModeOptions(),
+      },
+      fieldName: 'accessMode',
+      label: $t('page.southward.point.accessMode'),
+      rules: 'required',
+      controlClass: 'w-full',
+    },
+    {
+      component: 'Input',
+      fieldName: 'unit',
+      label: $t('page.southward.point.unit'),
+    },
+    {
+      component: 'InputNumber',
+      fieldName: 'minValue',
+      label: $t('page.southward.point.minValue'),
+      controlClass: 'w-full',
+    },
+    {
+      component: 'InputNumber',
+      fieldName: 'maxValue',
+      label: $t('page.southward.point.maxValue'),
+      controlClass: 'w-full',
+    },
+    {
+      component: 'InputNumber',
+      fieldName: 'scale',
+      label: $t('page.southward.point.scale'),
+      controlClass: 'w-full',
+    },
+  ];
+}
+
+export function useActionBasicFormSchema(): FormSchema[] {
+  return [
+    {
+      component: 'Input',
+      fieldName: 'name',
+      label: $t('page.southward.action.name'),
+      rules: 'required',
+    },
+    {
+      component: 'Input',
+      fieldName: 'command',
+      label: $t('page.southward.action.command'),
+      rules: 'required',
+    },
+  ];
+}
+
+export function useActionParameterBasicFormSchema(): FormSchema[] {
+  return [
+    {
+      component: 'Input',
+      fieldName: 'name',
+      label: $t('page.southward.action.parameter.name'),
+      rules: 'required',
+    },
+    {
+      component: 'Input',
+      fieldName: 'key',
+      label: $t('page.southward.action.parameter.key'),
+      rules: 'required',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: dataTypeOptions(),
+      },
+      controlClass: 'w-full',
+      fieldName: 'dataType',
+      label: $t('page.southward.action.parameter.dataType'),
+      rules: 'required',
+    },
+    {
+      component: 'Switch',
+      fieldName: 'required',
+      label: $t('page.southward.action.parameter.required'),
+      defaultValue: false,
+    },
+    {
+      component: 'Input',
+      fieldName: 'defaultValue',
+      label: $t('page.southward.action.parameter.defaultValue'),
+      dependencies: {
+        triggerFields: ['required'],
+        rules: (values) => {
+          return values.required ? null : 'required';
+        },
+      },
+    },
+    {
+      component: 'InputNumber',
+      controlClass: 'w-full',
+      fieldName: 'minValue',
+      label: $t('page.southward.action.parameter.minValue'),
+    },
+    {
+      component: 'InputNumber',
+      controlClass: 'w-full',
+      fieldName: 'maxValue',
+      label: $t('page.southward.action.parameter.maxValue'),
     },
   ];
 }

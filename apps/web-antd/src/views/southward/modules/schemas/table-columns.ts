@@ -1,11 +1,24 @@
 import type { VxeTableGridOptions } from '@vben/plugins/vxe-table';
-import type { ChannelInfo, DeviceInfo } from '@vben/types';
+import type {
+  ActionInfo,
+  ChannelInfo,
+  DeviceInfo,
+  PointInfo,
+} from '@vben/types';
 
 import type { OnActionClickFn } from '#/adapter/vxe-table';
 
 import { $t } from '@vben/locales';
 
-import { collectionTypeOptions, reportTypeOptions } from '.';
+import {
+  accessModeOptions,
+  collectionTypeOptions,
+  dataPointTypeOptions,
+  dataTypeOptions,
+  reportTypeOptions,
+} from './options';
+
+type ActionParameter = ActionInfo['inputs'][number];
 
 /**
  * Table columns configuration for tenant package list
@@ -134,6 +147,167 @@ export function useDeviceColumns(
       showOverflow: false,
       title: $t('common.actions'),
       width: 180,
+    },
+  ];
+}
+
+export function usePointColumns(
+  onActionClick: OnActionClickFn<PointInfo>,
+): VxeTableGridOptions<PointInfo>['columns'] {
+  return [
+    { field: 'name', title: $t('page.southward.point.name') },
+    { field: 'key', title: $t('page.southward.point.key') },
+    {
+      field: 'type',
+      title: $t('page.southward.point.type'),
+      cellRender: {
+        name: 'CellTag',
+        options: dataPointTypeOptions(),
+      },
+    },
+    {
+      field: 'dataType',
+      title: $t('page.southward.point.dataType'),
+      cellRender: {
+        name: 'CellTag',
+        options: dataTypeOptions(),
+      },
+    },
+    {
+      field: 'accessMode',
+      title: $t('page.southward.point.accessMode'),
+      cellRender: {
+        name: 'CellTag',
+        options: accessModeOptions(),
+      },
+    },
+    { field: 'unit', title: $t('page.southward.point.unit') },
+    {
+      align: 'right',
+      cellRender: {
+        attrs: { nameField: 'name', onClick: onActionClick },
+        name: 'CellOperation',
+        options: [
+          { code: 'edit', icon: 'lucide:edit', tooltip: $t('common.edit') },
+          {
+            code: 'delete',
+            icon: 'lucide:trash-2',
+            tooltip: $t('common.delete'),
+            danger: true,
+          },
+        ],
+      },
+      field: 'operation',
+      fixed: 'right',
+      headerAlign: 'center',
+      showOverflow: false,
+      title: $t('common.actions'),
+      width: 160,
+    },
+  ];
+}
+
+export function useActionColumns(
+  onActionClick: OnActionClickFn<ActionInfo>,
+): VxeTableGridOptions<ActionInfo>['columns'] {
+  return [
+    { field: 'name', title: $t('page.southward.action.name') },
+    { field: 'command', title: $t('page.southward.action.command') },
+    {
+      field: 'inputs',
+      title: $t('page.southward.action.parameter.count'),
+      formatter: ({ row }) => row.inputs?.length ?? 0,
+    },
+    {
+      align: 'right',
+      cellRender: {
+        attrs: { nameField: 'name', onClick: onActionClick },
+        name: 'CellOperation',
+        options: [
+          { code: 'edit', icon: 'lucide:edit', tooltip: $t('common.edit') },
+          {
+            code: 'delete',
+            icon: 'lucide:trash-2',
+            tooltip: $t('common.delete'),
+            danger: true,
+          },
+        ],
+      },
+      field: 'operation',
+      fixed: 'right',
+      headerAlign: 'center',
+      showOverflow: false,
+      title: $t('common.actions'),
+      width: 160,
+    },
+  ];
+}
+
+export function useActionParameterColumns(
+  onActionClick: OnActionClickFn<ActionParameter>,
+): VxeTableGridOptions<ActionParameter>['columns'] {
+  return [
+    {
+      field: 'name',
+      title: $t('page.southward.action.parameter.name'),
+    },
+    {
+      field: 'key',
+      title: $t('page.southward.action.parameter.key'),
+    },
+    {
+      field: 'dataType',
+      title: $t('page.southward.action.parameter.dataType'),
+      cellRender: {
+        name: 'CellTag',
+        options: dataTypeOptions(),
+      },
+    },
+    {
+      field: 'required',
+      title: $t('page.southward.action.parameter.required'),
+      cellRender: {
+        name: 'CellTag',
+        options: [
+          { color: 'success', label: $t('common.yes'), value: true },
+          { color: 'error', label: $t('common.no'), value: false },
+        ],
+      },
+    },
+    {
+      field: 'defaultValue',
+      title: $t('page.southward.action.parameter.defaultValue'),
+      formatter: ({ cellValue }) => {
+        if (cellValue === null || cellValue === undefined || cellValue === '') {
+          return '-';
+        }
+        return cellValue;
+      },
+    },
+    {
+      align: 'right',
+      cellRender: {
+        attrs: {
+          nameField: 'name',
+          onClick: onActionClick,
+        },
+        name: 'CellOperation',
+        options: [
+          { code: 'edit', icon: 'lucide:edit', tooltip: $t('common.edit') },
+          {
+            code: 'delete',
+            icon: 'lucide:trash-2',
+            tooltip: $t('common.delete'),
+            danger: true,
+          },
+        ],
+      },
+      field: 'operation',
+      fixed: 'right',
+      headerAlign: 'center',
+      showOverflow: false,
+      title: $t('common.actions'),
+      width: 160,
     },
   ];
 }

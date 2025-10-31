@@ -1,0 +1,217 @@
+<script lang="ts" setup>
+import type { ActionInfo, IdType } from '@vben/types';
+
+import type { OnActionClickParams, VxeGridProps } from '#/adapter/vxe-table';
+
+import { nextTick } from 'vue';
+
+import { confirm, Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
+import { FormOpenType } from '@vben/constants';
+import { useRequestHandler } from '@vben/hooks';
+import { $t } from '@vben/locales';
+import { EntityType } from '@vben/types';
+
+import { Button, message } from 'ant-design-vue';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import {
+  createAction,
+  deleteAction,
+  fetchActionPage,
+  updateAction,
+} from '#/api/core';
+
+import ActionForm from './action-form.vue';
+import { actionSearchFormSchema } from './schemas/search-form';
+import { useActionColumns } from './schemas/table-columns';
+
+defineOptions({ name: 'ActionManager' });
+
+const { handleRequest } = useRequestHandler();
+
+const [FormDrawer, formDrawerApi] = useVbenDrawer({
+  connectedComponent: ActionForm,
+});
+
+const [Modal, modalApi] = useVbenModal({
+  class: 'w-4/5',
+  destroyOnClose: true,
+  footer: false,
+  onCancel() {
+    modalApi.close();
+  },
+  onOpenChange: async (isOpen: boolean) => {
+    if (!isOpen) return;
+    await nextTick();
+    await gridApi.query();
+  },
+});
+
+const gridOptions: VxeGridProps<ActionInfo> = {
+  checkboxConfig: {
+    highlight: true,
+    labelField: 'name',
+  },
+  columns: useActionColumns(onActionClick),
+  exportConfig: {},
+  height: 'auto',
+  keepSource: true,
+  proxyConfig: {
+    autoLoad: true,
+    response: {
+      result: 'records',
+      total: 'total',
+      list: 'records',
+    },
+    ajax: {
+      query: async ({ page }, formValues) => {
+        const { deviceId } = modalApi.getData<{ deviceId: IdType }>();
+        return await fetchActionPage({
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          deviceId,
+          ...formValues,
+        });
+      },
+    },
+  },
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    import: true,
+    refresh: true,
+    zoom: true,
+  },
+};
+
+const [Grid, gridApi] = useVbenVxeGrid({
+  formOptions: {
+    collapsed: true,
+    schema: actionSearchFormSchema,
+    showCollapseButton: true,
+    submitOnEnter: false,
+  },
+  gridOptions,
+});
+
+function onActionClick({ code, row }: OnActionClickParams<ActionInfo>) {
+  switch (code) {
+    case 'delete': {
+      handleDelete(row);
+      break;
+    }
+    case 'edit': {
+      handleEdit(row);
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+}
+
+const handleCreate = () => {
+  const { deviceId, driverId, deviceName } = modalApi.getData<{
+    deviceId: IdType;
+    deviceName: string;
+    driverId: IdType;
+  }>();
+
+  formDrawerApi
+    .setData({
+      type: FormOpenType.CREATE,
+      deviceId,
+      driverId,
+    })
+    .setState({
+      title: $t('common.createWithName', {
+        name: `${deviceName} ${$t('page.southward.action.title')}`,
+      }),
+    })
+    .open();
+};
+
+const handleEdit = (row: ActionInfo) => {
+  const { deviceId, driverId } = modalApi.getData<{
+    deviceId: IdType;
+    driverId: IdType;
+  }>();
+
+  formDrawerApi
+    .setData({
+      type: FormOpenType.EDIT,
+      id: row.id,
+      deviceId,
+      driverId,
+    })
+    .setState({
+      title: $t('common.editWithName', { name: row.name }),
+    })
+    .open();
+};
+
+const handleDelete = async (row: ActionInfo) => {
+  confirm({
+    content: $t('common.action.deleteConfirm', {
+      entityType: $t(`entity.${EntityType.ACTION.toLowerCase()}`),
+      name: row.name,
+    }),
+    icon: 'warning',
+    title: $t('common.tips'),
+  })
+    .then(async () => {
+      await handleRequest(
+        () => deleteAction(row.id),
+        async () => {
+          message.success(
+            $t('common.action.deleteSuccessWithName', { name: row.name }),
+          );
+        },
+      );
+      await gridApi.query();
+    })
+    .catch(() => {});
+};
+
+const handleFormSubmit = async (
+  type: FormOpenType,
+  id: IdType,
+  values: ActionInfo,
+) => {
+  const payload = { ...values } as ActionInfo;
+  await (type === FormOpenType.CREATE
+    ? handleRequest(
+        () => createAction(payload),
+        async () => {
+          formDrawerApi.close();
+          message.success($t('common.action.createSuccess'));
+          await gridApi.query();
+        },
+      )
+    : handleRequest(
+        () => updateAction({ ...payload, id } as ActionInfo),
+        async () => {
+          formDrawerApi.close();
+          message.success($t('common.action.updateSuccess'));
+          await gridApi.query();
+        },
+      ));
+};
+</script>
+
+<template>
+  <Modal>
+    <Page auto-content-height>
+      <Grid>
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="handleCreate">
+            <span>{{
+              `${$t('common.createWithName', { name: $t('page.southward.action.title') })}`
+            }}</span>
+          </Button>
+        </template>
+      </Grid>
+    </Page>
+    <FormDrawer @submit="handleFormSubmit" />
+  </Modal>
+</template>

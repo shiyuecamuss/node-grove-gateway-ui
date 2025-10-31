@@ -28,14 +28,14 @@ import { mapChannelSchemasToForm, sortDriverSchemas } from './schemas/driver';
 defineOptions({ name: 'ChannelForm' });
 
 const emit = defineEmits<{
-  submit: [type: FormOpenType, id: IdType | undefined, values: Recordable<any>];
+  submit: [type: FormOpenType, id: IdType, values: Recordable<any>];
 }>();
 
 const { handleRequest } = useRequestHandler();
 
 const currentTab = ref(0);
 const type = ref(FormOpenType.CREATE);
-const recordId = ref<IdType | undefined>(undefined);
+const recordId = ref<IdType>(undefined);
 const loading = ref(false);
 const drivers = ref<DriverInfo[]>([]);
 
@@ -171,13 +171,8 @@ async function onDriverIdChange(id: any, _option?: any) {
       driverFormApi.setState({ schema: formSchemas });
       const defaults: Record<string, any> = {};
       for (const item of formSchemas) {
-        if (
-          item &&
-          'fieldName' in item &&
-          Reflect.has(item, 'defaultValue') &&
-          item.defaultValue !== undefined
-        ) {
-          set(defaults, (item as any).fieldName, (item as any).defaultValue);
+        if (item && item.fieldName && item.defaultValue !== undefined) {
+          set(defaults, item.fieldName, item.defaultValue);
         }
       }
       await driverFormApi.resetForm({ values: defaults });

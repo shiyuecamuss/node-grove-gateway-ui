@@ -79,12 +79,71 @@
     },
     "device": {
       "title": "Device",
-      "name": "Device Name",
+      "name": "Name",
       "type": "Device Type",
       "basic": "Basic Configuration",
       "driver": "Driver Configuration",
       "pointManagement": "Point Management",
       "actionManagement": "Action Management"
+    },
+    "point": {
+      "title": "Point",
+      "name": "Name",
+      "key": "Key",
+      "type": "Type",
+      "dataType": "Data Type",
+      "accessMode": "Access Mode",
+      "unit": "Unit",
+      "minValue": "Minimum Value",
+      "maxValue": "Maximum Value",
+      "scale": "Scale",
+      "basic": "Basic Configuration",
+      "driver": "Driver Configuration"
+    },
+    "action": {
+      "title": "Action",
+      "name": "Name",
+      "command": "Command",
+      "basic": "Basic Configuration",
+      "driver": "Driver Configuration",
+      "parameter": {
+        "title": "Parameters",
+        "name": "Name",
+        "key": "Key",
+        "dataType": "Data Type",
+        "required": "Required",
+        "defaultValue": "Default Value",
+        "minValue": "Minimum Value",
+        "maxValue": "Maximum Value",
+        "count": "Parameter Count"
+      }
+    },
+    "enums": {
+      "dataType": {
+        "boolean": "boolean",
+        "int8": "int8",
+        "uint8": "uint8",
+        "int16": "int16",
+        "uint16": "uint16",
+        "int32": "int32",
+        "uint32": "uint32",
+        "int64": "int64",
+        "uint64": "uint64",
+        "float32": "float32",
+        "float64": "float64",
+        "string": "string",
+        "binary": "binary",
+        "timestamp": "timestamp"
+      },
+      "pointType": {
+        "attribute": "Attribute",
+        "telemetry": "Telemetry"
+      },
+      "accessMode": {
+        "read": "Read",
+        "write": "Write",
+        "readWrite": "Read & Write"
+      }
     }
   },
   "driver": {

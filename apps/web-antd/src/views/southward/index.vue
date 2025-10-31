@@ -193,7 +193,7 @@ const handleSubDevice = async (row: ChannelInfo) => {
 
 const handleFormSubmit = async (
   type: FormOpenType,
-  id: IdType | undefined,
+  id: IdType,
   values: Recordable<any>,
 ) => {
   await (type === FormOpenType.CREATE

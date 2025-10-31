@@ -16,13 +16,13 @@ import { formSchema } from './schemas';
 defineOptions({ name: 'UserForm' });
 
 const emit = defineEmits<{
-  submit: [type: FormOpenType, id: IdType | undefined, values: Recordable<any>];
+  submit: [type: FormOpenType, id: IdType, values: Recordable<any>];
 }>();
 
 const { handleRequest } = useRequestHandler();
 
 const type = ref(FormOpenType.CREATE);
-const recordId = ref<IdType | undefined>(undefined);
+const recordId = ref<IdType>(undefined);
 const loading = ref(false);
 
 // 初始化表单
