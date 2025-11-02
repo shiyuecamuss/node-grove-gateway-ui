@@ -228,9 +228,16 @@ export function useActionParameterBasicFormSchema(): FormSchema[] {
       defaultValue: false,
     },
     {
-      component: 'Input',
+      component: 'JsonEditor',
       fieldName: 'defaultValue',
       label: $t('page.southward.action.parameter.defaultValue'),
+      componentProps: {
+        mode: 'text',
+        stringified: false,
+        statusBar: false,
+        navigationBar: false,
+        mainMenuBar: false,
+      },
       dependencies: {
         // 需要在以下字段变化时重新计算默认值的校验规则
         triggerFields: ['required', 'dataType', 'minValue', 'maxValue'],
@@ -335,7 +342,7 @@ export function useActionParameterBasicFormSchema(): FormSchema[] {
           return schema.nullable().optional();
         },
       },
-      controlClass: 'w-full',
+      controlClass: 'w-full jse-theme-dark',
     },
     {
       component: 'InputNumber',

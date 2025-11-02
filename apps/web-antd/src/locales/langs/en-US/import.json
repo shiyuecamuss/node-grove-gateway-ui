@@ -3,7 +3,10 @@
     "total": "Total",
     "valid": "Valid",
     "invalid": "Invalid",
-    "warn": "Warn"
+    "warn": "Warn",
+    "errorRow": "Row",
+    "errorField": "Field",
+    "errorMessage": "Error Message"
   },
   "actions": {
     "commit": "Commit",

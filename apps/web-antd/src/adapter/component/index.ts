@@ -15,6 +15,8 @@ import { $t } from '@vben/locales';
 
 import { notification } from 'ant-design-vue';
 
+import 'vanilla-jsoneditor/themes/jse-theme-dark.css';
+
 const AutoComplete = defineAsyncComponent(
   () => import('ant-design-vue/es/auto-complete'),
 );
@@ -62,6 +64,9 @@ const TreeSelect = defineAsyncComponent(
 const Upload = defineAsyncComponent(() => import('ant-design-vue/es/upload'));
 const UploadDragger = defineAsyncComponent(() =>
   import('ant-design-vue/es/upload').then((res) => res.UploadDragger),
+);
+const JsonEditorVue = defineAsyncComponent(() =>
+  import('json-editor-vue').then((res) => res.default),
 );
 
 const withDefaultPlaceholder = <T extends Component>(
@@ -112,6 +117,7 @@ export type ComponentType =
   | 'Input'
   | 'InputNumber'
   | 'InputPassword'
+  | 'JsonEditor'
   | 'Mentions'
   | 'PrimaryButton'
   | 'Radio'
@@ -194,6 +200,7 @@ async function initComponentAdapter() {
     TreeSelect: withDefaultPlaceholder(TreeSelect, 'select'),
     Upload,
     UploadDragger,
+    JsonEditor: JsonEditorVue,
   };
 
   // 将组件注册到全局共享状态中

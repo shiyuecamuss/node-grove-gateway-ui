@@ -91,7 +91,7 @@ export function useImportFlow({
               style: 'margin-top:8px; max-height:240px; overflow:auto;',
             },
             {
-              renderItem: (item: any) =>
+              renderItem: ({ item }: { item: any }) =>
                 h(
                   List.Item,
                   {},
@@ -100,7 +100,10 @@ export function useImportFlow({
                       h(
                         Typography.Text,
                         { type: 'danger' },
-                        `${item.row}${item.field ? `.${item.field}` : ''}: ${item.message}`,
+                        {
+                          default: () =>
+                            `${$t('import.preview.errorRow')}: ${item.row}，${$t('import.preview.errorField')}: ${item.field}，${$t('import.preview.errorMessage')}: ${item.message}`,
+                        },
                       ),
                   },
                 ),
@@ -124,6 +127,7 @@ export function useImportFlow({
       return await new Promise<void>((resolve, reject) => {
         const modal = Modal.confirm({
           title: opts.title,
+          width: '70%',
           type: 'info',
           content: renderPreviewContent(preview),
           okText: $t('import.actions.commit'),

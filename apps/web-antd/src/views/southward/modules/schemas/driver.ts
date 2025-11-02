@@ -63,7 +63,7 @@ export interface UnionCase {
 
 export type UiDataType =
   | { items: EnumItem[]; kind: 'Enum' }
-  | { items: UiDataType; kind: 'Array' }
+  | { kind: 'Any' }
   | { kind: 'Boolean' }
   | { kind: 'Float' }
   | { kind: 'Integer' }
@@ -387,7 +387,7 @@ function mapField(
 }
 
 const COMPONENT_BY_KIND: Record<UiDataType['kind'], any> = {
-  Array: 'InputTextArea',
+  Any: 'JsonEditor',
   Boolean: 'Switch',
   Enum: 'Select',
   Float: 'InputNumber',
@@ -507,22 +507,7 @@ function buildRuleForNode(node: FieldNode, requiredOverride?: boolean) {
 type ZodBuilder = (dataType: UiDataType, rules?: Rules) => any;
 
 const ZOD_BUILDERS: Partial<Record<UiDataType['kind'], ZodBuilder>> = {
-  Array: (dataType, rules) => {
-    const dt = dataType as Extract<UiDataType, { kind: 'Array' }>;
-    const inner = buildZodSchema(dt.items, rules) ?? z.any();
-    let s = z.array(inner);
-    const rvMinItems = extractRuleValue<number>(rules?.min_items);
-    const rvMaxItems = extractRuleValue<number>(rules?.max_items);
-    if (!isNullOrUndefined(rvMinItems.value))
-      s = (s as any).min(Number(rvMinItems.value), {
-        message: rvMinItems.message,
-      } as any);
-    if (!isNullOrUndefined(rvMaxItems.value))
-      s = (s as any).max(Number(rvMaxItems.value), {
-        message: rvMaxItems.message,
-      } as any);
-    return s;
-  },
+  Any: () => z.any(),
   Boolean: () => z.boolean(),
   Enum: (dataType) => {
     const dt = dataType as Extract<UiDataType, { kind: 'Enum' }>;

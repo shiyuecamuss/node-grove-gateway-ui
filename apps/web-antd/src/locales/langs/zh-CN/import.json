@@ -3,7 +3,10 @@
     "total": "总计",
     "valid": "有效",
     "invalid": "无效",
-    "warn": "警告"
+    "warn": "警告",
+    "errorRow": "行号",
+    "errorField": "字段",
+    "errorMessage": "错误信息"
   },
   "actions": {
     "commit": "提交",

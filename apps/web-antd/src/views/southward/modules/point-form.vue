@@ -89,26 +89,25 @@ async function init() {
   deviceId.value = data.deviceId;
   driverId.value = data.driverId;
 
-  await basicFormApi.resetForm({ values: {} });
+  await basicFormApi.resetForm();
+  await driverFormApi.resetForm();
   await loadDriverSchema(driverId.value);
 
   if (type.value === FormOpenType.EDIT && recordId.value !== undefined) {
     await handleRequest(
       () => getPointById(recordId.value),
       async (point: PointInfo) => {
-        await basicFormApi.resetForm({
-          values: {
-            id: point.id,
-            name: point.name,
-            key: point.key,
-            type: point.type,
-            dataType: point.dataType,
-            accessMode: point.accessMode,
-            unit: point.unit,
-            minValue: point.minValue,
-            maxValue: point.maxValue,
-            scale: point.scale,
-          },
+        await basicFormApi.setValues({
+          id: point.id,
+          name: point.name,
+          key: point.key,
+          type: point.type,
+          dataType: point.dataType,
+          accessMode: point.accessMode,
+          unit: point.unit,
+          minValue: point.minValue,
+          maxValue: point.maxValue,
+          scale: point.scale,
         });
         await driverFormApi.setValues(point.driverConfig as Recordable<any>);
       },
@@ -120,7 +119,7 @@ async function loadDriverSchema(id: IdType) {
   hasDriverSchema.value = false;
   driverFormApi.setState({ schema: [] });
   await nextTick();
-  await driverFormApi.resetForm({ values: {} });
+  await driverFormApi.resetForm();
 
   if (id === undefined || id === null) return;
 
@@ -138,7 +137,7 @@ async function loadDriverSchema(id: IdType) {
           set(defaults, item.fieldName, item.defaultValue);
         }
       }
-      await driverFormApi.resetForm({ values: defaults });
+      await driverFormApi.setValues(defaults);
     },
   );
 }
