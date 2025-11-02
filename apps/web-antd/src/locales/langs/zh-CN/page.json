@@ -79,6 +79,7 @@
     },
     "device": {
       "title": "设备",
+      "importTitle": "导入设备",
       "name": "名称",
       "type": "设备类型",
       "basic": "基础配置",
@@ -88,6 +89,7 @@
     },
     "point": {
       "title": "点位",
+      "importTitle": "导入点位",
       "name": "名称",
       "key": "键名",
       "type": "类型",
@@ -102,6 +104,7 @@
     },
     "action": {
       "title": "动作",
+      "importTitle": "导入动作",
       "name": "名称",
       "command": "指令",
       "basic": "基础配置",
@@ -182,6 +185,8 @@
       "step1": "上传",
       "step2": "预览",
       "step3": "安装"
-    }
+    },
+    "templateDownload": "模板下载",
+    "templateEntity": "模板类型"
   }
 }

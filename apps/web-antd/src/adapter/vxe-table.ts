@@ -14,7 +14,15 @@ import {
 import { get, isFunction, isString } from '@vben/utils';
 
 import { objectOmit } from '@vueuse/core';
-import { Button, Image, Switch, Tag, Tooltip } from 'ant-design-vue';
+import {
+  Button,
+  Dropdown,
+  Image,
+  Menu,
+  Switch,
+  Tag,
+  Tooltip,
+} from 'ant-design-vue';
 
 import { $t } from '#/locales';
 
@@ -171,12 +179,20 @@ setupVbenVxeTable({
           .filter((opt) => opt.show !== false);
 
         function renderBtn(opt: Recordable<any>, listen = true) {
-          const buttonVNode = h(
+          const iconVNode = opt.icon
+            ? h(IconifyIcon, { class: 'size-5', icon: opt.icon })
+            : null;
+
+          // Render button content: icon and optional text
+          const buttonContent = opt.text
+            ? [iconVNode, h('span', {}, opt.text)]
+            : [iconVNode];
+
+          const baseButton = h(
             Button,
             {
               ...props,
-              // omit non-Button props like tooltip
-              ...objectOmit(opt, ['tooltip']),
+              ...objectOmit(opt, ['tooltip', 'dropdown', 'text']),
               icon: undefined,
               onClick: listen
                 ? () =>
@@ -186,33 +202,63 @@ setupVbenVxeTable({
                     })
                 : undefined,
             },
-            {
-              default: () => {
-                const content = [] as any[];
-                if (opt.icon) {
-                  content.push(
-                    h(IconifyIcon, { class: 'size-5', icon: opt.icon }),
-                  );
-                }
-                content.push(opt.text);
-                return content;
-              },
-            },
+            { default: () => buttonContent },
           );
 
-          // Wrap with Tooltip when tooltip is provided in options
+          // Build Tooltip-wrapped trigger when tooltip is provided
           const tooltip = (opt as Recordable<any>).tooltip;
+          let triggerNode = baseButton;
           if (tooltip) {
             const tooltipProps = isString(tooltip)
               ? { title: tooltip }
               : tooltip;
-            return h(Tooltip, tooltipProps, { default: () => buttonVNode });
+            triggerNode = h(Tooltip, tooltipProps, {
+              default: () => baseButton,
+            });
           }
 
-          return buttonVNode;
+          // When dropdown is configured, Dropdown should be the outermost wrapper
+          const dropdown = (opt as Recordable<any>).dropdown;
+          if (dropdown) {
+            // Transform icon strings to VNodes for menu items
+            const menuItems = (dropdown.items ?? []).map((item: any) => {
+              if (item.icon && isString(item.icon)) {
+                return {
+                  ...item,
+                  icon: () => h(IconifyIcon, { icon: item.icon }),
+                };
+              }
+              return item;
+            });
+
+            // Create menu using overlay slot for better compatibility
+            const menuNode = h(Menu, {
+              items: menuItems,
+              onClick: (info: any) => {
+                attrs?.onClick?.({
+                  code: opt.code,
+                  row,
+                  extra: { menuKey: info?.key, menuInfo: info },
+                });
+              },
+            });
+
+            return h(
+              Dropdown,
+              {
+                trigger: ['click'],
+              },
+              {
+                default: () => triggerNode,
+                overlay: () => menuNode,
+              },
+            );
+          }
+
+          return triggerNode;
         }
 
-        const btns = operations.map((opt) => renderBtn(opt));
+        const btns = operations.map((opt) => renderBtn(opt, !opt?.dropdown));
         return h(
           'div',
           {
@@ -236,6 +282,7 @@ export const useVbenVxeGrid = <T extends Record<string, any>>(
 
 export type OnActionClickParams<T = Recordable<any>> = {
   code: string;
+  extra?: Recordable<any>;
   row: T;
 };
 export type OnActionClickFn<T = Recordable<any>> = (

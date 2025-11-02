@@ -83,6 +83,30 @@ export function useColumns(
         name: 'CellOperation',
         options: [
           {
+            code: 'templateDownload',
+            icon: 'lucide:file-text',
+            tooltip: $t('page.driver.templateDownload'),
+            dropdown: {
+              items: [
+                {
+                  key: 'Device',
+                  icon: 'lucide:cpu',
+                  label: $t('entity.device'),
+                },
+                {
+                  key: 'Point',
+                  icon: 'lucide:map-pin',
+                  label: $t('entity.point'),
+                },
+                {
+                  key: 'Action',
+                  icon: 'lucide:zap',
+                  label: $t('entity.action'),
+                },
+              ],
+            },
+          },
+          {
             code: 'uninstall',
             icon: 'entypo:uninstall',
             tooltip: $t('common.uninstall'),

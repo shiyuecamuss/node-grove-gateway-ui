@@ -1,11 +1,13 @@
 import type {
   ChannelInfo,
+  CommitResult,
   CommonPageRequest,
   CommonPageResponse,
   CommonStatus,
   CommonTimeRangeRequest,
   DeviceInfo,
   IdType,
+  ImportPreview,
 } from '@vben/types';
 
 import { requestClient } from '#/api/request';
@@ -18,6 +20,10 @@ export namespace ChannelApi {
   export const getById = (id: IdType) => `${base}/detail/${id}`;
   export const changeStatus = `${base}/change-status`;
   export const subDevices = (id: IdType) => `${base}/${id}/sub-devices`;
+  export const importDevicePreview = (id: IdType) =>
+    `${base}/${id}/import-device-preview`;
+  export const importDeviceCommit = (id: IdType) =>
+    `${base}/${id}/import-device-commit`;
 
   /** channel page params */
   export interface ChannelPageParams
@@ -98,4 +104,34 @@ export async function changeChannelStatus(
  */
 export async function getSubDevicesById(id: IdType) {
   return requestClient.get<DeviceInfo[]>(ChannelApi.subDevices(id));
+}
+
+/**
+ * Upload a file for sub-device import preview on a channel.
+ * @param id - Channel ID
+ * @param file - Upload file (xlsx)
+ */
+export async function importChannelDevicesPreview(id: IdType, file: File) {
+  const fd = new FormData();
+  fd.append('file', file);
+  return requestClient.post<ImportPreview>(
+    ChannelApi.importDevicePreview(id),
+    fd,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+}
+
+/**
+ * Commit sub-device import for a channel.
+ * @param id - Channel ID
+ * @param file - Upload file (xlsx)
+ */
+export async function importChannelDevicesCommit(id: IdType, file: File) {
+  const fd = new FormData();
+  fd.append('file', file);
+  return requestClient.post<CommitResult>(
+    ChannelApi.importDeviceCommit(id),
+    fd,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
 }

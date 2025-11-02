@@ -4,18 +4,6 @@ import type { BaseEntity, IdType } from './base';
 
 import { DataType } from './common';
 
-export const DataPointType = {
-  Attribute: 0,
-  Telemetry: 1,
-  Event: 2,
-} as const;
-
-export const AccessMode = {
-  Read: 0,
-  Write: 1,
-  ReadWrite: 2,
-} as const;
-
 interface ActionInfo extends BaseEntity {
   deviceId: IdType;
   name: string;

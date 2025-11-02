@@ -1,0 +1,16 @@
+{
+  "preview": {
+    "total": "Total",
+    "valid": "Valid",
+    "invalid": "Invalid",
+    "warn": "Warn"
+  },
+  "actions": {
+    "commit": "Commit",
+    "cancel": "Cancel"
+  },
+  "message": {
+    "success": "Imported {0}/{1} valid rows (Total {2}, Invalid {3}, Warn {4}).",
+    "commitFailed": "Commit failed"
+  }
+}

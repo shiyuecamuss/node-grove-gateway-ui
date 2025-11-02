@@ -1,12 +1,10 @@
 import type { Nullable } from '@vben/types';
 
-import { $t } from '@vben/locales';
 import { preferences } from '@vben/preferences';
 
 import { isNullOrUndefined } from './index';
 
 export type UiText =
-  | { key: string; kind: 'key' }
   | { kind: 'localized'; locales: Record<string, string> }
   | { kind: 'simple'; value: string };
 
@@ -50,8 +48,6 @@ export function resolveUiText(
     const any = Object.values(locales)[0];
     return typeof any === 'string' ? any : '';
   }
-
-  if (t.kind === 'key') return $t(t.key) || '';
 
   return '';
 }

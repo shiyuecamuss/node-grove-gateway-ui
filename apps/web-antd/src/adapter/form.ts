@@ -1,6 +1,8 @@
 import type {
   VbenFormSchema as FormSchema,
   VbenFormProps,
+  ZodSchema,
+  ZodTypeAny,
 } from '@vben/common-ui';
 
 import type { ComponentType } from './component';
@@ -45,6 +47,7 @@ async function initSetupVbenForm() {
 const useVbenForm = useForm<ComponentType>;
 
 export { initSetupVbenForm, useVbenForm, z };
+export type { ZodSchema, ZodTypeAny };
 
 export type VbenFormSchema = FormSchema<ComponentType>;
 export type { VbenFormProps };

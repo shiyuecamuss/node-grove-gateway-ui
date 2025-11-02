@@ -1,10 +1,12 @@
 import type {
+  CommitResult,
   CommonPageRequest,
   CommonPageResponse,
   CommonStatus,
   CommonTimeRangeRequest,
   DeviceInfo,
   IdType,
+  ImportPreview,
 } from '@vben/types';
 
 import { requestClient } from '#/api/request';
@@ -16,6 +18,14 @@ export namespace DevicelApi {
   export const deleteDevice = (id: IdType) => `${base}/${id}`;
   export const getById = (id: IdType) => `${base}/detail/${id}`;
   export const changeStatus = `${base}/change-status`;
+  export const importPointPreview = (id: IdType) =>
+    `${base}/${id}/import-point-preview`;
+  export const importPointCommit = (id: IdType) =>
+    `${base}/${id}/import-point-commit`;
+  export const importActionPreview = (id: IdType) =>
+    `${base}/${id}/import-action-preview`;
+  export const importActionCommit = (id: IdType) =>
+    `${base}/${id}/import-action-commit`;
 
   /** device page params */
   export interface DevicePageParams
@@ -89,4 +99,64 @@ export async function changeDeviceStatus(
     id,
     status,
   });
+}
+
+/**
+ * Upload a file for device point import preview.
+ * @param id - Device ID
+ * @param file - Upload file (xlsx)
+ */
+export async function importPointPreview(id: IdType, file: File) {
+  const fd = new FormData();
+  fd.append('file', file);
+  return requestClient.post<ImportPreview>(
+    DevicelApi.importPointPreview(id),
+    fd,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+}
+
+/**
+ * Commit device point import.
+ * @param id - Device ID
+ * @param file - Upload file (xlsx)
+ */
+export async function importPointCommit(id: IdType, file: File) {
+  const fd = new FormData();
+  fd.append('file', file);
+  return requestClient.post<CommitResult>(
+    DevicelApi.importPointCommit(id),
+    fd,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+}
+
+/**
+ * Upload a file for device action import preview.
+ * @param id - Device ID
+ * @param file - Upload file (xlsx)
+ */
+export async function importActionPreview(id: IdType, file: File) {
+  const fd = new FormData();
+  fd.append('file', file);
+  return requestClient.post<ImportPreview>(
+    DevicelApi.importActionPreview(id),
+    fd,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+}
+
+/**
+ * Commit device action import.
+ * @param id - Device ID
+ * @param file - Upload file (xlsx)
+ */
+export async function importActionCommit(id: IdType, file: File) {
+  const fd = new FormData();
+  fd.append('file', file);
+  return requestClient.post<CommitResult>(
+    DevicelApi.importActionCommit(id),
+    fd,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
 }

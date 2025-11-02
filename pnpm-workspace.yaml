@@ -195,3 +195,5 @@ catalog:
   country-state-city: ^3.0.0
   awesome-phonenumber: ^7.5.0
   vue-tel-input: ^v9.2.0
+  json-editor-vue: ^0.18.1
+  vanilla-jsoneditor: ^3.10.0

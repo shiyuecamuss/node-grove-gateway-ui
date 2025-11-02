@@ -1,7 +1,11 @@
 import type { VbenFormSchema as FormSchema } from '@vben/common-ui';
 
+import type { ZodTypeAny } from '#/adapter/form';
+
 import { $t } from '@vben/locales';
-import { CollectionType, ReportType } from '@vben/types';
+import { CollectionType, DataType, ReportType } from '@vben/types';
+
+import { z } from '#/adapter/form';
 
 import {
   accessModeOptions,
@@ -228,11 +232,110 @@ export function useActionParameterBasicFormSchema(): FormSchema[] {
       fieldName: 'defaultValue',
       label: $t('page.southward.action.parameter.defaultValue'),
       dependencies: {
-        triggerFields: ['required'],
+        // 需要在以下字段变化时重新计算默认值的校验规则
+        triggerFields: ['required', 'dataType', 'minValue', 'maxValue'],
         rules: (values) => {
-          return values.required ? null : 'required';
+          // 基于 dataType 构建 zod 校验；当 required=false 时，强制必填；当 required=true 时，允许为空
+          // 注意：仅对存在的值进行类型校验，min/max 仅对数值类型生效
+          const dt = Number(values?.dataType);
+          const isRequired = !values?.required;
+
+          // 映射 dataType -> zod 基础类型
+          let schema: ZodTypeAny;
+          const isNumeric =
+            dt === DataType.Int8 ||
+            dt === DataType.UInt8 ||
+            dt === DataType.Int16 ||
+            dt === DataType.UInt16 ||
+            dt === DataType.Int32 ||
+            dt === DataType.UInt32 ||
+            dt === DataType.Int64 ||
+            dt === DataType.UInt64 ||
+            dt === DataType.Float32 ||
+            dt === DataType.Float64 ||
+            dt === DataType.Timestamp;
+
+          // 为数值类型收集范围
+          const min =
+            typeof values?.minValue === 'number' ? values.minValue : undefined;
+          const max =
+            typeof values?.maxValue === 'number' ? values.maxValue : undefined;
+
+          switch (dt) {
+            case DataType.Binary:
+            case DataType.String: {
+              // Binary 也按字符串校验（默认视作 base64/hex 等字符串表达）
+              schema = z.string();
+              break;
+            }
+            case DataType.Boolean: {
+              schema = z.boolean();
+              break;
+            }
+            case DataType.Float32:
+            case DataType.Float64: {
+              schema = z.number();
+              if (typeof min === 'number')
+                schema = (schema as any).min(Number(min));
+              if (typeof max === 'number')
+                schema = (schema as any).max(Number(max));
+              break;
+            }
+            case DataType.Int8:
+            case DataType.Int16:
+            case DataType.Int32:
+            case DataType.Int64: {
+              schema = z.number().int();
+              if (typeof min === 'number')
+                schema = (schema as any).min(Number(min));
+              if (typeof max === 'number')
+                schema = (schema as any).max(Number(max));
+              break;
+            }
+            case DataType.Timestamp: {
+              // 时间戳按整数数值校验（毫秒/秒的粒度交由后端/业务解释）
+              schema = z.number().int();
+              if (typeof min === 'number')
+                schema = (schema as any).min(Number(min));
+              if (typeof max === 'number')
+                schema = (schema as any).max(Number(max));
+              break;
+            }
+            case DataType.UInt8:
+            case DataType.UInt16:
+            case DataType.UInt32:
+            case DataType.UInt64: {
+              schema = z.number().int().min(0);
+              if (typeof min === 'number')
+                schema = (schema as any).min(Math.max(0, Number(min)));
+              if (typeof max === 'number')
+                schema = (schema as any).max(Number(max));
+              break;
+            }
+            default: {
+              // 兜底按任意值；若需要强类型，后续补充
+              schema = z.any();
+            }
+          }
+
+          // 非数值类型不应用 min/max
+          if (!isNumeric) {
+            // no-op
+          }
+
+          if (isRequired) {
+            // 统一确保存在性（即便 schema 是 z.any() 也不放过 undefined/null）
+            return schema.refine((v: any) => v !== undefined && v !== null, {
+              message: $t('ui.formRules.required', [
+                $t('page.southward.action.parameter.defaultValue'),
+              ]),
+            });
+          }
+          // 当 required=true 时，允许 defaultValue 为 null 或对应类型的值
+          return schema.nullable().optional();
         },
       },
+      controlClass: 'w-full',
     },
     {
       component: 'InputNumber',

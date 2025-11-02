@@ -79,6 +79,7 @@
     },
     "device": {
       "title": "Device",
+      "importTitle": "Import Device",
       "name": "Name",
       "type": "Device Type",
       "basic": "Basic Configuration",
@@ -88,6 +89,7 @@
     },
     "point": {
       "title": "Point",
+      "importTitle": "Import Point",
       "name": "Name",
       "key": "Key",
       "type": "Type",
@@ -102,6 +104,7 @@
     },
     "action": {
       "title": "Action",
+      "importTitle": "Import Action",
       "name": "Name",
       "command": "Command",
       "basic": "Basic Configuration",
@@ -182,6 +185,8 @@
       "step1": "Upload",
       "step2": "Preview",
       "step3": "Install"
-    }
+    },
+    "templateDownload": "Template Download",
+    "templateEntity": "Template Entity"
   }
 }

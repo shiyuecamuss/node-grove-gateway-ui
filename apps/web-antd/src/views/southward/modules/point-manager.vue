@@ -20,6 +20,8 @@ import {
   fetchPointPage,
   updatePoint,
 } from '#/api/core';
+import { importPointCommit, importPointPreview } from '#/api/core/device';
+import { useImportFlow } from '#/shared/composables/use-import-flow';
 
 import PointForm from './point-form.vue';
 import { pointSearchFormSchema } from './schemas/search-form';
@@ -77,10 +79,28 @@ const gridOptions: VxeGridProps<PointInfo> = {
   },
   toolbarConfig: {
     custom: true,
-    export: true,
+    export: false,
     import: true,
     refresh: true,
     zoom: true,
+  },
+  importConfig: {
+    types: ['xlsx'],
+    remote: true,
+    importMethod: async ({ file }) => {
+      const { deviceId } = modalApi.getData<{ deviceId: IdType }>();
+      const { runImport } = useImportFlow({
+        previewRequest: async (f: File) => importPointPreview(deviceId, f),
+        commitRequest: async (f: File) => importPointCommit(deviceId, f),
+      });
+      await runImport(file as File, {
+        title: $t('page.southward.point.importTitle') as string,
+        allowCommitWithErrors: true,
+        onDone: async () => {
+          await gridApi.query();
+        },
+      });
+    },
   },
 };
 

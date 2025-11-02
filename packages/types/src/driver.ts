@@ -36,4 +36,11 @@ interface DriverProbeInfo {
   metadata: Recordable<any>;
 }
 
+// Driver template entity
+export const DriverTemplateEntity = {
+  Device: 'device',
+  Point: 'point',
+  Action: 'action',
+} as const;
+
 export type { DriverInfo, DriverProbeInfo };

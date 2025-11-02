@@ -1,0 +1,16 @@
+{
+  "preview": {
+    "total": "总计",
+    "valid": "有效",
+    "invalid": "无效",
+    "warn": "警告"
+  },
+  "actions": {
+    "commit": "提交",
+    "cancel": "取消"
+  },
+  "message": {
+    "success": "导入 {0}/{1} 条有效数据（总计 {2}，无效 {3}，警告 {4}）",
+    "commitFailed": "提交失败"
+  }
+}

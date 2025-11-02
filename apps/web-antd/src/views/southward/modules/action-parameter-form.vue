@@ -12,10 +12,13 @@ import { IconifyIcon } from '@vben/icons';
 import { cloneDeep, set } from '@vben-core/shared/utils';
 
 import { Card } from 'ant-design-vue';
+import JsonEditorVue from 'json-editor-vue';
 
 import { useVbenForm } from '#/adapter/form';
 
 import { useActionParameterBasicFormSchema } from './schemas/form';
+
+import 'vanilla-jsoneditor/themes/jse-theme-dark.css';
 
 type ActionParameter = ActionInfo['inputs'][number];
 
@@ -172,7 +175,24 @@ function resolveDriverDefaultValues(
             {{ $t('page.southward.point.basic') }}
           </div>
         </template>
-        <ParameterForm />
+        <ParameterForm>
+          <template #defaultValue="slotProps">
+            <div
+              class="overflow-hidden"
+              :style="{ borderRadius: 'var(--radius)' }"
+            >
+              <JsonEditorVue
+                mode="text"
+                :stringified="false"
+                :status-bar="false"
+                :navigation-bar="false"
+                :main-menu-bar="false"
+                class="jse-theme-dark"
+                v-bind="slotProps"
+              />
+            </div>
+          </template>
+        </ParameterForm>
       </Card>
       <Card v-show="hasDriverSchema" size="small">
         <template #title>

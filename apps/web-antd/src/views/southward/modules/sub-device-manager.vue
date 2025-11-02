@@ -21,6 +21,11 @@ import {
   fetchDevicePage,
   updateDevice,
 } from '#/api';
+import {
+  importChannelDevicesCommit,
+  importChannelDevicesPreview,
+} from '#/api/core/channel';
+import { useImportFlow } from '#/shared/composables/use-import-flow';
 
 import ActionManager from './action-manager.vue';
 import PointManager from './point-manager.vue';
@@ -78,9 +83,29 @@ const gridOptions: VxeGridProps<DeviceInfo> = {
       },
     },
   },
+  importConfig: {
+    types: ['xlsx'],
+    remote: true,
+    importMethod: async ({ file }) => {
+      const { channelId } = modalApi.getData<{ channelId: IdType }>();
+      const { runImport } = useImportFlow({
+        previewRequest: async (f: File) =>
+          importChannelDevicesPreview(channelId, f),
+        commitRequest: async (f: File) =>
+          importChannelDevicesCommit(channelId, f),
+      });
+      await runImport(file as File, {
+        title: $t('page.southward.device.importTitle') as string,
+        allowCommitWithErrors: true,
+        onDone: async () => {
+          await gridApi.query();
+        },
+      });
+    },
+  },
   toolbarConfig: {
     custom: true,
-    export: true,
+    export: false,
     import: true,
     refresh: true,
     zoom: true,

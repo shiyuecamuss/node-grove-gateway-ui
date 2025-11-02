@@ -7,15 +7,20 @@ import type { OnActionClickParams, VxeGridProps } from '#/adapter/vxe-table';
 import { confirm, Page, useVbenModal } from '@vben/common-ui';
 import { useRequestHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
-import { EntityType } from '@vben/types';
+import { DriverTemplateEntity, EntityType } from '@vben/types';
 
 import { Button, message } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { fetchDriverPage, uninstallDriver } from '#/api';
+import {
+  downloadDriverTemplate,
+  fetchDriverPage,
+  uninstallDriver,
+} from '#/api';
 
 import InstallDriver from './modules/install.vue';
 import { searchFormSchema, useColumns } from './modules/schemas';
+// TemplateDownload modal is deprecated by dropdown in CellOperation
 
 const { handleRequest } = useRequestHandler();
 
@@ -73,8 +78,14 @@ const [InstallDriverModal, installDriverModalApi] = useVbenModal({
   connectedComponent: InstallDriver,
 });
 
-function onActionClick({ code, row }: OnActionClickParams<DriverInfo>) {
+// removed template download modal
+
+function onActionClick({ code, row, extra }: OnActionClickParams<DriverInfo>) {
   switch (code) {
+    case 'templateDownload': {
+      handleTemplateDownload(row, extra?.menuKey);
+      break;
+    }
     case 'uninstall': {
       handleUninstall(row);
       break;
@@ -88,6 +99,13 @@ function onActionClick({ code, row }: OnActionClickParams<DriverInfo>) {
 const handleInstall = () => {
   installDriverModalApi.open();
 };
+
+async function handleTemplateDownload(row: DriverInfo, menuKey?: string) {
+  const entity =
+    DriverTemplateEntity[menuKey as keyof typeof DriverTemplateEntity];
+  if (!entity) return;
+  await downloadDriverTemplate(row.id, row.driverType, entity);
+}
 
 const handleUninstall = async (row: DriverInfo) => {
   confirm({

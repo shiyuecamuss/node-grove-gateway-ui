@@ -5,8 +5,11 @@ import type {
   CommonTimeRangeRequest,
   DriverInfo,
   DriverProbeInfo,
+  DriverTemplateEntity,
   IdType,
 } from '@vben/types';
+
+import { downloadFileFromBlob } from '@vben/utils';
 
 import { requestClient } from '#/api/request';
 
@@ -19,6 +22,10 @@ export namespace DriverApi {
   export const uninstall = (id: IdType) => `${base}/${id}`;
   export const getById = (id: IdType) => `${base}/detail/${id}`;
   export const getSchemasById = (id: IdType) => `${base}/metadata/${id}`;
+  export const templateDownload = (
+    id: IdType,
+    entity: (typeof DriverTemplateEntity)[keyof typeof DriverTemplateEntity],
+  ) => `${base}/template/${id}/${entity}`;
 
   /** driver page params */
   export interface DriverPageParams
@@ -122,4 +129,25 @@ export async function getDriverById(id: IdType) {
  */
 export async function fetchDriverSchemasById(id: IdType) {
   return requestClient.get<any>(DriverApi.getSchemasById(id));
+}
+
+/**
+ * download driver template
+ * @param id - Driver ID
+ * @param driverType - Driver type
+ * @param entity - Driver template entity
+ * @returns Promise with driver template Blob
+ */
+export async function downloadDriverTemplate(
+  id: IdType,
+  driverType: string,
+  entity: (typeof DriverTemplateEntity)[keyof typeof DriverTemplateEntity],
+) {
+  const response = await requestClient.download<Blob>(
+    DriverApi.templateDownload(id, entity),
+  );
+  downloadFileFromBlob({
+    source: response,
+    fileName: `${driverType}-${entity}-template.xlsx`,
+  });
 }

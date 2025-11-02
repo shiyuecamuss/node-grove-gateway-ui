@@ -275,16 +275,6 @@ export function useActionParameterColumns(
       },
     },
     {
-      field: 'defaultValue',
-      title: $t('page.southward.action.parameter.defaultValue'),
-      formatter: ({ cellValue }) => {
-        if (cellValue === null || cellValue === undefined || cellValue === '') {
-          return '-';
-        }
-        return cellValue;
-      },
-    },
-    {
       align: 'right',
       cellRender: {
         attrs: {
