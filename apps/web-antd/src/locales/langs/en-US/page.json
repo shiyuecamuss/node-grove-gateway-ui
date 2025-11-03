@@ -187,6 +187,7 @@
       "step3": "Install"
     },
     "templateDownload": "Template Download",
-    "templateEntity": "Template Entity"
+    "templateEntity": "Template Entity",
+    "uninstallTips": "Uninstalling will delete all associated channel, device, point and action data."
   }
 }

@@ -109,12 +109,12 @@ async function handleTemplateDownload(row: DriverInfo, menuKey?: string) {
 
 const handleUninstall = async (row: DriverInfo) => {
   confirm({
-    content: $t('common.action.uninstallConfirm', {
+    content: $t('page.driver.uninstallTips'),
+    icon: 'warning',
+    title: $t('common.action.uninstallConfirm', {
       entityType: $t(`entity.${EntityType.DRIVER.toLowerCase()}`),
       name: row.name,
     }),
-    icon: 'warning',
-    title: $t('common.tips'),
   })
     .then(async () => {
       await handleRequest(

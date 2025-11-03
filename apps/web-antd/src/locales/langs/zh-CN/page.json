@@ -187,6 +187,7 @@
       "step3": "安装"
     },
     "templateDownload": "模板下载",
-    "templateEntity": "模板类型"
+    "templateEntity": "模板类型",
+    "uninstallTips": "卸载后将删除所有关联的通道、设备、点位和动作数据。"
   }
 }
