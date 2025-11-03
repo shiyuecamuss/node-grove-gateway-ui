@@ -1,5 +1,7 @@
 import type {
   ActionInfo,
+  ActionDebugRequest,
+  ActionDebugResponse,
   CommonPageRequest,
   CommonPageResponse,
   IdType,
@@ -12,6 +14,7 @@ export namespace ActionApi {
   export const page = `${base}/page`;
   export const getById = (id: IdType) => `${base}/detail/${id}`;
   export const deleteById = (id: IdType) => `${base}/${id}`;
+  export const debug = (id: IdType) => `${base}/${id}/debug`;
 
   export interface ActionPageParams extends CommonPageRequest {
     deviceId?: IdType;
@@ -40,4 +43,8 @@ export async function deleteAction(id: IdType) {
 
 export async function getActionById(id: IdType) {
   return requestClient.get<ActionInfo>(ActionApi.getById(id));
+}
+
+export async function debugAction(id: IdType, data: ActionDebugRequest) {
+  return requestClient.post<ActionDebugResponse>(ActionApi.debug(id), data);
 }

@@ -4,6 +4,16 @@ import type { BaseEntity, IdType } from './base';
 
 import { DataType } from './common';
 
+interface ActionDebugRequest {
+  params: Record<string, any>;
+  timeoutMs?: number;
+}
+
+interface ActionDebugResponse {
+  result: Recordable<any>;
+  elapsedMs: number;
+}
+
 interface ActionInfo extends BaseEntity {
   deviceId: IdType;
   name: string;
@@ -22,4 +32,4 @@ interface Parameter {
   driverConfig: Recordable<any>;
 }
 
-export type { ActionInfo };
+export type { ActionInfo, ActionDebugRequest, ActionDebugResponse };

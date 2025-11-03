@@ -224,6 +224,11 @@ export function useActionColumns(
         attrs: { nameField: 'name', onClick: onActionClick },
         name: 'CellOperation',
         options: [
+          {
+            code: 'test',
+            icon: 'codicon:debug-alt',
+            tooltip: $t('page.southward.action.test'),
+          },
           { code: 'edit', icon: 'lucide:edit', tooltip: $t('common.edit') },
           {
             code: 'delete',

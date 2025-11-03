@@ -109,6 +109,8 @@
       "command": "Command",
       "basic": "Basic Configuration",
       "driver": "Driver Configuration",
+      "test": "Debug",
+      "timeoutMs": "Timeout (ms)",
       "parameter": {
         "title": "Parameters",
         "name": "Name",

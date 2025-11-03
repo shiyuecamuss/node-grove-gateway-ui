@@ -6,6 +6,8 @@
   "prompt": "Prompt",
   "cancel": "Cancel",
   "confirm": "Confirm",
+  "result": "Result",
+  "success": "Success",
   "noData": "No Data",
   "yes": "Yes",
   "no": "No",
