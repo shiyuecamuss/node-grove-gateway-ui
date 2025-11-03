@@ -107,6 +107,8 @@
       "importTitle": "导入动作",
       "name": "名称",
       "command": "指令",
+      "test": "Debug",
+      "timeoutMs": "Timeout (ms)",
       "basic": "基础配置",
       "driver": "驱动配置",
       "parameter": {

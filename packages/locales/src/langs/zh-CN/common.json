@@ -6,6 +6,8 @@
   "prompt": "提示",
   "cancel": "取消",
   "confirm": "确认",
+  "result": "结果",
+  "success": "成功",
   "noData": "暂无数据",
   "yes": "是",
   "no": "否",
