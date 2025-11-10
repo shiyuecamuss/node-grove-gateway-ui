@@ -60,7 +60,12 @@
       "uninstallTips": "卸载后将移除插件及相关配置。"
     },
     "app": {
-      "title": "应用"
+      "title": "应用",
+      "name": "名称",
+      "plugin": "插件",
+      "description": "描述",
+      "retryPolicy": "重试策略",
+      "queuePolicy": "队列策略"
     }
   },
   "southward": {

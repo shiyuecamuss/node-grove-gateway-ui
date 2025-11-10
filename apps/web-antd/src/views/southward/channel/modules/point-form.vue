@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import type { IdType, PointInfo, Recordable } from '@vben/types';
 
-import type { DriverSchemas } from './schemas/driver';
-
 import { nextTick, ref } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
@@ -18,7 +16,11 @@ import { useVbenForm } from '#/adapter/form';
 import { fetchDriverSchemasById } from '#/api/core/driver';
 import { getPointById } from '#/api/core/point';
 
-import { mapPointSchemasToForm, sortDriverSchemas } from './schemas/driver';
+import {
+  mapPointSchemasToForm,
+  sortDriverSchemas,
+  type DriverSchemas,
+} from '#/shared/dynamic-schema';
 import { usePointBasicFormSchema } from './schemas/form';
 
 defineOptions({ name: 'PointForm' });

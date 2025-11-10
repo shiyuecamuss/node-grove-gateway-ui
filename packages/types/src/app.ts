@@ -1,33 +1,103 @@
 import type { Recordable } from '@vben-core/typings';
-import type { BaseEntity, IdType, RetryPolicy, StatusInfo } from './base';
 
+import type { BaseEntity, IdType, RetryPolicy, StatusInfo } from './base';
+import { CommonStatus } from './base';
+import type { CommonPageRequest, CommonTimeRangeRequest } from './common';
+
+/**
+ * Drop policy options for app queue handling.
+ */
 export const DropPolicy = {
+  /**
+   * Discard overflowing messages directly.
+   */
   Discard: 0,
+  /**
+   * Block producers until space becomes available.
+   */
   Block: 1,
 } as const;
 
+/**
+ * Queue policy configuration for a northward app.
+ */
 interface QueuePolicy {
+  /**
+   * Maximum number of in-flight messages.
+   */
   capacity: number;
+  /**
+   * Strategy to apply when the queue reaches capacity.
+   */
   dropPolicy: (typeof DropPolicy)[keyof typeof DropPolicy];
-  block_Duration: number;
+  /**
+   * Duration in milliseconds to block incoming messages when using block policy.
+   */
+  blockDuration: number;
+  /**
+   * Flag that indicates whether buffering is enabled when the upstream is unavailable.
+   */
   bufferEnabled: boolean;
+  /**
+   * Maximum number of buffered items when buffering is enabled.
+   */
   bufferCapacity: number;
+  /**
+   * Expiration interval for buffered messages, measured in milliseconds.
+   */
   bufferExpireMs: number;
 }
 
+/**
+ * Read-only northward app information.
+ */
 interface AppInfo extends BaseEntity, StatusInfo {
-  /// Plugin id
-  plugin_id: IdType;
-  /// App name
+  /**
+   * Identifier of the plugin associated with the app.
+   */
+  pluginId: IdType;
+  /**
+   * Display name of the plugin associated with the app.
+   */
+  pluginType: string;
+  /**
+   * Display name of the app.
+   */
   name: string;
-  /// App description
+  /**
+   * Optional description that explains the app purpose.
+   */
   description?: string;
-  /// App config
+  /**
+   * Arbitrary configuration payload compatible with the plugin metadata definition.
+   */
   config: Recordable<any>;
-  /// App retry policy
-  retry_policy: RetryPolicy;
-  /// App queue policy
-  queue_policy: QueuePolicy;
+  /**
+   * Retry policy applied when pushing data to the northbound channel.
+   */
+  retryPolicy: RetryPolicy;
+  /**
+   * Queue policy used to buffer outgoing messages.
+   */
+  queuePolicy: QueuePolicy;
 }
 
-export type { AppInfo };
+/**
+ * Query parameters when requesting a paginated northward app list.
+ */
+interface AppPageParams extends CommonPageRequest, CommonTimeRangeRequest {
+  /**
+   * Optional fuzzy search by app name.
+   */
+  name?: string;
+  /**
+   * Optional plugin filter.
+   */
+  pluginId?: IdType;
+  /**
+   * Optional status filter.
+   */
+  status?: (typeof CommonStatus)[keyof typeof CommonStatus];
+}
+
+export type { AppInfo, AppPageParams, QueuePolicy };

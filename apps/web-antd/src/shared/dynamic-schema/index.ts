@@ -1,21 +1,20 @@
 import type { VbenFormSchema as FormSchema } from '@vben/common-ui';
 import type { Nullable } from '@vben/types';
-
 import type { CustomRenderType } from '@vben-core/shadcn-ui';
-
-import type { UiText } from './i18n';
-
+import type { UiText } from './types';
 import { get, isEqual } from '@vben/utils';
-
 import { z } from '#/adapter/form';
+import { resolveUiText } from './types';
+import { isNullOrUndefined } from '@vben-core/shared/utils';
 
-import { resolveUiText } from './i18n';
-import { isNullOrUndefined } from './index';
 
-export type DriverFormSchema = FormSchema;
-export type DriverFormSchemas = DriverFormSchema[];
+export type DynamicFormSchema = FormSchema;
+export type DynamicFormSchemas = DynamicFormSchema[];
+export type DriverFormSchema = DynamicFormSchema;
+export type DriverFormSchemas = DynamicFormSchemas;
+export type DriverSchemas = DynamicSchemas;
 
-export interface DriverSchemas {
+export interface DynamicSchemas {
   channel: Node[];
   device: Node[];
   point: Node[];
@@ -26,11 +25,10 @@ export type Node = FieldNode | GroupNode | UnionNode;
 
 export interface FieldNode {
   kind: 'Field';
-  path: string; // dotted path, used as form fieldName
-  label: UiText; // tagged union from backend
+  path: string;
+  label: UiText;
   data_type: UiDataType;
   default_value?: any;
-  // Prefer node-level order; fallback to ui.order for backward compatibility
   order?: Nullable<number>;
   ui?: UiProps;
   rules?: Rules;
@@ -43,16 +41,14 @@ export interface GroupNode {
   label: UiText;
   description?: Nullable<UiText>;
   collapsible: boolean;
-  // Prefer node-level order for groups
   order?: Nullable<number>;
   children: Node[];
 }
 
 export interface UnionNode {
   kind: 'Union';
-  // Prefer node-level order for unions
   order?: Nullable<number>;
-  discriminator: string; // fieldName used as switcher
+  discriminator: string;
   mapping: UnionCase[];
 }
 
@@ -84,31 +80,21 @@ export interface UiProps {
   disabled?: Nullable<boolean>;
 }
 
-// RuleValue allows either a raw primitive value or an object with value and message
 export type RuleValue<T> = T | { message?: UiText; value: T };
 
 export interface Rules {
-  // Prefer using required in rules; falls back to Field.required if unset
   required?: Nullable<RuleValue<boolean>>;
-
-  // Numeric bounds (for Integer/Float)
   min?: Nullable<RuleValue<number>>;
   max?: Nullable<RuleValue<number>>;
-
-  // String length bounds
   min_length?: Nullable<RuleValue<number>>;
   max_length?: Nullable<RuleValue<number>>;
-
-  // Array item count bounds
   min_items?: Nullable<RuleValue<number>>;
   max_items?: Nullable<RuleValue<number>>;
-
-  // Regex pattern for strings
   pattern?: Nullable<RuleValue<string>>;
 }
 
 export interface When {
-  target: string; // another fieldName
+  target: string;
   operator:
     | 'Between'
     | 'Contains'
@@ -147,16 +133,14 @@ function sortNodes(nodes: Node[]): Node[] {
 
 function sortNode(node: Node): Node {
   switch (node.kind) {
-    case 'Field': {
+    case 'Field':
       return node;
-    }
-    case 'Group': {
+    case 'Group':
       return {
         ...node,
         children: sortNodes(node.children),
       };
-    }
-    case 'Union': {
+    case 'Union':
       return {
         ...node,
         mapping: node.mapping.map((m) => ({
@@ -164,11 +148,10 @@ function sortNode(node: Node): Node {
           children: sortNodes(m.children),
         })),
       };
-    }
   }
 }
 
-export function sortDriverSchemas(schemas: DriverSchemas): DriverSchemas {
+export function sortDynamicSchemas(schemas: DynamicSchemas): DynamicSchemas {
   return {
     channel: sortNodes(schemas.channel),
     device: sortNodes(schemas.device),
@@ -177,8 +160,9 @@ export function sortDriverSchemas(schemas: DriverSchemas): DriverSchemas {
   };
 }
 
-// ---------- Mapper: DriverSchemas(Channel) -> Vben FormSchema[] ----------
-export function mapChannelSchemasToForm(schemas: DriverSchemas): FormSchema[] {
+export const sortDriverSchemas = sortDynamicSchemas;
+
+export function mapChannelSchemasToForm(schemas: DynamicSchemas): FormSchema[] {
   const result: FormSchema[] = [];
   for (const item of schemas.channel) {
     result.push(...mapNode(item, undefined));
@@ -186,8 +170,7 @@ export function mapChannelSchemasToForm(schemas: DriverSchemas): FormSchema[] {
   return result;
 }
 
-// ---------- Mapper: DriverSchemas(Device) -> Vben FormSchema[] ----------
-export function mapDeviceSchemasToForm(schemas: DriverSchemas): FormSchema[] {
+export function mapDeviceSchemasToForm(schemas: DynamicSchemas): FormSchema[] {
   const result: FormSchema[] = [];
   for (const item of schemas.device) {
     result.push(...mapNode(item, undefined));
@@ -195,8 +178,7 @@ export function mapDeviceSchemasToForm(schemas: DriverSchemas): FormSchema[] {
   return result;
 }
 
-// ---------- Mapper: DriverSchemas(Point) -> Vben FormSchema[] ----------
-export function mapPointSchemasToForm(schemas: DriverSchemas): FormSchema[] {
+export function mapPointSchemasToForm(schemas: DynamicSchemas): FormSchema[] {
   const result: FormSchema[] = [];
   for (const item of schemas.point) {
     result.push(...mapNode(item, undefined));
@@ -204,8 +186,7 @@ export function mapPointSchemasToForm(schemas: DriverSchemas): FormSchema[] {
   return result;
 }
 
-// ---------- Mapper: DriverSchemas(Action) -> Vben FormSchema[] ----------
-export function mapActionSchemasToForm(schemas: DriverSchemas): FormSchema[] {
+export function mapActionSchemasToForm(schemas: DynamicSchemas): FormSchema[] {
   const result: FormSchema[] = [];
   for (const item of schemas.action) {
     result.push(...mapNode(item, undefined));
@@ -218,9 +199,8 @@ function mapNode(
   discriminator?: { equals: any; field: string },
 ): FormSchema[] {
   switch (node.kind) {
-    case 'Field': {
+    case 'Field':
       return [mapField(node, discriminator)];
-    }
     case 'Group': {
       const divider: FormSchema = {
         component: 'Divider',
@@ -237,7 +217,6 @@ function mapNode(
       return [divider, ...children];
     }
     case 'Union': {
-      // For each case, show children when discriminator === case_value
       const acc: FormSchema[] = [];
       for (const c of node.mapping) {
         const nextDiscriminator = {
@@ -267,7 +246,6 @@ function mapField(
     controlClass,
   };
 
-  // ui props
   if (node.ui?.placeholder) {
     const prev = (base.componentProps ?? {}) as Record<string, any>;
     base.componentProps = {
@@ -295,7 +273,6 @@ function mapField(
     base.help = resolveUiText(node.ui.help) as CustomRenderType;
   }
 
-  // component prop hints (min/max, maxLength, etc.)
   if (node.data_type.kind === 'Integer' || node.data_type.kind === 'Float') {
     const cp: any = { ...((base.componentProps ?? {}) as any) };
     const rvMin = extractRuleValue<number>(node.rules?.min);
@@ -324,10 +301,8 @@ function mapField(
     } as any;
   }
 
-  // base rules using z or tokens
   base.rules = buildRuleForNode(node);
 
-  // when conditions: implement Visible/Require/Optional/Enable/Disable support
   if ((node.when && node.when.length > 0) || discriminator) {
     base.dependencies = base.dependencies || ({ triggerFields: [] } as any);
     const dep: any = base.dependencies;
@@ -346,7 +321,7 @@ function mapField(
       if (node.when) {
         for (const w of node.when) {
           const val = get(values, w.target);
-          if (!evalOperator(w.operator, val, w.value)) continue; // only apply when matched
+          if (!evalOperator(w.operator, val, w.value)) continue;
           if (w.effect === 'Invisible') visible = false;
           if (w.effect === 'Visible') visible = visible && true;
         }
@@ -354,7 +329,6 @@ function mapField(
       return visible;
     };
     dep.rules = (values: Record<string, any>) => {
-      // start from rules.required; if any Require matched, mark required; if Optional matched, unset
       let required = !!extractRuleValue<boolean>(node.rules?.required).value;
       if (node.when) {
         for (const w of node.when) {
@@ -365,7 +339,6 @@ function mapField(
           }
         }
       }
-      // when effects should override rule-level required
       return buildRuleForNode(node, required);
     };
     dep.disabled = (values: Record<string, any>) => {
@@ -401,71 +374,55 @@ function resolveComponent(node: FieldNode): any {
 
 function evalOperator(op: When['operator'], left: any, right: any): boolean {
   switch (op) {
-    case 'Between': {
+    case 'Between':
       return (
         Array.isArray(right) &&
         right.length >= 2 &&
         Number(left) >= Number(right[0]) &&
         Number(left) <= Number(right[1])
       );
-    }
-    case 'Contains': {
+    case 'Contains':
       if (Array.isArray(left)) return left.includes(right);
       if (typeof left === 'string') return left.includes(String(right));
       return false;
-    }
-    case 'Eq': {
+    case 'Eq':
       return left === right;
-    }
-    case 'Gt': {
+    case 'Gt':
       return Number(left) > Number(right);
-    }
-    case 'Gte': {
+    case 'Gte':
       return Number(left) >= Number(right);
-    }
-    case 'Lt': {
+    case 'Lt':
       return Number(left) < Number(right);
-    }
-    case 'Lte': {
+    case 'Lte':
       return Number(left) <= Number(right);
-    }
-    case 'Neq': {
+    case 'Neq':
       return left !== right;
-    }
-    case 'NotBetween': {
+    case 'NotBetween':
       return (
         Array.isArray(right) &&
         right.length >= 2 &&
         (Number(left) < Number(right[0]) || Number(left) > Number(right[1]))
       );
-    }
-    case 'NotIn': {
+    case 'NotIn':
       return Array.isArray(right) && !right.includes(left);
-    }
-    case 'NotNull': {
+    case 'NotNull':
       return left !== null && left !== undefined;
-    }
-    case 'Prefix': {
+    case 'Prefix':
       return typeof left === 'string' && String(left).startsWith(String(right));
-    }
-    case 'Regex': {
+    case 'Regex':
       try {
         const re = new RegExp(String(right));
         return re.test(String(left));
       } catch {
         return false;
       }
-    }
-    case 'In': {
+    case 'In':
       return Array.isArray(right) && right.includes(left);
-    }
-    case 'Suffix': {
+    case 'Suffix':
       return typeof left === 'string' && String(left).endsWith(String(right));
-    }
   }
 }
 
-// ---------------- zod rule builders ----------------
 function extractRuleValue<T>(
   rv?: null | Nullable<RuleValue<T>>,
 ):
@@ -495,7 +452,6 @@ function buildRuleForNode(node: FieldNode, requiredOverride?: boolean) {
 
   if (required && node.data_type.kind === 'String') {
     const msg = rvRequired.message;
-    // if no explicit min_length, enforce non-empty
     const rvMinLen = extractRuleValue<number>(node.rules?.min_length);
     if (isNullOrUndefined(rvMinLen.value)) {
       return (schema as any).min(1, { message: msg } as any);
@@ -571,3 +527,6 @@ function buildZodSchema(dataType: UiDataType, rules?: Rules): any {
   if (!builder) return null;
   return builder(dataType as any, rules);
 }
+
+export { resolveUiText } from './types';
+export type { UiText } from './types';

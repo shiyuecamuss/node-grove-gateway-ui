@@ -3,8 +3,6 @@ import type { Ref } from 'vue';
 
 import type { ActionInfo, IdType, Recordable } from '@vben/types';
 
-import type { DriverSchemas } from './schemas/driver';
-
 import type { VbenFormSchema } from '#/adapter/form';
 
 import { nextTick, ref } from 'vue';
@@ -24,8 +22,12 @@ import { getActionById } from '#/api/core/action';
 import { fetchDriverSchemasById } from '#/api/core/driver';
 
 import ActionParameterManager from './action-parameter-manager.vue';
-import { mapActionSchemasToForm, sortDriverSchemas } from './schemas/driver';
 import { useActionBasicFormSchema } from './schemas/form';
+import {
+  mapActionSchemasToForm,
+  sortDriverSchemas,
+  type DriverSchemas,
+} from '#/shared/dynamic-schema';
 
 defineOptions({ name: 'ActionForm' });
 

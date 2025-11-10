@@ -2,8 +2,6 @@
 import type { FormOpenData } from '@vben/constants';
 import type { ChannelInfo, DriverInfo, IdType, Recordable } from '@vben/types';
 
-import type { DriverSchemas } from './schemas/driver';
-
 import { nextTick, ref } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
@@ -23,7 +21,11 @@ import {
   useChannelBasicFormSchema,
   useConnectPolicyFormSchema,
 } from './schemas';
-import { mapChannelSchemasToForm, sortDriverSchemas } from './schemas/driver';
+import {
+  mapChannelSchemasToForm,
+  sortDriverSchemas,
+  type DriverSchemas,
+} from '#/shared/dynamic-schema';
 
 defineOptions({ name: 'ChannelForm' });
 
