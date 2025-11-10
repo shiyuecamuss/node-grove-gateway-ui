@@ -1,6 +1,6 @@
 import type { Recordable } from '@vben-core/typings';
 
-import type { BaseEntity, IdType, StatusInfo } from './base';
+import type { BaseEntity, IdType, RetryPolicy, StatusInfo } from './base';
 
 // Channel collection type
 export const CollectionType = {
@@ -18,15 +18,7 @@ export interface ConnectionPolicy {
   connectTimeoutMs: number;
   readTimeoutMs: number;
   writeTimeoutMs: number;
-  backoff: Backoff;
-}
-
-export interface Backoff {
-  initialIntervalMs: number;
-  maxIntervalMs: number;
-  randomizationFactor: number;
-  multiplier: number;
-  maxElapsedTimeMs?: number;
+  backoff: RetryPolicy;
 }
 
 interface ChannelInfo extends BaseEntity, StatusInfo {

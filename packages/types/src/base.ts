@@ -126,4 +126,19 @@ interface AdditionalInfo {
   additionalInfo?: string;
 }
 
-export type { AdditionalInfo, BaseEntity, ContactInfo, StatusInfo };
+interface RetryPolicy {
+  maxAttempts?: number;
+  initialIntervalMs: number;
+  maxIntervalMs: number;
+  randomizationFactor: number;
+  multiplier: number;
+  maxElapsedTimeMs?: number;
+}
+
+export type {
+  AdditionalInfo,
+  BaseEntity,
+  ContactInfo,
+  StatusInfo,
+  RetryPolicy,
+};
