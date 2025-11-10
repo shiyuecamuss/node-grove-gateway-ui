@@ -45,6 +45,11 @@ export function useColumns(
         name: 'CellOperation',
         options: [
           {
+            code: 'edit',
+            icon: 'lucide:edit',
+            tooltip: $t('common.edit'),
+          },
+          {
             code: 'delete',
             danger: true,
             icon: 'lucide:trash-2',

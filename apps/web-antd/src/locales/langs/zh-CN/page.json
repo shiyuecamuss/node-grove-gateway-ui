@@ -64,8 +64,40 @@
       "name": "名称",
       "plugin": "插件",
       "description": "描述",
-      "retryPolicy": "重试策略",
-      "queuePolicy": "队列策略"
+      "form": {
+        "step1": "基础配置",
+        "step2": "重试策略",
+        "step3": "队列策略",
+        "step4": "插件配置"
+      },
+      "retryPolicy": {
+        "maxAttempts": "最大重试次数",
+        "maxAttemptsHelp": "当达到最大重试次数后，将停止重试",
+        "initialInterval": "初始间隔",
+        "maxInterval": "最大间隔",
+        "randomizationFactor": "随机因子",
+        "randomizationFactorHelp": "用于在重试间隔中添加随机性，避免同时重试",
+        "multiplier": "倍增系数",
+        "multiplierHelp": "每次重试时，间隔时间会乘以该系数",
+        "maxElapsedTime": "最大耗时"
+      },
+      "queuePolicy": {
+        "capacity": "队列容量",
+        "capacityHelp": "队列中可存储的最大消息数量",
+        "dropPolicy": {
+          "title": "丢弃策略",
+          "discard": "丢弃",
+          "block": "阻塞"
+        },
+        "blockDuration": "阻塞时长",
+        "buffer": {
+          "title": "缓冲配置",
+          "enabled": "启用缓冲",
+          "capacity": "缓冲容量",
+          "capacityHelp": "缓冲中可存储的最大消息数量",
+          "expireTime": "过期时间"
+        }
+      }
     }
   },
   "southward": {

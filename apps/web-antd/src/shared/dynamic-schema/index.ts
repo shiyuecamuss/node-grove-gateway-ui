@@ -7,12 +7,12 @@ import { z } from '#/adapter/form';
 import { resolveUiText } from './types';
 import { isNullOrUndefined } from '@vben-core/shared/utils';
 
-
 export type DynamicFormSchema = FormSchema;
 export type DynamicFormSchemas = DynamicFormSchema[];
 export type DriverFormSchema = DynamicFormSchema;
 export type DriverFormSchemas = DynamicFormSchemas;
 export type DriverSchemas = DynamicSchemas;
+export type PluginConfigSchemas = Node[];
 
 export interface DynamicSchemas {
   channel: Node[];
@@ -125,7 +125,7 @@ function getNodeOrder(node: Node): number {
   return isNullOrUndefined(node.order) ? 0 : Number(node.order);
 }
 
-function sortNodes(nodes: Node[]): Node[] {
+export function sortNodes(nodes: Node[]): Node[] {
   return nodes
     .map((n) => sortNode(n))
     .sort((a, b) => getNodeOrder(a) - getNodeOrder(b));
@@ -189,6 +189,20 @@ export function mapPointSchemasToForm(schemas: DynamicSchemas): FormSchema[] {
 export function mapActionSchemasToForm(schemas: DynamicSchemas): FormSchema[] {
   const result: FormSchema[] = [];
   for (const item of schemas.action) {
+    result.push(...mapNode(item, undefined));
+  }
+  return result;
+}
+
+/**
+ * Map plugin config schemas to form schemas.
+ * @param schemas - Plugin config schemas (array of nodes).
+ */
+export function mapPluginConfigSchemasToForm(
+  schemas: PluginConfigSchemas,
+): FormSchema[] {
+  const result: FormSchema[] = [];
+  for (const item of schemas) {
     result.push(...mapNode(item, undefined));
   }
   return result;

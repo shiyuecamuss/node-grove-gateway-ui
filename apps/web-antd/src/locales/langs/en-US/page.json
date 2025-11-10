@@ -64,8 +64,40 @@
       "name": "Name",
       "plugin": "Plugin",
       "description": "Description",
-      "retryPolicy": "Retry Policy",
-      "queuePolicy": "Queue Policy"
+      "form": {
+        "step1": "Basic Configuration",
+        "step2": "Retry Policy",
+        "step3": "Queue Policy",
+        "step4": "Plugin Configuration"
+      },
+      "retryPolicy": {
+        "maxAttempts": "Max Attempts",
+        "maxAttemptsHelp": "Stop retrying after reaching the maximum number of attempts",
+        "initialInterval": "Initial Interval",
+        "maxInterval": "Max Interval",
+        "randomizationFactor": "Randomization Factor",
+        "randomizationFactorHelp": "Add randomness to retry intervals to avoid simultaneous retries",
+        "multiplier": "Multiplier",
+        "multiplierHelp": "The interval time will be multiplied by this factor on each retry",
+        "maxElapsedTime": "Max Elapsed Time"
+      },
+      "queuePolicy": {
+        "capacity": "Queue Capacity",
+        "capacityHelp": "Maximum number of messages that can be stored in the queue",
+        "dropPolicy": {
+          "title": "Drop Policy",
+          "discard": "Discard",
+          "block": "Block"
+        },
+        "blockDuration": "Block Duration",
+        "buffer": {
+          "title": "Buffer Configuration",
+          "enabled": "Enable Buffer",
+          "capacity": "Buffer Capacity",
+          "capacityHelp": "Maximum number of messages that can be stored in the buffer",
+          "expireTime": "Expire Time"
+        }
+      }
     }
   },
   "southward": {

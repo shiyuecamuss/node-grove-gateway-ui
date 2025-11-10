@@ -1,22 +1,26 @@
 <script lang="ts" setup>
 import type { VbenFormProps } from '@vben/common-ui';
-import type { AppInfo, IdType, PluginInfo } from '@vben/types';
+import type { AppInfo, IdType, PluginInfo, Recordable } from '@vben/types';
 import type { OnActionClickParams, VxeGridProps } from '#/adapter/vxe-table';
 
-import { confirm, Page } from '@vben/common-ui';
+import { confirm, Page, useVbenDrawer } from '@vben/common-ui';
+import { FormOpenType } from '@vben/constants';
 import { useRequestHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
 import { CommonStatus, EntityType } from '@vben/types';
-import { Switch, message } from 'ant-design-vue';
+import { Button, Switch, message } from 'ant-design-vue';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   changeAppStatus,
+  createApp,
   deleteApp,
   fetchAllPlugins,
   fetchAppPage,
+  updateApp,
 } from '#/api';
 import { onMounted, reactive, ref } from 'vue';
 
+import AppForm from './modules/form.vue';
 import { createSearchFormSchema, useColumns } from './modules/schemas';
 
 defineOptions({
@@ -38,15 +42,6 @@ const { handleRequest } = useRequestHandler();
 
 const pluginRecords = ref<PluginInfo[]>([]);
 const pluginOptions = reactive<SelectOption[]>([]);
-
-/**
- * Resolve plugin name by identifier.
- * @param pluginId - Plugin identifier.
- */
-function resolvePluginName(pluginId: IdType) {
-  const record = pluginRecords.value.find((item) => item.id === pluginId);
-  return record?.name ?? '-';
-}
 
 /**
  * Initialize plugin dropdown options.
@@ -80,10 +75,7 @@ const gridOptions: VxeGridProps<AppInfo> = {
     highlight: true,
     labelField: 'name',
   },
-  columns: useColumns({
-    onActionClick,
-    resolvePluginName,
-  }),
+  columns: useColumns(onActionClick),
   exportConfig: {},
   height: 'auto',
   keepSource: true,
@@ -118,12 +110,20 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions,
 });
 
+const [FormDrawer, formDrawerApi] = useVbenDrawer({
+  connectedComponent: AppForm,
+});
+
 /**
  * Handle table action button clicks.
  * @param payload - Event payload.
  */
 function onActionClick({ code, row }: OnActionClickParams<AppInfo>) {
   switch (code) {
+    case 'edit': {
+      handleEdit(row);
+      break;
+    }
     case 'delete': {
       handleDelete(row);
       break;
@@ -132,6 +132,74 @@ function onActionClick({ code, row }: OnActionClickParams<AppInfo>) {
       break;
     }
   }
+}
+
+/**
+ * Handle create button click.
+ */
+function handleCreate() {
+  formDrawerApi
+    .setData({
+      type: FormOpenType.CREATE,
+    })
+    .setState({
+      title: $t('common.createWithName', {
+        name: $t('page.northward.app.title'),
+      }),
+    })
+    .open();
+}
+
+/**
+ * Handle edit button click.
+ * @param row - Target app row.
+ */
+function handleEdit(row: AppInfo) {
+  formDrawerApi
+    .setData({
+      type: FormOpenType.EDIT,
+      id: row.id,
+    })
+    .setState({
+      title: $t('common.editWithName', {
+        name: row.name,
+      }),
+    })
+    .open();
+}
+
+/**
+ * Handle form submit event.
+ * @param type - Form open type (create or edit).
+ * @param id - App identifier (for edit mode).
+ * @param values - Form values.
+ */
+async function handleFormSubmit(
+  type: FormOpenType,
+  id: IdType,
+  values: Recordable<any>,
+) {
+  await (type === FormOpenType.CREATE
+    ? handleRequest(
+        () => createApp(values as AppInfo),
+        async () => {
+          formDrawerApi.close();
+          message.success($t('common.action.createSuccess'));
+          await gridApi.query();
+        },
+      )
+    : handleRequest(
+        () =>
+          updateApp({
+            id,
+            ...values,
+          } as AppInfo),
+        async () => {
+          formDrawerApi.close();
+          message.success($t('common.action.updateSuccess'));
+          await gridApi.query();
+        },
+      ));
 }
 
 /**
@@ -193,6 +261,16 @@ onMounted(() => {
           @update:checked="toggleStatus(row)"
         />
       </template>
+      <template #toolbar-tools>
+        <Button class="mr-2" type="primary" @click="handleCreate">
+          <span>{{
+            `${$t('common.createWithName', {
+              name: $t('page.northward.app.title'),
+            })}`
+          }}</span>
+        </Button>
+      </template>
     </Grid>
+    <FormDrawer @submit="handleFormSubmit" />
   </Page>
 </template>
