@@ -9,6 +9,8 @@ export * from './common';
 export type * from './device';
 export * from './driver';
 export type * from './driver';
+export * from './plugin';
+export type * from './plugin';
 export type * from './import';
 export type * from './point';
 export type * from './user';

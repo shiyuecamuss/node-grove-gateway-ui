@@ -109,7 +109,7 @@ async function handleTemplateDownload(row: DriverInfo, menuKey?: string) {
 
 const handleUninstall = async (row: DriverInfo) => {
   confirm({
-    content: $t('page.driver.uninstallTips'),
+    content: $t('page.southward.driver.uninstallTips'),
     icon: 'warning',
     title: $t('common.action.uninstallConfirm', {
       entityType: $t(`entity.${EntityType.DRIVER.toLowerCase()}`),
@@ -137,7 +137,7 @@ const handleUninstall = async (row: DriverInfo) => {
       <template #toolbar-tools>
         <Button class="mr-2" type="primary" @click="handleInstall">
           <span>{{
-            `${$t('common.installWithName', { name: $t('page.driver.title') })}`
+            `${$t('common.installWithName', { name: $t('page.southward.driver.title') })}`
           }}</span>
         </Button>
       </template>

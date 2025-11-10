@@ -5,6 +5,9 @@ import type {
   CommonTimeRangeRequest,
   DriverInfo,
   DriverProbeInfo,
+  DriverSource,
+  OsArch,
+  OsType,
   DriverTemplateEntity,
   IdType,
 } from '@vben/types';
@@ -32,6 +35,12 @@ export namespace DriverApi {
     extends CommonPageRequest,
       CommonTimeRangeRequest {
     name?: string;
+    driver_type?: string;
+    source?: (typeof DriverSource)[keyof typeof DriverSource];
+    version?: string;
+    sdk_version?: string;
+    os_type?: (typeof OsType)[keyof typeof OsType];
+    os_arch?: (typeof OsArch)[keyof typeof OsArch];
     status?: (typeof CommonStatus)[keyof typeof CommonStatus];
   }
 

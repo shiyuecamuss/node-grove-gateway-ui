@@ -17,3 +17,9 @@ export const DriverSource = {
   BuiltIn: 0,
   Custom: 1,
 } as const;
+
+// Plugin source type
+export const PluginSource = {
+  BuiltIn: 0,
+  Custom: 1,
+} as const;

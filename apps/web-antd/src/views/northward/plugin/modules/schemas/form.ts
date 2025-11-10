@@ -5,17 +5,16 @@ import { h } from 'vue';
 import { z } from '@vben/common-ui';
 import { Inbox } from '@vben/icons';
 
-import { previewDriver } from '#/api';
+import { previewPlugin } from '#/api';
 import { $t } from '#/locales';
 
-// Factory to allow caller-supplied customRequest (e.g., for storing uploadedFile/probeInfo)
 export function useFormSchema(customRequest?: any): FormSchema[] {
   return [
     {
       component: 'UploadDragger',
       componentProps: {
         accept: '.dylib,.so,.dll',
-        customRequest: customRequest ?? previewDriver,
+        customRequest: customRequest ?? previewPlugin,
         disabled: false,
         maxCount: 1,
         multiple: false,
@@ -37,7 +36,7 @@ export function useFormSchema(customRequest?: any): FormSchema[] {
       },
       rules: z
         .array(z.any())
-        .min(1, { message: $t('page.driver.install.uploadText') }),
+        .min(1, { message: $t('page.northward.plugin.install.uploadText') }),
     },
   ];
 }

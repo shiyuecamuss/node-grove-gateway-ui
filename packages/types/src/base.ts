@@ -62,6 +62,14 @@ export enum EntityType {
    * 用户
    */
   USER = 'USER',
+  /**
+   * 插件
+   */
+  PLUGIN = 'PLUGIN',
+  /**
+   * 应用
+   */
+  APP = 'APP',
 }
 
 interface BaseEntity {

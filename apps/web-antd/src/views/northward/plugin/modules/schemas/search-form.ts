@@ -1,24 +1,21 @@
 import type { VbenFormSchema } from '@vben/common-ui';
 
 import { $t } from '@vben/locales';
-import { DriverSource, OsArch, OsType } from '@vben/types';
+import { PluginSource, OsArch, OsType } from '@vben/types';
 
-/**
- * Search form schema for user package list
- */
 export const searchFormSchema: VbenFormSchema[] = [
   {
     component: 'Input',
     fieldName: 'name',
-    label: $t('page.driver.name'),
+    label: $t('page.northward.plugin.name'),
     componentProps: {
       clearable: true,
     },
   },
   {
     component: 'Input',
-    fieldName: 'driverType',
-    label: $t('page.driver.driverType'),
+    fieldName: 'plugin_type',
+    label: $t('page.northward.plugin.pluginType'),
     componentProps: {
       clearable: true,
     },
@@ -29,18 +26,18 @@ export const searchFormSchema: VbenFormSchema[] = [
       clearable: true,
       options: [
         {
-          label: $t('page.driver.source.builtIn'),
-          value: DriverSource.BuiltIn,
+          label: $t('page.northward.plugin.source.builtIn'),
+          value: PluginSource.BuiltIn,
         },
         {
-          label: $t('page.driver.source.custom'),
-          value: DriverSource.Custom,
+          label: $t('page.northward.plugin.source.custom'),
+          value: PluginSource.Custom,
         },
       ],
       placeholder: $t('ui.placeholder.select'),
     },
     fieldName: 'source',
-    label: $t('page.driver.source.title'),
+    label: $t('page.northward.plugin.source.title'),
   },
   {
     component: 'Select',
@@ -48,22 +45,22 @@ export const searchFormSchema: VbenFormSchema[] = [
       clearable: true,
       options: [
         {
-          label: $t('page.driver.osType.windows'),
+          label: $t('page.southward.driver.osType.windows'),
           value: OsType.Windows,
         },
         {
-          label: $t('page.driver.osType.linux'),
+          label: $t('page.southward.driver.osType.linux'),
           value: OsType.Linux,
         },
         {
-          label: $t('page.driver.osType.macos'),
+          label: $t('page.southward.driver.osType.macos'),
           value: OsType.MacOS,
         },
       ],
       placeholder: $t('ui.placeholder.select'),
     },
-    fieldName: 'osType',
-    label: $t('page.driver.osType.title'),
+    fieldName: 'os_type',
+    label: $t('page.southward.driver.osType.title'),
   },
   {
     component: 'Select',
@@ -71,22 +68,22 @@ export const searchFormSchema: VbenFormSchema[] = [
       clearable: true,
       options: [
         {
-          label: $t('page.driver.osArch.x86'),
+          label: $t('page.southward.driver.osArch.x86'),
           value: OsArch.x86,
         },
         {
-          label: $t('page.driver.osArch.arm64'),
+          label: $t('page.southward.driver.osArch.arm64'),
           value: OsArch.arm64,
         },
         {
-          label: $t('page.driver.osArch.arm'),
+          label: $t('page.southward.driver.osArch.arm'),
           value: OsArch.arm,
         },
       ],
       placeholder: $t('ui.placeholder.select'),
     },
-    fieldName: 'osArch',
-    label: $t('page.driver.osArch.title'),
+    fieldName: 'os_arch',
+    label: $t('page.southward.driver.osArch.title'),
   },
   {
     component: 'DatePicker',

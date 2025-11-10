@@ -22,7 +22,7 @@ const selectedEntity = ref<
 const [Modal, modalApi] = useVbenModal({
   class: 'w-[520px]',
   destroyOnClose: true,
-  title: $t('page.driver.templateDownload'),
+  title: $t('page.southward.driver.templateDownload'),
   fullscreenButton: false,
   onConfirm: async () => {
     const { driverId, driverType } =

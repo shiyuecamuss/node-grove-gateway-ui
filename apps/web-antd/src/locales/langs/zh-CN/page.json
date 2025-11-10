@@ -15,7 +15,7 @@
     "title": "首页"
   },
   "system": {
-    "title": "系统管理",
+    "title": "系统",
     "user": {
       "title": "用户",
       "username": "用户名",
@@ -35,10 +35,36 @@
     }
   },
   "northward": {
-    "title": "北向平台"
+    "title": "北向",
+    "plugin": {
+      "title": "插件",
+      "name": "名称",
+      "description": "描述",
+      "pluginType": "插件类型",
+      "source": {
+        "title": "来源",
+        "builtIn": "内置",
+        "custom": "自定义"
+      },
+      "version": "版本",
+      "apiVersion": "API版本",
+      "sdkVersion": "SDK版本",
+      "size": "大小",
+      "checksum": "校验和",
+      "install": {
+        "uploadText": "请上传插件文件",
+        "step1": "上传",
+        "step2": "预览",
+        "step3": "安装"
+      },
+      "uninstallTips": "卸载后将移除插件及相关配置。"
+    },
+    "app": {
+      "title": "应用"
+    }
   },
   "southward": {
-    "title": "南向通道",
+    "title": "南向",
     "form": {
       "step1": "基础配置",
       "step2": "连接策略",
@@ -149,47 +175,47 @@
         "write": "只写",
         "readWrite": "读写"
       }
+    },
+    "driver": {
+      "title": "驱动",
+      "name": "名称",
+      "description": "描述",
+      "driverType": "驱动类型",
+      "source": {
+        "title": "来源",
+        "builtIn": "内置",
+        "custom": "自定义"
+      },
+      "version": "版本",
+      "apiVersion": "API版本",
+      "sdkVersion": "SDK版本",
+      "osType": {
+        "title": "操作系统类型",
+        "windows": "Windows",
+        "linux": "Linux",
+        "macos": "Mac OS",
+        "unknown": "Unknown"
+      },
+      "osArch": {
+        "title": "操作系统架构",
+        "x86": "X86",
+        "arm64": "ARM64",
+        "arm": "ARM",
+        "unknown": "Unknown"
+      },
+      "size": "大小",
+      "path": "路径",
+      "checksum": "校验和",
+      "metadata": "元数据",
+      "install": {
+        "uploadText": "请上传驱动文件",
+        "step1": "上传",
+        "step2": "预览",
+        "step3": "安装"
+      },
+      "templateDownload": "模板下载",
+      "templateEntity": "模板类型",
+      "uninstallTips": "卸载后将删除所有关联的通道、设备、点位和动作数据。"
     }
-  },
-  "driver": {
-    "title": "驱动",
-    "name": "名称",
-    "description": "描述",
-    "driverType": "驱动类型",
-    "source": {
-      "title": "来源",
-      "builtIn": "内置",
-      "custom": "自定义"
-    },
-    "version": "版本",
-    "apiVersion": "API版本",
-    "sdkVersion": "SDK版本",
-    "osType": {
-      "title": "操作系统类型",
-      "windows": "Windows",
-      "linux": "Linux",
-      "macos": "Mac OS",
-      "unknown": "Unknown"
-    },
-    "osArch": {
-      "title": "操作系统架构",
-      "x86": "X86",
-      "arm64": "ARM64",
-      "arm": "ARM",
-      "unknown": "Unknown"
-    },
-    "size": "大小",
-    "path": "路径",
-    "checksum": "校验和",
-    "metadata": "元数据",
-    "install": {
-      "uploadText": "请上传驱动文件",
-      "step1": "上传",
-      "step2": "预览",
-      "step3": "安装"
-    },
-    "templateDownload": "模板下载",
-    "templateEntity": "模板类型",
-    "uninstallTips": "卸载后将删除所有关联的通道、设备、点位和动作数据。"
   }
 }

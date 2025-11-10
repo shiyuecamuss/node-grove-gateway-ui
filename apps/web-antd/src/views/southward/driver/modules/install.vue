@@ -77,7 +77,7 @@ const [FirstForm, firstFormApi] = useVbenForm({
   },
   handleSubmit: async () => {
     if (!uploadedFile.value || !probeInfo.value) {
-      message.warning($t('page.driver.install.uploadText'));
+      message.warning($t('page.southward.driver.install.uploadText'));
       return;
     }
     currentTab.value = 1;
@@ -138,16 +138,16 @@ const [Modal, modalApi] = useVbenModal({
 function osTypeLabel(value?: (typeof OsType)[keyof typeof OsType]) {
   switch (value) {
     case OsType.Linux: {
-      return $t('page.driver.osType.linux');
+      return $t('page.southward.driver.osType.linux');
     }
     case OsType.MacOS: {
-      return $t('page.driver.osType.macos');
+      return $t('page.southward.driver.osType.macos');
     }
     case OsType.Windows: {
-      return $t('page.driver.osType.windows');
+      return $t('page.southward.driver.osType.windows');
     }
     default: {
-      return $t('page.driver.osType.unknown');
+      return $t('page.southward.driver.osType.unknown');
     }
   }
 }
@@ -155,16 +155,16 @@ function osTypeLabel(value?: (typeof OsType)[keyof typeof OsType]) {
 function osArchLabel(value: number) {
   switch (value) {
     case 0: {
-      return $t('page.driver.osArch.x86');
+      return $t('page.southward.driver.osArch.x86');
     }
     case 1: {
-      return $t('page.driver.osArch.arm64');
+      return $t('page.southward.driver.osArch.arm64');
     }
     case 2: {
-      return $t('page.driver.osArch.arm');
+      return $t('page.southward.driver.osArch.arm');
     }
     default: {
-      return $t('page.driver.osArch.unknown');
+      return $t('page.southward.driver.osArch.unknown');
     }
   }
 }
@@ -173,9 +173,9 @@ function osArchLabel(value: number) {
 <template>
   <Modal>
     <Steps :current="currentTab" class="steps">
-      <Step :title="$t('page.driver.install.step1')" />
-      <Step :title="$t('page.driver.install.step2')" />
-      <Step :title="$t('page.driver.install.step3')" />
+      <Step :title="$t('page.southward.driver.install.step1')" />
+      <Step :title="$t('page.southward.driver.install.step2')" />
+      <Step :title="$t('page.southward.driver.install.step3')" />
     </Steps>
     <div class="p-4">
       <Card v-show="currentTab === 0">
@@ -185,50 +185,50 @@ function osArchLabel(value: number) {
       <div v-show="currentTab === 1" class="space-y-4">
         <Card>
           <Descriptions :column="2" size="middle" :bordered="true">
-            <Descriptions.Item :label="$t('page.driver.name')">
+            <Descriptions.Item :label="$t('page.southward.driver.name')">
               <Tag color="volcano">
                 {{ probeInfo?.name }}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item :label="$t('page.driver.driverType')">
+            <Descriptions.Item :label="$t('page.southward.driver.driverType')">
               <Tag color="orange">
                 {{ probeInfo?.driverType }}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item :label="$t('page.driver.version')">
+            <Descriptions.Item :label="$t('page.southward.driver.version')">
               <Tag color="cyan">
                 {{ probeInfo?.version }}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item :label="$t('page.driver.apiVersion')">
+            <Descriptions.Item :label="$t('page.southward.driver.apiVersion')">
               <Tag color="purple">
                 {{ probeInfo?.apiVersion }}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item :label="$t('page.driver.sdkVersion')">
+            <Descriptions.Item :label="$t('page.southward.driver.sdkVersion')">
               <Tag color="pink">
                 {{ probeInfo?.sdkVersion }}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item :label="$t('page.driver.osType.title')">
+            <Descriptions.Item :label="$t('page.southward.driver.osType.title')">
               <Tag :color="osTypeColor(probeInfo?.osType ?? OsType.Unknown)">
                 {{ osTypeLabel(probeInfo?.osType ?? OsType.Unknown) }}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item :label="$t('page.driver.osArch.title')">
+            <Descriptions.Item :label="$t('page.southward.driver.osArch.title')">
               <Tag :color="osArchColor(probeInfo?.osArch ?? OsArch.Unknown)">
                 {{ osArchLabel(probeInfo?.osArch ?? OsArch.Unknown) }}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item :label="$t('page.driver.size')">
+            <Descriptions.Item :label="$t('page.southward.driver.size')">
               <Tag color="magenta">
                 {{ formatBytes(probeInfo?.size ?? 0) }}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item :label="$t('page.driver.checksum')" :span="2">
+            <Descriptions.Item :label="$t('page.southward.driver.checksum')" :span="2">
               {{ probeInfo?.checksum }}
             </Descriptions.Item>
-            <Descriptions.Item :label="$t('page.driver.description')" :span="2">
+            <Descriptions.Item :label="$t('page.southward.driver.description')" :span="2">
               {{ probeInfo?.description || '-' }}
             </Descriptions.Item>
           </Descriptions>
@@ -247,7 +247,7 @@ function osArchLabel(value: number) {
         <Card v-if="!installSuccess">
           <div class="mb-4 text-base font-medium">
             {{
-              $t('common.installWithName', { name: $t('page.driver.title') })
+              $t('common.installWithName', { name: $t('page.southward.driver.title') })
             }}
           </div>
           <Progress
