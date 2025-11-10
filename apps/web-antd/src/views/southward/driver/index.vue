@@ -62,8 +62,8 @@ const gridOptions: VxeGridProps<DriverInfo> = {
   },
   toolbarConfig: {
     custom: true,
-    export: true,
-    import: true,
+    export: false,
+    import: false,
     refresh: true,
     zoom: true,
   },
