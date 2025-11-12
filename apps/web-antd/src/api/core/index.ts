@@ -1,6 +1,7 @@
 export * from './action';
 export * from './auth';
 export * from './app';
+export * from './app-sub';
 export * from './channel';
 export * from './device';
 export * from './driver';

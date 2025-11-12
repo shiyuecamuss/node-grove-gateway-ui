@@ -1,8 +1,6 @@
 import type { Recordable } from '@vben-core/typings';
 
 import type { BaseEntity, IdType, RetryPolicy, StatusInfo } from './base';
-import { CommonStatus } from './base';
-import type { CommonPageRequest, CommonTimeRangeRequest } from './common';
 
 /**
  * Drop policy options for app queue handling.
@@ -82,22 +80,4 @@ interface AppInfo extends BaseEntity, StatusInfo {
   queuePolicy: QueuePolicy;
 }
 
-/**
- * Query parameters when requesting a paginated northward app list.
- */
-interface AppPageParams extends CommonPageRequest, CommonTimeRangeRequest {
-  /**
-   * Optional fuzzy search by app name.
-   */
-  name?: string;
-  /**
-   * Optional plugin filter.
-   */
-  pluginId?: IdType;
-  /**
-   * Optional status filter.
-   */
-  status?: (typeof CommonStatus)[keyof typeof CommonStatus];
-}
-
-export type { AppInfo, AppPageParams, QueuePolicy };
+export type { AppInfo, QueuePolicy };

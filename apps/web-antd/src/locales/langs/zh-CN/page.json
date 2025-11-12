@@ -64,6 +64,17 @@
       "name": "名称",
       "plugin": "插件",
       "description": "描述",
+      "subscription": "订阅",
+      "subscriptionForm": {
+        "target": "订阅应用",
+        "allDevices": "订阅全部设备",
+        "devices": "请选择设备",
+        "priority": "优先级",
+        "empty": "暂无可用设备",
+        "validation": {
+          "deviceRequired": "请至少选择一个设备。"
+        }
+      },
       "form": {
         "step1": "基础配置",
         "step2": "重试策略",

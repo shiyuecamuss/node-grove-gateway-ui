@@ -45,6 +45,11 @@ export function useColumns(
         name: 'CellOperation',
         options: [
           {
+            code: 'subscription',
+            icon: 'mdi:bell-outline',
+            tooltip: $t('page.northward.app.subscription'),
+          },
+          {
             code: 'edit',
             icon: 'lucide:edit',
             tooltip: $t('common.edit'),

@@ -64,6 +64,17 @@
       "name": "Name",
       "plugin": "Plugin",
       "description": "Description",
+      "subscription": "Subscription",
+      "subscriptionForm": {
+        "target": "Subscription Target",
+        "allDevices": "Subscribe All Devices",
+        "devices": "Select Devices",
+        "priority": "Priority",
+        "empty": "No devices available",
+        "validation": {
+          "deviceRequired": "Please select at least one device."
+        }
+      },
       "form": {
         "step1": "Basic Configuration",
         "step2": "Retry Policy",

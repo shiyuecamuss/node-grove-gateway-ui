@@ -1,4 +1,4 @@
-import type { VbenFormSchema as FormSchema } from '@vben/common-ui';
+import { z, type VbenFormSchema as FormSchema } from '@vben/common-ui';
 import type { IdType } from '@vben/types';
 
 import { $t } from '@vben/locales';
@@ -245,6 +245,46 @@ export function useQueuePolicyFormSchema(): FormSchema[] {
         if: (values) => {
           return values.queuePolicy?.bufferEnabled === true;
         },
+      },
+    },
+  ];
+}
+
+export function useSubscriptionFormSchema(): FormSchema[] {
+  return [
+    {
+      component: 'Switch',
+      fieldName: 'allDevices',
+      label: $t('page.northward.app.subscriptionForm.allDevices'),
+      defaultValue: false,
+      rules: 'required',
+    },
+    {
+      component: 'InputNumber',
+      fieldName: 'priority',
+      label: $t('page.northward.app.subscriptionForm.priority'),
+      controlClass: 'w-full',
+      componentProps: { min: 0, max: 32767 },
+      defaultValue: 0,
+      rules: z.number().min(0).max(32767).default(0),
+    },
+    {
+      component: 'TreeSelect',
+      fieldName: 'deviceIds',
+      label: $t('page.northward.app.subscriptionForm.devices'),
+      defaultValue: [],
+      controlClass: 'w-full',
+      componentProps: {
+        allowClear: true,
+        showSearch: true,
+        multiple: true,
+        treeCheckable: true,
+        class: 'w-full',
+      },
+      dependencies: {
+        triggerFields: ['allDevices'],
+        if: (values) => values.allDevices === false,
+        rules: (values) => (values.allDevices ? null : 'required'),
       },
     },
   ];

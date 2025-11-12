@@ -1,7 +1,8 @@
 import type {
   AppInfo,
-  AppPageParams,
+  CommonPageRequest,
   CommonPageResponse,
+  CommonTimeRangeRequest,
   IdType,
 } from '@vben/types';
 
@@ -37,13 +38,33 @@ export namespace AppApi {
    * Route for status toggle operations.
    */
   export const changeStatus = `${base}/change-status`;
+
+  /**
+   * Query parameters when requesting a paginated northward app list.
+   */
+  export interface AppPageParams
+    extends CommonPageRequest,
+      CommonTimeRangeRequest {
+    /**
+     * Optional fuzzy search by app name.
+     */
+    name?: string;
+    /**
+     * Optional plugin filter.
+     */
+    pluginId?: IdType;
+    /**
+     * Optional status filter.
+     */
+    status?: (typeof CommonStatus)[keyof typeof CommonStatus];
+  }
 }
 
 /**
  * Fetch a paginated northward app list.
  * @param params - Pagination and filter parameters.
  */
-export async function fetchAppPage(params: AppPageParams) {
+export async function fetchAppPage(params: AppApi.AppPageParams) {
   return requestClient.get<CommonPageResponse<AppInfo>>(AppApi.page, {
     params,
   });

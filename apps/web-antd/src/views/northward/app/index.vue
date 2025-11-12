@@ -3,7 +3,7 @@ import type { VbenFormProps } from '@vben/common-ui';
 import type { AppInfo, IdType, PluginInfo, Recordable } from '@vben/types';
 import type { OnActionClickParams, VxeGridProps } from '#/adapter/vxe-table';
 
-import { confirm, Page, useVbenDrawer } from '@vben/common-ui';
+import { confirm, Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { FormOpenType } from '@vben/constants';
 import { useRequestHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
@@ -21,6 +21,7 @@ import {
 import { onMounted, reactive, ref } from 'vue';
 
 import AppForm from './modules/form.vue';
+import SubscriptionDrawer from './modules/subscription.vue';
 import { createSearchFormSchema, useColumns } from './modules/schemas';
 
 defineOptions({
@@ -114,6 +115,10 @@ const [FormDrawer, formDrawerApi] = useVbenDrawer({
   connectedComponent: AppForm,
 });
 
+const [SubModal, subModalApi] = useVbenModal({
+  connectedComponent: SubscriptionDrawer,
+});
+
 /**
  * Handle table action button clicks.
  * @param payload - Event payload.
@@ -126,6 +131,10 @@ function onActionClick({ code, row }: OnActionClickParams<AppInfo>) {
     }
     case 'delete': {
       handleDelete(row);
+      break;
+    }
+    case 'subscription': {
+      handleSubscription(row);
       break;
     }
     default: {
@@ -166,6 +175,22 @@ function handleEdit(row: AppInfo) {
       }),
     })
     .open();
+}
+
+function handleSubscription(row: AppInfo) {
+  subModalApi
+    .setData({
+      id: row.id,
+      name: row.name,
+    })
+    .setState({
+      title: $t('page.northward.app.subscription'),
+    })
+    .open();
+}
+
+async function handleSubscriptionSubmit() {
+  await gridApi.query();
 }
 
 /**
@@ -272,5 +297,6 @@ onMounted(() => {
       </template>
     </Grid>
     <FormDrawer @submit="handleFormSubmit" />
+    <SubModal @submitted="handleSubscriptionSubmit" />
   </Page>
 </template>

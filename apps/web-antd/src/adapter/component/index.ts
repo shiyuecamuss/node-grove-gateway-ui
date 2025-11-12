@@ -61,6 +61,9 @@ const TimePicker = defineAsyncComponent(
 const TreeSelect = defineAsyncComponent(
   () => import('ant-design-vue/es/tree-select'),
 );
+const Transfer = defineAsyncComponent(
+  () => import('ant-design-vue/es/transfer'),
+);
 const Upload = defineAsyncComponent(() => import('ant-design-vue/es/upload'));
 const UploadDragger = defineAsyncComponent(() =>
   import('ant-design-vue/es/upload').then((res) => res.UploadDragger),
@@ -130,6 +133,7 @@ export type ComponentType =
   | 'Textarea'
   | 'TimePicker'
   | 'TreeSelect'
+  | 'Transfer'
   | 'Upload'
   | BaseFormComponentType;
 
@@ -198,6 +202,7 @@ async function initComponentAdapter() {
     Textarea: withDefaultPlaceholder(Textarea, 'input'),
     TimePicker,
     TreeSelect: withDefaultPlaceholder(TreeSelect, 'select'),
+    Transfer,
     Upload,
     UploadDragger,
     JsonEditor: JsonEditorVue,

@@ -1,11 +1,21 @@
-import type { IdType } from './base';
+import type { BaseEntity, IdType } from './base';
 
-interface AppSubInfo {
-  id: IdType;
-  app_id: IdType;
-  all_devices: boolean;
-  device_ids?: Array<IdType>;
+interface AppSubInfo extends BaseEntity {
+  appId: IdType;
+  allDevices: boolean;
+  deviceIds?: IdType[];
   priority: number;
 }
 
-export type { AppSubInfo };
+interface DeviceTreeNode {
+  id: IdType;
+  name: string;
+}
+
+interface ChannelDeviceTree {
+  id: IdType;
+  name: string;
+  devices: DeviceTreeNode[];
+}
+
+export type { AppSubInfo, ChannelDeviceTree, DeviceTreeNode };
