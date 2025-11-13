@@ -181,7 +181,6 @@ export function usePointColumns(
         options: accessModeOptions(),
       },
     },
-    { field: 'unit', title: $t('page.southward.point.unit') },
     {
       align: 'right',
       cellRender: {
