@@ -1,6 +1,7 @@
-import { z, type VbenFormSchema as FormSchema } from '@vben/common-ui';
+import type { VbenFormSchema as FormSchema } from '@vben/common-ui';
 import type { IdType } from '@vben/types';
 
+import { z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { DropPolicy } from '@vben/types';
 
@@ -105,7 +106,7 @@ export function useRetryPolicyFormSchema(): FormSchema[] {
       controlClass: 'w-full',
       componentProps: { min: 0 },
       rules: 'required',
-      defaultValue: 30000,
+      defaultValue: 30_000,
     },
     {
       component: 'InputNumber',
@@ -264,9 +265,9 @@ export function useSubscriptionFormSchema(): FormSchema[] {
       fieldName: 'priority',
       label: $t('page.northward.app.subscriptionForm.priority'),
       controlClass: 'w-full',
-      componentProps: { min: 0, max: 32767 },
+      componentProps: { min: 0, max: 32_767 },
       defaultValue: 0,
-      rules: z.number().min(0).max(32767).default(0),
+      rules: z.number().min(0).max(32_767).default(0),
     },
     {
       component: 'TreeSelect',
