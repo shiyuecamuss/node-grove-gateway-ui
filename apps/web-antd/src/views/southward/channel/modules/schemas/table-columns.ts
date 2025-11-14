@@ -64,6 +64,13 @@ export function useChannelColumns(
       slots: { default: 'status' },
     },
     {
+      field: 'connectionState',
+      title: $t('ui.connectionState.title'),
+      cellRender: {
+        name: 'CellConnectionState',
+      },
+    },
+    {
       align: 'right',
       cellRender: {
         attrs: {

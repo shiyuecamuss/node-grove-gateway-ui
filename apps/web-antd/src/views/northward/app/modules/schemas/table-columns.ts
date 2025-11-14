@@ -26,6 +26,13 @@ export function useColumns(
       slots: { default: 'status' },
     },
     {
+      field: 'connectionState',
+      title: $t('ui.connectionState.title'),
+      cellRender: {
+        name: 'CellConnectionState',
+      },
+    },
+    {
       field: 'createdAt',
       formatter: 'formatDateTime',
       title: $t('common.baseInfo.createdAt'),

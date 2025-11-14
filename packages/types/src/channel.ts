@@ -21,6 +21,17 @@ export interface ConnectionPolicy {
   backoff: RetryPolicy;
 }
 
+/**
+ * Southward connection state enumeration
+ */
+export const SouthwardConnectionState = {
+  Disconnected: 'Disconnected',
+  Connecting: 'Connecting',
+  Connected: 'Connected',
+  Reconnecting: 'Reconnecting',
+  Failed: 'Failed',
+} as const;
+
 interface ChannelInfo extends BaseEntity, StatusInfo {
   name: string;
   driverId: IdType;
@@ -30,6 +41,12 @@ interface ChannelInfo extends BaseEntity, StatusInfo {
   reportType: (typeof ReportType)[keyof typeof ReportType];
   connectionPolicy: ConnectionPolicy;
   driverConfig: Recordable<any>;
+  /**
+   * Connection state from runtime manager (optional)
+   */
+  connectionState?:
+    | (typeof SouthwardConnectionState)[keyof typeof SouthwardConnectionState]
+    | string;
 }
 
 export type { ChannelInfo };

@@ -108,6 +108,45 @@ setupVbenVxeTable({
       },
     });
 
+    // 单元格渲染：连接状态
+    vxeUI.renderer.add('CellConnectionState', {
+      renderTableDefault(_renderOpts, { column, row }) {
+        const stateStr = String(get(row, column.field) || 'Disconnected');
+
+        let color: string;
+        let text: string;
+        switch (stateStr) {
+          case 'Failed':
+            color = 'error';
+            text = $t('ui.connectionState.failed');
+            break;
+          case 'Connected':
+            color = 'success';
+            text = $t('ui.connectionState.connected');
+            break;
+          case 'Disconnected':
+            color = 'default';
+            text = $t('ui.connectionState.disconnected');
+            break;
+          case 'Connecting':
+            color = 'processing';
+            text = $t('ui.connectionState.connecting');
+            break;
+          case 'Reconnecting':
+            color = 'warning';
+            text = $t('ui.connectionState.reconnecting');
+            break;
+          default:
+            color = 'default';
+            text = $te(`ui.connectionState.${stateStr.toLowerCase()}`)
+              ? $t(`ui.connectionState.${stateStr.toLowerCase()}`)
+              : stateStr;
+        }
+
+        return h(Tag, { color }, { default: () => text });
+      },
+    });
+
     vxeUI.renderer.add('CellSwitch', {
       renderTableDefault({ attrs, props }, { column, row }) {
         const loadingKey = `__loading_${column.field}`;

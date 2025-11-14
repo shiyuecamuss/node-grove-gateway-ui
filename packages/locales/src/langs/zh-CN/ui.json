@@ -117,5 +117,13 @@
       "setTimezone": "设置时区",
       "setSuccess": "时区设置成功"
     }
+  },
+  "connectionState": {
+    "title": "连接状态",
+    "disconnected": "离线",
+    "connecting": "连接中",
+    "connected": "在线",
+    "reconnecting": "重连中",
+    "failed": "失败"
   }
 }
