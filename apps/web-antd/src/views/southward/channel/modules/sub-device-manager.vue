@@ -17,8 +17,8 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   batchDeleteDevice,
   changeDeviceStatus,
-  createDevice,
   clearDeviceByChannel,
+  createDevice,
   deleteDevice,
   fetchDevicePage,
   updateDevice,
@@ -248,7 +248,7 @@ const handleDelete = async (row: DeviceInfo) => {
 
 const handleBatchDelete = async () => {
   const records = gridApi.getCheckboxRecords() as DeviceInfo[];
-  if (!records.length) {
+  if (records.length === 0) {
     message.warning($t('common.action.selectData') as string);
     return;
   }
@@ -276,8 +276,8 @@ const handleBatchDelete = async () => {
 const handleClear = async () => {
   const { channelId, channelName } = modalApi.getData<{
     channelId: IdType;
-    driverId: IdType;
     channelName?: string;
+    driverId: IdType;
   }>();
   confirm({
     content: $t('common.action.deviceClearConfirm', {

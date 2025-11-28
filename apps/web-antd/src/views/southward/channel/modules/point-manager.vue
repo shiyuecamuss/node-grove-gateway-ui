@@ -15,9 +15,9 @@ import { Button, message } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
-  createPoint,
   batchDeletePoint,
   clearPointByDevice,
+  createPoint,
   deletePoint,
   fetchPointPage,
   updatePoint,
@@ -197,7 +197,7 @@ const handleDelete = async (row: PointInfo) => {
 
 const handleBatchDelete = async () => {
   const records = gridApi.getCheckboxRecords() as PointInfo[];
-  if (!records.length) {
+  if (records.length === 0) {
     message.warning($t('common.action.selectData') as string);
     return;
   }

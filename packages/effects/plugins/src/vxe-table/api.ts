@@ -58,6 +58,14 @@ export class VxeGridApi<T extends Record<string, any> = any> {
     bindMethods(this);
   }
 
+  /**
+   * 获取多选勾选的行记录
+   * 透传 vxe-grid 实例的 getCheckboxRecords 方法
+   */
+  getCheckboxRecords(): T[] {
+    return this.grid.getCheckboxRecords();
+  }
+
   mount(instance: null | VxeGridInstance, formApi: ExtendedFormApi) {
     if (!this.isMounted && instance) {
       this.grid = instance;
@@ -81,14 +89,6 @@ export class VxeGridApi<T extends Record<string, any> = any> {
     } catch (error) {
       console.error('Error occurred while reloading:', error);
     }
-  }
-
-  /**
-   * 获取多选勾选的行记录
-   * 透传 vxe-grid 实例的 getCheckboxRecords 方法
-   */
-  getCheckboxRecords(): T[] {
-    return this.grid.getCheckboxRecords();
   }
 
   setGridOptions(options: Partial<VxeGridProps['gridOptions']>) {

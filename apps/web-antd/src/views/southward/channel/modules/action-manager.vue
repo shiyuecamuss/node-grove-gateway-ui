@@ -15,9 +15,9 @@ import { Button, message } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
-  createAction,
   batchDeleteAction,
   clearActionByDevice,
+  createAction,
   deleteAction,
   fetchActionPage,
   updateAction,
@@ -25,8 +25,8 @@ import {
 import { importActionCommit, importActionPreview } from '#/api/core/device';
 import { useImportFlow } from '#/shared/composables/use-import-flow';
 
-import ActionForm from './action-form.vue';
 import ActionDebug from './action-debug.vue';
+import ActionForm from './action-form.vue';
 import { actionSearchFormSchema } from './schemas/search-form';
 import { useActionColumns } from './schemas/table-columns';
 
@@ -214,7 +214,7 @@ const handleDelete = async (row: ActionInfo) => {
 
 const handleBatchDelete = async () => {
   const records = gridApi.getCheckboxRecords() as ActionInfo[];
-  if (!records.length) {
+  if (records.length === 0) {
     message.warning($t('common.action.selectData') as string);
     return;
   }
