@@ -15,8 +15,10 @@ import { Button, message, Switch } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
+  batchDeleteDevice,
   changeDeviceStatus,
   createDevice,
+  clearDeviceByChannel,
   deleteDevice,
   fetchDevicePage,
   updateDevice,
@@ -58,7 +60,7 @@ const [Modal, modalApi] = useVbenModal({
 const gridOptions: VxeGridProps<DeviceInfo> = {
   checkboxConfig: {
     highlight: true,
-    labelField: 'name',
+    labelField: 'deviceName',
   },
   columns: useDeviceColumns(onActionClick),
   exportConfig: {},
@@ -244,6 +246,58 @@ const handleDelete = async (row: DeviceInfo) => {
     .catch(() => {});
 };
 
+const handleBatchDelete = async () => {
+  const records = gridApi.getCheckboxRecords() as DeviceInfo[];
+  if (!records.length) {
+    message.warning($t('common.action.selectData') as string);
+    return;
+  }
+
+  confirm({
+    content: $t('common.action.deviceBatchDeleteConfirm', {
+      count: records.length,
+    }) as string,
+    icon: 'warning',
+    title: $t('common.tips'),
+  })
+    .then(async () => {
+      const ids = records.map((item) => item.id) as IdType[];
+      await handleRequest(
+        () => batchDeleteDevice(ids),
+        async () => {
+          message.success($t('common.action.deleteSuccess') as string);
+        },
+      );
+      await gridApi.query();
+    })
+    .catch(() => {});
+};
+
+const handleClear = async () => {
+  const { channelId, channelName } = modalApi.getData<{
+    channelId: IdType;
+    driverId: IdType;
+    channelName?: string;
+  }>();
+  confirm({
+    content: $t('common.action.deviceClearConfirm', {
+      name: channelName ?? channelId,
+    }) as string,
+    icon: 'warning',
+    title: $t('common.tips'),
+  })
+    .then(async () => {
+      await handleRequest(
+        () => clearDeviceByChannel(channelId),
+        async () => {
+          message.success($t('common.action.deleteSuccess') as string);
+        },
+      );
+      await gridApi.query();
+    })
+    .catch(() => {});
+};
+
 const toggleStatus = async (row: DeviceInfo) => {
   const status =
     row.status === CommonStatus.ENABLED
@@ -299,6 +353,12 @@ const handleFormSubmit = async (
             <span>{{
               `${$t('common.createWithName', { name: $t('page.southward.device.title') })}`
             }}</span>
+          </Button>
+          <Button class="mr-2" danger @click="handleBatchDelete">
+            <span>{{ $t('common.batchDelete') }}</span>
+          </Button>
+          <Button danger @click="handleClear">
+            <span>{{ $t('common.clear') }}</span>
           </Button>
         </template>
       </Grid>

@@ -83,6 +83,14 @@ export class VxeGridApi<T extends Record<string, any> = any> {
     }
   }
 
+  /**
+   * 获取多选勾选的行记录
+   * 透传 vxe-grid 实例的 getCheckboxRecords 方法
+   */
+  getCheckboxRecords(): T[] {
+    return this.grid.getCheckboxRecords();
+  }
+
   setGridOptions(options: Partial<VxeGridProps['gridOptions']>) {
     this.setState({
       gridOptions: options,

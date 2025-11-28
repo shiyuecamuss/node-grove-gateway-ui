@@ -26,6 +26,8 @@
   "editWithName": "Edit {name}",
   "delete": "Delete",
   "deleteWithName": "Delete {name}",
+  "batchDelete": "Batch Delete",
+  "clear": "Clear",
   "install": "Install",
   "installWithName": "Install {name}",
   "uninstall": "Uninstall",
@@ -150,6 +152,13 @@
     "assignSuccess": "Assign Success",
     "assignFail": "Assign Fail",
     "assignSuccessWithName": "Assign Success, name: {name}",
-    "assignFailWithName": "Assign Fail, name: {name}"
+    "assignFailWithName": "Assign Fail, name: {name}",
+    "selectData": "Please select data first",
+    "pointBatchDeleteConfirm": "Are you sure to delete the selected {count} points? This action cannot be undone.",
+    "pointClearConfirm": "Are you sure to clear all points under device: {name}? This action cannot be undone.",
+    "actionBatchDeleteConfirm": "Are you sure to delete the selected {count} actions? This action cannot be undone.",
+    "actionClearConfirm": "Are you sure to clear all actions under device: {name}? This action cannot be undone.",
+    "deviceBatchDeleteConfirm": "Are you sure to delete the selected {count} devices? This action cannot be undone.",
+    "deviceClearConfirm": "Are you sure to clear all devices under channel: {name}? This action cannot be undone."
   }
 }

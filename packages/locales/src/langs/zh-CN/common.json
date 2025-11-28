@@ -26,6 +26,8 @@
   "editWithName": "编辑 {name}",
   "delete": "删除",
   "deleteWithName": "删除 {name}",
+  "batchDelete": "批量删除",
+  "clear": "清空",
   "install": "安装",
   "installWithName": "安装 {name}",
   "uninstall": "卸载",
@@ -150,6 +152,13 @@
     "assignSuccess": "分配成功",
     "assignFail": "分配失败",
     "assignSuccessWithName": "分配成功，名称：{name}",
-    "assignFailWithName": "分配失败，名称：{name}"
+    "assignFailWithName": "分配失败，名称：{name}",
+    "selectData": "请先选择数据",
+    "pointBatchDeleteConfirm": "确定要删除选中的 {count} 个点位吗？该操作不可恢复。",
+    "pointClearConfirm": "确定要清空设备「{name}」下的所有点位吗？该操作不可恢复。",
+    "actionBatchDeleteConfirm": "确定要删除选中的 {count} 个动作吗？该操作不可恢复。",
+    "actionClearConfirm": "确定要清空设备「{name}」下的所有动作吗？该操作不可恢复。",
+    "deviceBatchDeleteConfirm": "确定要删除选中的 {count} 个设备吗？该操作不可恢复。",
+    "deviceClearConfirm": "确定要清空通道「{name}」下的所有设备吗？该操作不可恢复。"
   }
 }

@@ -116,7 +116,11 @@ export function useDeviceColumns(
   onActionClick: OnActionClickFn<DeviceInfo>,
 ): VxeTableGridOptions<DeviceInfo>['columns'] {
   return [
-    { field: 'deviceName', title: $t('page.southward.device.name') },
+    {
+      field: 'deviceName',
+      title: $t('page.southward.device.name'),
+      type: 'checkbox',
+    },
     { field: 'deviceType', title: $t('page.southward.device.type') },
     {
       field: 'status',
@@ -162,7 +166,11 @@ export function usePointColumns(
   onActionClick: OnActionClickFn<PointInfo>,
 ): VxeTableGridOptions<PointInfo>['columns'] {
   return [
-    { field: 'name', title: $t('page.southward.point.name') },
+    {
+      field: 'name',
+      title: $t('page.southward.point.name'),
+      type: 'checkbox',
+    },
     { field: 'key', title: $t('page.southward.point.key') },
     {
       field: 'type',
@@ -217,7 +225,11 @@ export function useActionColumns(
   onActionClick: OnActionClickFn<ActionInfo>,
 ): VxeTableGridOptions<ActionInfo>['columns'] {
   return [
-    { field: 'name', title: $t('page.southward.action.name') },
+    {
+      field: 'name',
+      title: $t('page.southward.action.name'),
+      type: 'checkbox',
+    },
     { field: 'command', title: $t('page.southward.action.command') },
     {
       field: 'inputs',

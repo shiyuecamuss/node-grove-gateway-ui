@@ -11,13 +11,15 @@ import type {
 
 import { requestClient } from '#/api/request';
 
-export namespace DevicelApi {
+export namespace DeviceApi {
   export const base = '/device';
   export const list = `${base}/list`;
   export const page = `${base}/page`;
   export const deleteDevice = (id: IdType) => `${base}/${id}`;
   export const getById = (id: IdType) => `${base}/detail/${id}`;
   export const changeStatus = `${base}/change-status`;
+  export const batchDelete = `${base}/batch-delete`;
+  export const clearByChannel = `${base}/clear`;
   export const importPointPreview = (id: IdType) =>
     `${base}/${id}/import-point-preview`;
   export const importPointCommit = (id: IdType) =>
@@ -43,8 +45,8 @@ export namespace DevicelApi {
  * @param params - Device page params
  * @returns Promise with device page response
  */
-export async function fetchDevicePage(params: DevicelApi.DevicePageParams) {
-  return requestClient.get<CommonPageResponse<DeviceInfo>>(DevicelApi.page, {
+export async function fetchDevicePage(params: DeviceApi.DevicePageParams) {
+  return requestClient.get<CommonPageResponse<DeviceInfo>>(DeviceApi.page, {
     params,
   });
 }
@@ -55,7 +57,7 @@ export async function fetchDevicePage(params: DevicelApi.DevicePageParams) {
  * @returns Promise with create device response
  */
 export async function createDevice(data: DeviceInfo) {
-  return requestClient.post(DevicelApi.base, data);
+  return requestClient.post(DeviceApi.base, data);
 }
 
 /**
@@ -64,7 +66,7 @@ export async function createDevice(data: DeviceInfo) {
  * @returns Promise with update device response
  */
 export async function updateDevice(data: DeviceInfo) {
-  return requestClient.put(DevicelApi.base, data);
+  return requestClient.put(DeviceApi.base, data);
 }
 
 /**
@@ -73,7 +75,7 @@ export async function updateDevice(data: DeviceInfo) {
  * @returns Promise with delete response
  */
 export async function deleteDevice(id: IdType) {
-  return requestClient.delete(DevicelApi.deleteDevice(id));
+  return requestClient.delete(DeviceApi.deleteDevice(id));
 }
 
 /**
@@ -82,7 +84,7 @@ export async function deleteDevice(id: IdType) {
  * @returns Promise with device response
  */
 export async function getDeviceById(id: IdType) {
-  return requestClient.get<DeviceInfo>(DevicelApi.getById(id));
+  return requestClient.get<DeviceInfo>(DeviceApi.getById(id));
 }
 
 /**
@@ -95,10 +97,26 @@ export async function changeDeviceStatus(
   id: IdType,
   status: (typeof CommonStatus)[keyof typeof CommonStatus],
 ) {
-  return requestClient.put(DevicelApi.changeStatus, {
+  return requestClient.put(DeviceApi.changeStatus, {
     id,
     status,
   });
+}
+
+/**
+ * Batch delete devices by IDs
+ * @param ids - Device ID list
+ */
+export async function batchDeleteDevice(ids: IdType[]) {
+  return requestClient.post(DeviceApi.batchDelete, { ids });
+}
+
+/**
+ * Clear all devices under a channel
+ * @param channelId - Channel ID
+ */
+export async function clearDeviceByChannel(channelId: IdType) {
+  return requestClient.post(DeviceApi.clearByChannel, { channelId });
 }
 
 /**
@@ -110,7 +128,7 @@ export async function importPointPreview(id: IdType, file: File) {
   const fd = new FormData();
   fd.append('file', file);
   return requestClient.post<ImportPreview>(
-    DevicelApi.importPointPreview(id),
+    DeviceApi.importPointPreview(id),
     fd,
     { headers: { 'Content-Type': 'multipart/form-data' } },
   );
@@ -124,11 +142,9 @@ export async function importPointPreview(id: IdType, file: File) {
 export async function importPointCommit(id: IdType, file: File) {
   const fd = new FormData();
   fd.append('file', file);
-  return requestClient.post<CommitResult>(
-    DevicelApi.importPointCommit(id),
-    fd,
-    { headers: { 'Content-Type': 'multipart/form-data' } },
-  );
+  return requestClient.post<CommitResult>(DeviceApi.importPointCommit(id), fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 }
 
 /**
@@ -140,7 +156,7 @@ export async function importActionPreview(id: IdType, file: File) {
   const fd = new FormData();
   fd.append('file', file);
   return requestClient.post<ImportPreview>(
-    DevicelApi.importActionPreview(id),
+    DeviceApi.importActionPreview(id),
     fd,
     { headers: { 'Content-Type': 'multipart/form-data' } },
   );
@@ -155,7 +171,7 @@ export async function importActionCommit(id: IdType, file: File) {
   const fd = new FormData();
   fd.append('file', file);
   return requestClient.post<CommitResult>(
-    DevicelApi.importActionCommit(id),
+    DeviceApi.importActionCommit(id),
     fd,
     { headers: { 'Content-Type': 'multipart/form-data' } },
   );

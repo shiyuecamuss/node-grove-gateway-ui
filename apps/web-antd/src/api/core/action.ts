@@ -15,6 +15,8 @@ export namespace ActionApi {
   export const getById = (id: IdType) => `${base}/detail/${id}`;
   export const deleteById = (id: IdType) => `${base}/${id}`;
   export const debug = (id: IdType) => `${base}/${id}/debug`;
+  export const batchDelete = `${base}/batch-delete`;
+  export const clear = `${base}/clear`;
 
   export interface ActionPageParams extends CommonPageRequest {
     deviceId?: IdType;
@@ -47,4 +49,12 @@ export async function getActionById(id: IdType) {
 
 export async function debugAction(id: IdType, data: ActionDebugRequest) {
   return requestClient.post<ActionDebugResponse>(ActionApi.debug(id), data);
+}
+
+export async function batchDeleteAction(ids: IdType[]) {
+  return requestClient.post(ActionApi.batchDelete, { ids });
+}
+
+export async function clearActionByDevice(deviceId: IdType) {
+  return requestClient.post(ActionApi.clear, { deviceId });
 }

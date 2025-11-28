@@ -182,7 +182,11 @@ const toggleStatus = async (row: ChannelInfo) => {
 
 const handleSubDevice = async (row: ChannelInfo) => {
   deviceModalApi
-    .setData({ channelId: row.id, driverId: row.driverId })
+    .setData({
+      channelId: row.id,
+      driverId: row.driverId,
+      channelName: row.name,
+    })
     .setState({
       title: `${row.name} - ${$t('page.southward.channel.subDevice')}`,
     })

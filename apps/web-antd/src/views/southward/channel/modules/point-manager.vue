@@ -16,6 +16,8 @@ import { Button, message } from 'ant-design-vue';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   createPoint,
+  batchDeletePoint,
+  clearPointByDevice,
   deletePoint,
   fetchPointPage,
   updatePoint,
@@ -193,6 +195,56 @@ const handleDelete = async (row: PointInfo) => {
     .catch(() => {});
 };
 
+const handleBatchDelete = async () => {
+  const records = gridApi.getCheckboxRecords() as PointInfo[];
+  if (!records.length) {
+    message.warning($t('common.action.selectData') as string);
+    return;
+  }
+  confirm({
+    content: $t('common.action.pointBatchDeleteConfirm', {
+      count: records.length,
+    }) as string,
+    icon: 'warning',
+    title: $t('common.tips'),
+  })
+    .then(async () => {
+      const ids = records.map((item) => item.id) as IdType[];
+      await handleRequest(
+        () => batchDeletePoint(ids),
+        async () => {
+          message.success($t('common.action.deleteSuccess') as string);
+        },
+      );
+      await gridApi.query();
+    })
+    .catch(() => {});
+};
+
+const handleClear = async () => {
+  const { deviceId, deviceName } = modalApi.getData<{
+    deviceId: IdType;
+    deviceName: string;
+  }>();
+  confirm({
+    content: $t('common.action.pointClearConfirm', {
+      name: deviceName,
+    }) as string,
+    icon: 'warning',
+    title: $t('common.tips'),
+  })
+    .then(async () => {
+      await handleRequest(
+        () => clearPointByDevice(deviceId),
+        async () => {
+          message.success($t('common.action.deleteSuccess') as string);
+        },
+      );
+      await gridApi.query();
+    })
+    .catch(() => {});
+};
+
 const handleFormSubmit = async (
   type: FormOpenType,
   id: IdType,
@@ -228,6 +280,12 @@ const handleFormSubmit = async (
             <span>{{
               `${$t('common.createWithName', { name: $t('page.southward.point.title') })}`
             }}</span>
+          </Button>
+          <Button class="mr-2" danger @click="handleBatchDelete">
+            <span>{{ $t('common.batchDelete') }}</span>
+          </Button>
+          <Button danger @click="handleClear">
+            <span>{{ $t('common.clear') }}</span>
           </Button>
         </template>
       </Grid>

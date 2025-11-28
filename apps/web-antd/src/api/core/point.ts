@@ -12,6 +12,8 @@ export namespace PointApi {
   export const page = `${base}/page`;
   export const getById = (id: IdType) => `${base}/detail/${id}`;
   export const deleteById = (id: IdType) => `${base}/${id}`;
+  export const batchDelete = `${base}/batch-delete`;
+  export const clear = `${base}/clear`;
 
   export interface PointPageParams extends CommonPageRequest {
     deviceId?: IdType;
@@ -43,4 +45,12 @@ export async function deletePoint(id: IdType) {
 
 export async function getPointById(id: IdType) {
   return requestClient.get<PointInfo>(PointApi.getById(id));
+}
+
+export async function batchDeletePoint(ids: IdType[]) {
+  return requestClient.post(PointApi.batchDelete, { ids });
+}
+
+export async function clearPointByDevice(deviceId: IdType) {
+  return requestClient.post(PointApi.clear, { deviceId });
 }
