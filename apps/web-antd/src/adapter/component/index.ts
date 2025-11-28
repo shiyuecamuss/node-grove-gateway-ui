@@ -362,8 +362,8 @@ export type ComponentType =
   | 'Switch'
   | 'Textarea'
   | 'TimePicker'
-  | 'TreeSelect'
   | 'Transfer'
+  | 'TreeSelect'
   | 'Upload'
   | BaseFormComponentType;
 
