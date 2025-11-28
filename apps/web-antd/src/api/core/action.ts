@@ -1,7 +1,7 @@
 import type {
-  ActionInfo,
   ActionDebugRequest,
   ActionDebugResponse,
+  ActionInfo,
   CommonPageRequest,
   CommonPageResponse,
   IdType,
