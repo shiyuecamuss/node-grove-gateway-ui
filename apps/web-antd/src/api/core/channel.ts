@@ -46,6 +46,13 @@ export async function fetchChannelPage(params: ChannelApi.ChannelPageParams) {
 }
 
 /**
+ * Fetch all channels (for selectors / monitoring).
+ */
+export async function fetchChannelList() {
+  return requestClient.get<ChannelInfo[]>(ChannelApi.list);
+}
+
+/**
  * create channel
  * @param data - Channel data
  * @returns Promise with create channel response

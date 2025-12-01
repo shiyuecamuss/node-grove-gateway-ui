@@ -275,5 +275,34 @@
     "debug": {
       "title": "Debug"
     }
+  },
+  "monitor": {
+    "title": "Monitor",
+    "realtime": {
+      "title": "Realtime Data Preview",
+      "channel": "Channel",
+      "device": "Device",
+      "searchPlaceholder": "Filter by data key",
+      "status": {
+        "connecting": "Connecting...",
+        "connected": "Connected",
+        "disconnected": "Disconnected",
+        "reconnecting": "Reconnecting..."
+      },
+      "table": {
+        "deviceName": "Device Name",
+        "deviceId": "Device ID",
+        "key": "Key",
+        "value": "Value",
+        "sourceType": "Source",
+        "lastUpdate": "Last Update Time",
+        "sourceTypeMap": {
+          "telemetry": "Telemetry",
+          "clientAttr": "Client Attributes",
+          "sharedAttr": "Shared Attributes",
+          "serverAttr": "Server Attributes"
+        }
+      }
+    }
   }
 }

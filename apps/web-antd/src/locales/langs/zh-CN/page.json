@@ -275,5 +275,34 @@
     "debug": {
       "title": "调试"
     }
+  },
+  "monitor": {
+    "title": "监控",
+    "realtime": {
+      "title": "实时数据预览",
+      "channel": "通道",
+      "device": "设备",
+      "searchPlaceholder": "按数据 Key 过滤",
+      "status": {
+        "connecting": "连接中...",
+        "connected": "已连接",
+        "disconnected": "未连接",
+        "reconnecting": "重连中..."
+      },
+      "table": {
+        "deviceName": "设备名称",
+        "deviceId": "设备ID",
+        "key": "Key",
+        "value": "值",
+        "sourceType": "来源",
+        "lastUpdate": "最后更新时间",
+        "sourceTypeMap": {
+          "telemetry": "遥测",
+          "clientAttr": "客户端属性",
+          "sharedAttr": "共享属性",
+          "serverAttr": "服务端属性"
+        }
+      }
+    }
   }
 }
