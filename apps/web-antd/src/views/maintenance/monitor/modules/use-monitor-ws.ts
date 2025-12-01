@@ -75,7 +75,7 @@ function buildWsUrl(): string {
   const httpScheme = url.startsWith('https') ? 'https' : 'http';
 
   const normalized = url.replace(`${httpScheme}:`, `${wsScheme}:`);
-  return `${normalized}/ws/monitor`;
+  return `${normalized}/api/ws/monitor`;
 }
 
 export function useMonitorWs() {
@@ -91,7 +91,6 @@ export function useMonitorWs() {
   } = useWebSocket(buildWsUrl(), {
     immediate: false,
     autoReconnect: {
-      retries: 8,
       delay: 1000,
     },
     onConnected() {
@@ -130,7 +129,12 @@ export function useMonitorWs() {
 
   function sendMessage(payload: ClientMessage) {
     if (wsStatus.value !== 'OPEN') {
-      connect();
+      console.warn(
+        '[monitor-ws] Skip send, socket is not open:',
+        wsStatus.value,
+        payload.type,
+      );
+      return;
     }
     send(JSON.stringify(payload));
   }
@@ -138,6 +142,9 @@ export function useMonitorWs() {
   function subscribe(deviceIds: number | number[], channelId?: number) {
     const ids = Array.isArray(deviceIds) ? deviceIds : [deviceIds];
     subscribedDeviceIds.value = [...ids];
+    // Clear stale snapshots when updating the subscription set so that
+    // the grid only reflects the currently subscribed devices.
+    snapshots.value = new Map();
     const payload: SubscribePayload = {
       type: 'subscribe',
       channelId,
@@ -149,6 +156,8 @@ export function useMonitorWs() {
 
   function unsubscribe() {
     subscribedDeviceIds.value = [];
+    // When fully unsubscribing, clear all cached snapshots.
+    snapshots.value = new Map();
     sendMessage({ type: 'unsubscribe', requestId: `${Date.now()}` });
   }
 
@@ -160,7 +169,6 @@ export function useMonitorWs() {
     switch (msg.type) {
       case 'error': {
         // 这里只做简单日志，具体 UI 提示交给调用方
-
         console.error('[monitor-ws] error', msg.code, msg.message, msg.details);
         break;
       }

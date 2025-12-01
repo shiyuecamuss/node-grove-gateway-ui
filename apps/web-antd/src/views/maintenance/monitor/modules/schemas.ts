@@ -15,11 +15,6 @@ export function useMonitorColumns(): VxeGridProps<MonitorRow>['columns'] {
       minWidth: 160,
     },
     {
-      field: 'deviceId',
-      title: $t('page.monitor.realtime.table.deviceId'),
-      width: 120,
-    },
-    {
       field: 'key',
       title: $t('page.monitor.realtime.table.key'),
       minWidth: 160,
@@ -33,14 +28,32 @@ export function useMonitorColumns(): VxeGridProps<MonitorRow>['columns'] {
     {
       field: 'sourceType',
       title: $t('page.monitor.realtime.table.sourceType'),
-      width: 140,
-      formatter: ({ cellValue }) =>
-        $t(`page.monitor.realtime.table.sourceTypeMap.${cellValue}`),
+      width: 160,
+      cellRender: {
+        name: 'CellTag',
+        options: sourceTypeTagOptions(),
+      },
     },
     {
       field: 'lastUpdate',
       title: $t('page.monitor.realtime.table.lastUpdate'),
       width: 220,
+      formatter: 'formatDateTime',
+    },
+  ];
+}
+
+function sourceTypeTagOptions() {
+  return [
+    {
+      color: 'processing',
+      label: $t('page.monitor.realtime.table.sourceTypeMap.telemetry'),
+      value: 'telemetry',
+    },
+    {
+      color: 'success',
+      label: $t('page.monitor.realtime.table.sourceTypeMap.attributes'),
+      value: 'attributes',
     },
   ];
 }

@@ -1,8 +1,4 @@
-export type MonitorSourceType =
-  | 'clientAttr'
-  | 'serverAttr'
-  | 'sharedAttr'
-  | 'telemetry';
+export type MonitorSourceType = 'attributes' | 'telemetry';
 
 /**
  * Single row in realtime monitor table.

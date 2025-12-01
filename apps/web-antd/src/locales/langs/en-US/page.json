@@ -282,8 +282,9 @@
       "title": "Realtime Data Preview",
       "channel": "Channel",
       "device": "Device",
-      "searchPlaceholder": "Filter by data key",
+      "searchPlaceholder": "Filter by key",
       "status": {
+        "title": "Connection Status: {status}",
         "connecting": "Connecting...",
         "connected": "Connected",
         "disconnected": "Disconnected",
@@ -298,9 +299,7 @@
         "lastUpdate": "Last Update Time",
         "sourceTypeMap": {
           "telemetry": "Telemetry",
-          "clientAttr": "Client Attributes",
-          "sharedAttr": "Shared Attributes",
-          "serverAttr": "Server Attributes"
+          "attributes": "Attributes"
         }
       }
     }

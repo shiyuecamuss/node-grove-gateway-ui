@@ -25,7 +25,6 @@ import {
 import { importActionCommit, importActionPreview } from '#/api/core/device';
 import { useImportFlow } from '#/shared/composables/use-import-flow';
 
-import ActionDebug from './action-debug.vue';
 import ActionForm from './action-form.vue';
 import { actionSearchFormSchema } from './schemas/search-form';
 import { useActionColumns } from './schemas/table-columns';
@@ -127,10 +126,6 @@ function onActionClick({ code, row }: OnActionClickParams<ActionInfo>) {
       handleEdit(row);
       break;
     }
-    case 'test': {
-      handleTest(row);
-      break;
-    }
     default: {
       break;
     }
@@ -176,18 +171,6 @@ const handleEdit = (row: ActionInfo) => {
     })
     .open();
 };
-
-// ----- Debug Component Integration -----
-const [ActionDebugModal, actionDebugModalApi] = useVbenModal({
-  class: 'w-4/5',
-  destroyOnClose: true,
-  connectedComponent: ActionDebug,
-});
-
-function handleTest(row: ActionInfo) {
-  actionDebugModalApi.setData({ actionId: row.id });
-  actionDebugModalApi.open();
-}
 
 const handleDelete = async (row: ActionInfo) => {
   confirm({
@@ -309,6 +292,5 @@ const handleFormSubmit = async (
       </Grid>
     </Page>
     <FormDrawer @submit="handleFormSubmit" />
-    <ActionDebugModal />
   </Modal>
 </template>

@@ -282,8 +282,9 @@
       "title": "实时数据预览",
       "channel": "通道",
       "device": "设备",
-      "searchPlaceholder": "按数据 Key 过滤",
+      "searchPlaceholder": "按键值过滤",
       "status": {
+        "title": "连接状态: {status}",
         "connecting": "连接中...",
         "connected": "已连接",
         "disconnected": "未连接",
@@ -292,15 +293,13 @@
       "table": {
         "deviceName": "设备名称",
         "deviceId": "设备ID",
-        "key": "Key",
+        "key": "键",
         "value": "值",
-        "sourceType": "来源",
+        "sourceType": "类型",
         "lastUpdate": "最后更新时间",
         "sourceTypeMap": {
           "telemetry": "遥测",
-          "clientAttr": "客户端属性",
-          "sharedAttr": "共享属性",
-          "serverAttr": "服务端属性"
+          "attributes": "属性"
         }
       }
     }
