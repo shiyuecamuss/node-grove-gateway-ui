@@ -1,7 +1,8 @@
 import type { MonitorConnectionStatus, MonitorDeviceSnapshot } from './types';
 
-import { useWebSocket } from '@vueuse/core';
 import { ref } from 'vue';
+
+import { useWebSocket } from '@vueuse/core';
 
 import { baseRequestClient } from '#/api/request';
 
