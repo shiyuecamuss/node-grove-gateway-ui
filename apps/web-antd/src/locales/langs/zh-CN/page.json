@@ -266,5 +266,14 @@
       "templateEntity": "模板类型",
       "uninstallTips": "卸载后将删除所有关联的通道、设备、点位和动作数据。"
     }
+  },
+  "maintenance": {
+    "title": "运维",
+    "monitor": {
+      "title": "监控"
+    },
+    "debug": {
+      "title": "调试"
+    }
   }
 }

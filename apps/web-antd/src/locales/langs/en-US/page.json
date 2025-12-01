@@ -266,5 +266,14 @@
       "templateEntity": "Template Entity",
       "uninstallTips": "Uninstalling will delete all associated channel, device, point and action data."
     }
+  },
+  "maintenance": {
+    "title": "Maintenance",
+    "monitor": {
+      "title": "Monitor"
+    },
+    "debug": {
+      "title": "Debug"
+    }
   }
 }
