@@ -158,65 +158,92 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Page auto-content-height>
-    <div class="mb-4 flex items-center gap-3">
-      <Select
-        v-model:value="selectedChannelId"
-        :allow-clear="true"
-        :options="
-          channelOptions.map((c) => ({
-            label: c.name,
-            value: c.id,
-          }))
-        "
-        class="w-52"
-        :placeholder="$t('page.monitor.realtime.channel')"
-      />
-      <Select
-        v-model:value="selectedDeviceId"
-        :allow-clear="true"
-        :disabled="!selectedChannelId"
-        :options="
-          deviceOptions.map((d) => ({
-            label: d.deviceName,
-            value: d.id,
-          }))
-        "
-        class="w-64"
-        :placeholder="$t('page.monitor.realtime.device')"
-      />
-      <Select
-        v-model:value="selectedActionId"
-        :allow-clear="true"
-        :options="
-          actionOptions.map((a) => ({
-            label: a.name,
-            value: a.id,
-          }))
-        "
-        class="w-64"
-        :placeholder="$t('page.southward.action.title')"
-        :disabled="!selectedDeviceId"
-      />
-    </div>
-    <div class="grid grid-cols-2 gap-4">
-      <Card :title="$t('page.southward.action.parameter.title')">
-        <Form :disabled="isFormDisabled" />
-      </Card>
-      <Card :title="$t('common.result')">
-        <div class="min-h-[340px] flex-1 overflow-auto">
-          <template v-if="result !== null">
-            <JsonViewer :value="result" copyable :sort="false" boxed />
-          </template>
-          <template v-else>
-            <div
-              class="flex h-full items-center justify-center text-[var(--color-text-tertiary)]"
-            >
-              {{ $t('common.noData') }}
-            </div>
-          </template>
+  <Page auto-content-height class="h-full">
+    <div class="flex h-full flex-col gap-4">
+      <Card :bodyStyle="{ padding: '16px' }">
+        <div class="flex items-center gap-3">
+          <Select
+            v-model:value="selectedChannelId"
+            :allow-clear="true"
+            :options="
+              channelOptions.map((c) => ({
+                label: c.name,
+                value: c.id,
+              }))
+            "
+            class="w-52"
+            :placeholder="$t('page.monitor.realtime.channel')"
+          />
+          <Select
+            v-model:value="selectedDeviceId"
+            :allow-clear="true"
+            :disabled="!selectedChannelId"
+            :options="
+              deviceOptions.map((d) => ({
+                label: d.deviceName,
+                value: d.id,
+              }))
+            "
+            class="w-64"
+            :placeholder="$t('page.monitor.realtime.device')"
+          />
+          <Select
+            v-model:value="selectedActionId"
+            :allow-clear="true"
+            :options="
+              actionOptions.map((a) => ({
+                label: a.name,
+                value: a.id,
+              }))
+            "
+            class="w-64"
+            :placeholder="$t('page.southward.action.title')"
+            :disabled="!selectedDeviceId"
+          />
         </div>
       </Card>
+
+      <div class="flex flex-1 flex-col">
+        <div class="grid h-full grid-cols-2 gap-4">
+          <Card
+            :title="$t('page.southward.action.parameter.title')"
+            class="flex h-full flex-col"
+            :bodyStyle="{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '16px',
+            }"
+          >
+            <div class="flex-1 overflow-auto">
+              <Form :disabled="isFormDisabled" />
+            </div>
+          </Card>
+          <Card
+            :title="$t('common.result')"
+            class="flex h-full flex-col"
+            :bodyStyle="{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '16px',
+            }"
+          >
+            <div class="flex-1 overflow-auto">
+              <template v-if="result !== null">
+                <JsonViewer :value="result" copyable :sort="false" boxed />
+              </template>
+              <template v-else>
+                <div
+                  class="flex h-full items-center justify-center text-[var(--color-text-tertiary)]"
+                >
+                  {{ $t('common.noData') }}
+                </div>
+              </template>
+            </div>
+          </Card>
+        </div>
+      </div>
     </div>
   </Page>
 </template>
