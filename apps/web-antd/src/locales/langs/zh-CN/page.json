@@ -296,7 +296,7 @@
         "key": "键",
         "value": "值",
         "sourceType": "类型",
-        "lastUpdate": "最后更新时间",
+        "lastUpdate": "更新时间",
         "sourceTypeMap": {
           "telemetry": "遥测",
           "attributes": "属性"
