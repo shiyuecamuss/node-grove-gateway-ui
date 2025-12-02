@@ -295,8 +295,8 @@
         "deviceId": "Device ID",
         "key": "Key",
         "value": "Value",
-        "sourceType": "Source",
-        "lastUpdate": "Last Update Time",
+        "sourceType": "Source Type",
+        "lastUpdate": "Update Time",
         "sourceTypeMap": {
           "telemetry": "Telemetry",
           "attributes": "Attributes"
