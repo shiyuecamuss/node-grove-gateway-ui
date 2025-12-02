@@ -160,7 +160,7 @@ onMounted(async () => {
 <template>
   <Page auto-content-height class="h-full">
     <div class="flex h-full flex-col gap-4">
-      <Card :bodyStyle="{ padding: '16px' }">
+      <Card :body-style="{ padding: '16px' }">
         <div class="flex items-center gap-3">
           <Select
             v-model:value="selectedChannelId"
@@ -208,7 +208,7 @@ onMounted(async () => {
           <Card
             :title="$t('page.southward.action.parameter.title')"
             class="flex h-full flex-col"
-            :bodyStyle="{
+            :body-style="{
               height: '100%',
               display: 'flex',
               flexDirection: 'column',
@@ -222,7 +222,7 @@ onMounted(async () => {
           <Card
             :title="$t('common.result')"
             class="flex h-full flex-col"
-            :bodyStyle="{
+            :body-style="{
               height: '100%',
               display: 'flex',
               flexDirection: 'column',
