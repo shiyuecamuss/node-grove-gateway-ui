@@ -14,12 +14,11 @@ import {
   watch,
 } from 'vue';
 
-import { useThrottleFn } from '@vueuse/core';
-
 import { Page } from '@vben/common-ui';
 import { useRequestHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
 
+import { useThrottleFn } from '@vueuse/core';
 import { Input, Select, Tag } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
@@ -194,11 +193,11 @@ const updateGridDataThrottled = useThrottleFn(updateGridData, 500);
 
 watch([snapshots, keyword], ([, newKeyword], [, oldKeyword]) => {
   // 只有在搜索关键字变化时才重置到第一页；普通数据刷新保持当前页
-  if (newKeyword !== oldKeyword) {
+  if (newKeyword === oldKeyword) {
+    updateGridDataThrottled();
+  } else {
     pager.value.currentPage = 1;
     updateGridData();
-  } else {
-    updateGridDataThrottled();
   }
 });
 
