@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ChannelInfo, DeviceInfo } from '@vben/types';
 
-import type { MonitorRow } from './modules/types';
+import type { MonitorDeviceSnapshot, MonitorRow } from './modules/types';
 
 import type { VxeGridListeners, VxeGridProps } from '#/adapter/vxe-table';
 
@@ -13,6 +13,8 @@ import {
   ref,
   watch,
 } from 'vue';
+
+import { useThrottleFn } from '@vueuse/core';
 
 import { Page } from '@vben/common-ui';
 import { useRequestHandler } from '@vben/hooks';
@@ -112,37 +114,46 @@ function buildRows(): MonitorRow[] {
   const rows: MonitorRow[] = [];
   const kw = keyword.value.trim().toLowerCase();
 
-  snapshots.value.forEach((snap) => {
-    const pushRow = (
-      key: string,
-      value: unknown,
-      sourceType: MonitorRow['sourceType'],
-    ) => {
-      if (kw && !key.toLowerCase().includes(kw)) return;
-      rows.push({
-        id: `${snap.deviceId}-${sourceType}-${key}`,
-        deviceId: snap.deviceId,
-        deviceName: snap.deviceName,
-        key,
-        value,
-        sourceType,
-        lastUpdate: snap.lastUpdate,
-      });
-    };
+  const pushRow = (
+    snap: MonitorDeviceSnapshot,
+    key: string,
+    value: unknown,
+    sourceType: MonitorRow['sourceType'],
+  ) => {
+    if (kw && !key.toLowerCase().includes(kw)) return;
+    rows.push({
+      id: `${snap.deviceId}-${sourceType}-${key}`,
+      deviceId: snap.deviceId,
+      deviceName: snap.deviceName,
+      key,
+      value,
+      sourceType,
+      lastUpdate: snap.lastUpdate,
+    });
+  };
 
-    Object.entries(snap.telemetry ?? {}).forEach(([k, v]) =>
-      pushRow(k, v, 'telemetry'),
-    );
-    Object.entries(snap.clientAttributes ?? {}).forEach(([k, v]) =>
-      pushRow(k, v, 'attributes'),
-    );
-    Object.entries(snap.sharedAttributes ?? {}).forEach(([k, v]) =>
-      pushRow(k, v, 'attributes'),
-    );
-    Object.entries(snap.serverAttributes ?? {}).forEach(([k, v]) =>
-      pushRow(k, v, 'attributes'),
-    );
-  });
+  for (const snap of snapshots.value.values()) {
+    if (snap.telemetry) {
+      for (const k in snap.telemetry) {
+        pushRow(snap, k, snap.telemetry[k], 'telemetry');
+      }
+    }
+    if (snap.clientAttributes) {
+      for (const k in snap.clientAttributes) {
+        pushRow(snap, k, snap.clientAttributes[k], 'attributes');
+      }
+    }
+    if (snap.sharedAttributes) {
+      for (const k in snap.sharedAttributes) {
+        pushRow(snap, k, snap.sharedAttributes[k], 'attributes');
+      }
+    }
+    if (snap.serverAttributes) {
+      for (const k in snap.serverAttributes) {
+        pushRow(snap, k, snap.serverAttributes[k], 'attributes');
+      }
+    }
+  }
 
   return rows;
 }
@@ -179,17 +190,17 @@ function updateGridData() {
   });
 }
 
-watch(
-  [snapshots, keyword],
-  ([, newKeyword], [, oldKeyword]) => {
-    // 只有在搜索关键字变化时才重置到第一页；普通数据刷新保持当前页
-    if (newKeyword !== oldKeyword) {
-      pager.value.currentPage = 1;
-    }
+const updateGridDataThrottled = useThrottleFn(updateGridData, 500);
+
+watch([snapshots, keyword], ([, newKeyword], [, oldKeyword]) => {
+  // 只有在搜索关键字变化时才重置到第一页；普通数据刷新保持当前页
+  if (newKeyword !== oldKeyword) {
+    pager.value.currentPage = 1;
     updateGridData();
-  },
-  { deep: true },
-);
+  } else {
+    updateGridDataThrottled();
+  }
+});
 
 async function loadChannels() {
   await handleRequest(

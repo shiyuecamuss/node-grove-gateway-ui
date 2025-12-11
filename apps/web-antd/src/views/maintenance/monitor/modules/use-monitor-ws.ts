@@ -1,6 +1,6 @@
 import type { MonitorConnectionStatus, MonitorDeviceSnapshot } from './types';
 
-import { ref } from 'vue';
+import { ref, shallowRef, triggerRef } from 'vue';
 
 import { useWebSocket } from '@vueuse/core';
 
@@ -80,7 +80,7 @@ function buildWsUrl(): string {
 
 export function useMonitorWs() {
   const status = ref<MonitorConnectionStatus>('disconnected');
-  const snapshots = ref<Map<number, MonitorDeviceSnapshot>>(new Map());
+  const snapshots = shallowRef<Map<number, MonitorDeviceSnapshot>>(new Map());
   const subscribedDeviceIds = ref<number[]>([]);
 
   const {
@@ -188,7 +188,7 @@ export function useMonitorWs() {
           lastUpdate: msg.lastUpdate,
         };
         snapshots.value.set(snapshot.deviceId, snapshot);
-        snapshots.value = new Map(snapshots.value);
+        triggerRef(snapshots);
         break;
       }
       case 'subscribed': {
@@ -221,8 +221,13 @@ export function useMonitorWs() {
         }
 
         existing.lastUpdate = msg.timestamp;
-        snapshots.value.set(existing.deviceId, { ...existing });
-        snapshots.value = new Map(snapshots.value);
+        // snapshots.value.set(existing.deviceId, { ...existing });
+        // Map holds reference, no need to set again if we modified object in place.
+        // But wait, existing is a reference to the object inside the map?
+        // Yes, existing = snapshots.value.get(...) returns reference.
+        // But we modified existing in place above (existing.telemetry = ...).
+        // So we just need to trigger.
+        triggerRef(snapshots);
         break;
       }
     }
