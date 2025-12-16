@@ -18,7 +18,6 @@ import { Page } from '@vben/common-ui';
 import { useRequestHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
 
-import { useThrottleFn } from '@vueuse/core';
 import { Input, Select, Tag } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
@@ -189,17 +188,22 @@ function updateGridData() {
   });
 }
 
-const updateGridDataThrottled = useThrottleFn(updateGridData, 500);
-
-watch([snapshots, keyword], ([, newKeyword], [, oldKeyword]) => {
-  // 只有在搜索关键字变化时才重置到第一页；普通数据刷新保持当前页
-  if (newKeyword === oldKeyword) {
-    updateGridDataThrottled();
-  } else {
-    pager.value.currentPage = 1;
-    updateGridData();
-  }
-});
+watch(
+  [snapshots, keyword],
+  ([, newKeyword], [, oldKeyword]) => {
+    // 只有在搜索关键字变化时才重置到第一页；普通数据刷新保持当前页
+    if (newKeyword === oldKeyword) {
+      updateGridData();
+    } else {
+      pager.value.currentPage = 1;
+      updateGridData();
+    }
+  },
+  {
+    // 在本次 DOM 更新之后再刷新表格，避免和 VXE 内部初始化时序竞争
+    flush: 'post',
+  },
+);
 
 async function loadChannels() {
   await handleRequest(

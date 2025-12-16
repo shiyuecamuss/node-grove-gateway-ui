@@ -207,8 +207,8 @@ async function onDriverIdChange(id: any, _option?: any) {
               "
               :options="
                 drivers.map((v) => ({
-                  displayLabel: `${v.driverType} ${v.version}`,
-                  label: v.driverType,
+                  displayLabel: `${v.name} ${v.version}`,
+                  label: v.name,
                   value: v.id,
                   version: v.version,
                 }))
