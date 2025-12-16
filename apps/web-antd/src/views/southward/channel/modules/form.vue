@@ -2,6 +2,8 @@
 import type { FormOpenData } from '@vben/constants';
 import type { ChannelInfo, DriverInfo, IdType, Recordable } from '@vben/types';
 
+import type { DriverSchemas } from '#/shared/dynamic-schema';
+
 import { nextTick, ref } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
@@ -16,16 +18,15 @@ import { Card, Select, Step, Steps, Tag } from 'ant-design-vue';
 import { useVbenForm } from '#/adapter/form';
 import { fetchAllDrivers, getChannelById } from '#/api/core';
 import { fetchDriverSchemasById } from '#/api/core/driver';
+import {
+  mapChannelSchemasToForm,
+  sortDriverSchemas,
+} from '#/shared/dynamic-schema';
 
 import {
   useChannelBasicFormSchema,
   useConnectPolicyFormSchema,
 } from './schemas';
-import {
-  mapChannelSchemasToForm,
-  sortDriverSchemas,
-  type DriverSchemas,
-} from '#/shared/dynamic-schema';
 
 defineOptions({ name: 'ChannelForm' });
 
