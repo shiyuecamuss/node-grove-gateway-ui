@@ -170,10 +170,7 @@ export async function importChannelDevicesPointsPreview(
  * @param id - Channel ID
  * @param file - Upload file (xlsx)
  */
-export async function importChannelDevicesPointsCommit(
-  id: IdType,
-  file: File,
-) {
+export async function importChannelDevicesPointsCommit(id: IdType, file: File) {
   const fd = new FormData();
   fd.append('file', file);
   return requestClient.post<CommitResult>(

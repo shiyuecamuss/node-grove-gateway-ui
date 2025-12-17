@@ -1,14 +1,19 @@
 <script lang="ts" setup>
 import type { VbenFormProps } from '@vben/common-ui';
 import type { AppInfo, IdType, PluginInfo, Recordable } from '@vben/types';
+
 import type { OnActionClickParams, VxeGridProps } from '#/adapter/vxe-table';
+
+import { onMounted, reactive, ref } from 'vue';
 
 import { confirm, Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { FormOpenType } from '@vben/constants';
 import { useRequestHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
 import { CommonStatus, EntityType } from '@vben/types';
-import { Button, Switch, message } from 'ant-design-vue';
+
+import { Button, message, Switch } from 'ant-design-vue';
+
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   changeAppStatus,
@@ -18,11 +23,10 @@ import {
   fetchAppPage,
   updateApp,
 } from '#/api';
-import { onMounted, reactive, ref } from 'vue';
 
 import AppForm from './modules/form.vue';
-import SubscriptionDrawer from './modules/subscription.vue';
 import { createSearchFormSchema, useColumns } from './modules/schemas';
+import SubscriptionDrawer from './modules/subscription.vue';
 
 defineOptions({
   name: 'NorthwardAppPage',
@@ -125,12 +129,12 @@ const [SubModal, subModalApi] = useVbenModal({
  */
 function onActionClick({ code, row }: OnActionClickParams<AppInfo>) {
   switch (code) {
-    case 'edit': {
-      handleEdit(row);
-      break;
-    }
     case 'delete': {
       handleDelete(row);
+      break;
+    }
+    case 'edit': {
+      handleEdit(row);
       break;
     }
     case 'subscription': {

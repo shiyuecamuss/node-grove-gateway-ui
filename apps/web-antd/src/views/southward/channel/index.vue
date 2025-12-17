@@ -90,7 +90,6 @@ const [SubDeviceModalRef, deviceModalApi] = useVbenModal({
   connectedComponent: SubDeviceModal,
 });
 
-
 function onActionClick({ code, row }: OnActionClickParams<ChannelInfo>) {
   switch (code) {
     case 'configView': {
@@ -195,7 +194,6 @@ const handleSubDevice = async (row: ChannelInfo) => {
     })
     .open();
 };
-
 
 const handleFormSubmit = async (
   type: FormOpenType,

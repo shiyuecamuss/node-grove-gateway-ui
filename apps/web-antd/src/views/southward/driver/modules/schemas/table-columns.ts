@@ -106,7 +106,9 @@ export function useColumns(
                 {
                   key: 'DevicePoints',
                   icon: 'lucide:layers',
-                  label: $t('page.southward.driver.templateEntity.devicePoints'),
+                  label: $t(
+                    'page.southward.driver.templateEntity.devicePoints',
+                  ),
                 },
               ],
             },

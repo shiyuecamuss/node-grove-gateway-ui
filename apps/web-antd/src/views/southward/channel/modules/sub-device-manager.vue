@@ -25,9 +25,9 @@ import {
 } from '#/api';
 import {
   importChannelDevicesCommit,
-  importChannelDevicesPreview,
   importChannelDevicesPointsCommit,
   importChannelDevicesPointsPreview,
+  importChannelDevicesPreview,
 } from '#/api/core/channel';
 import { useImportFlow } from '#/shared/composables/use-import-flow';
 
@@ -160,7 +160,6 @@ const handleOpenImport = async (type: ImportType) => {
     try {
       await gridApi.grid.openImport();
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('Failed to open import dialog:', error);
     }
   }
@@ -394,19 +393,19 @@ const handleFormSubmit = async (
           <Dropdown trigger="click">
             <!-- Keep spacing visually close to built-in VXE toolbar buttons -->
             <Button shape="circle">
-              <i class="vxe-icon-upload" />
+              <i class="vxe-icon-upload"></i>
             </Button>
             <template #overlay>
               <Menu @click="({ key }) => handleOpenImport(key as ImportType)">
                 <Menu.Item key="device">
                   <template #icon>
-                    <i class="vxe-icon-upload" />
+                    <i class="vxe-icon-upload"></i>
                   </template>
                   {{ $t('page.southward.device.importTitle') }}
                 </Menu.Item>
                 <Menu.Item key="device-points">
                   <template #icon>
-                    <i class="vxe-icon-upload" />
+                    <i class="vxe-icon-upload"></i>
                   </template>
                   {{ $t('page.southward.channel.importDevicePoints') }}
                 </Menu.Item>
@@ -444,4 +443,3 @@ const handleFormSubmit = async (
   margin-left: 0.35rem;
 }
 </style>
-
