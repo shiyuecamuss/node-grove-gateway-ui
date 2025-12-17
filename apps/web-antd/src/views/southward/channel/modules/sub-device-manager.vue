@@ -3,7 +3,7 @@ import type { DeviceInfo, IdType, Recordable } from '@vben/types';
 
 import type { OnActionClickParams, VxeGridProps } from '#/adapter/vxe-table';
 
-import { nextTick } from 'vue';
+import { nextTick, ref } from 'vue';
 
 import { confirm, Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { FormOpenType } from '@vben/constants';
@@ -11,7 +11,7 @@ import { useRequestHandler } from '@vben/hooks';
 import { $t } from '@vben/locales';
 import { CommonStatus, EntityType } from '@vben/types';
 
-import { Button, message, Switch } from 'ant-design-vue';
+import { Button, Dropdown, Menu, message, Switch } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
@@ -26,6 +26,8 @@ import {
 import {
   importChannelDevicesCommit,
   importChannelDevicesPreview,
+  importChannelDevicesPointsCommit,
+  importChannelDevicesPointsPreview,
 } from '#/api/core/channel';
 import { useImportFlow } from '#/shared/composables/use-import-flow';
 
@@ -35,9 +37,20 @@ import { deviceSearchFormSchema } from './schemas/search-form';
 import { useDeviceColumns } from './schemas/table-columns';
 import SubDeviceForm from './sub-device-form.vue';
 
+type ImportType = 'device' | 'device-points';
+
 defineOptions({ name: 'SubDeviceModal' });
 
 const { handleRequest } = useRequestHandler();
+
+/**
+ * Current import type for the toolbar upload button.
+ *
+ * This ref is updated when the user selects an item from the upload
+ * dropdown menu, and is consumed by the importConfig.importMethod
+ * callback to decide which API should be called.
+ */
+const currentImportType = ref<ImportType>('device');
 
 const [FormDrawer, formDrawerApi] = useVbenDrawer({
   connectedComponent: SubDeviceForm,
@@ -85,32 +98,42 @@ const gridOptions: VxeGridProps<DeviceInfo> = {
       },
     },
   },
+  toolbarConfig: {
+    custom: true,
+    refresh: true,
+    zoom: true,
+    export: false,
+    import: false,
+  },
   importConfig: {
     types: ['xlsx'],
     remote: true,
     importMethod: async ({ file }) => {
       const { channelId } = modalApi.getData<{ channelId: IdType }>();
+
+      const isDevicePointsImport = currentImportType.value === 'device-points';
+
       const { runImport } = useImportFlow({
         previewRequest: async (f: File) =>
-          importChannelDevicesPreview(channelId, f),
+          isDevicePointsImport
+            ? importChannelDevicesPointsPreview(channelId, f)
+            : importChannelDevicesPreview(channelId, f),
         commitRequest: async (f: File) =>
-          importChannelDevicesCommit(channelId, f),
+          isDevicePointsImport
+            ? importChannelDevicesPointsCommit(channelId, f)
+            : importChannelDevicesCommit(channelId, f),
       });
+
       await runImport(file as File, {
-        title: $t('page.southward.device.importTitle') as string,
+        title: isDevicePointsImport
+          ? ($t('page.southward.channel.importDevicePoints') as string)
+          : ($t('page.southward.device.importTitle') as string),
         allowCommitWithErrors: true,
         onDone: async () => {
           await gridApi.query();
         },
       });
     },
-  },
-  toolbarConfig: {
-    custom: true,
-    export: false,
-    import: true,
-    refresh: true,
-    zoom: true,
   },
 };
 
@@ -123,6 +146,25 @@ const [Grid, gridApi] = useVbenVxeGrid({
   },
   gridOptions,
 });
+
+/**
+ * Handle opening import dialog with specific import type.
+ *
+ * This function updates the import type ref and then calls the
+ * underlying VXE Grid instance to open its built-in import window.
+ */
+const handleOpenImport = async (type: ImportType) => {
+  currentImportType.value = type;
+
+  if (gridApi.grid?.openImport) {
+    try {
+      await gridApi.grid.openImport();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to open import dialog:', error);
+    }
+  }
+};
 
 const [PointModal, pointModalApi] = useVbenModal({
   connectedComponent: PointManager,
@@ -349,6 +391,30 @@ const handleFormSubmit = async (
           />
         </template>
         <template #toolbar-tools>
+          <Dropdown trigger="click">
+            <!-- Keep spacing visually close to built-in VXE toolbar buttons -->
+            <Button shape="circle">
+              <i class="vxe-icon-upload" />
+            </Button>
+            <template #overlay>
+              <Menu @click="({ key }) => handleOpenImport(key as ImportType)">
+                <Menu.Item key="device">
+                  <template #icon>
+                    <i class="vxe-icon-upload" />
+                  </template>
+                  {{ $t('page.southward.device.importTitle') }}
+                </Menu.Item>
+                <Menu.Item key="device-points">
+                  <template #icon>
+                    <i class="vxe-icon-upload" />
+                  </template>
+                  {{ $t('page.southward.channel.importDevicePoints') }}
+                </Menu.Item>
+              </Menu>
+            </template>
+          </Dropdown>
+        </template>
+        <template #toolbar-actions>
           <Button class="mr-2" type="primary" @click="handleCreate">
             <span>{{
               `${$t('common.createWithName', { name: $t('page.southward.device.title') })}`
@@ -368,3 +434,14 @@ const handleFormSubmit = async (
     <ActionModal />
   </Modal>
 </template>
+
+<style scoped>
+/* Adjust toolbar tools spacing only for this page's grid.
+ * Keep the right margin as default and slightly reduce the left margin
+ * so that the custom Dropdown and built-in VXE toolbar tools look balanced.
+ */
+:deep(.vxe-toolbar .vxe-tools--operate) {
+  margin-left: 0.35rem;
+}
+</style>
+

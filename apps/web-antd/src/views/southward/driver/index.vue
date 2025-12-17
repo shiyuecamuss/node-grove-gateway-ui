@@ -134,7 +134,7 @@ const handleUninstall = async (row: DriverInfo) => {
 <template>
   <Page auto-content-height>
     <Grid>
-      <template #toolbar-tools>
+      <template #toolbar-actions>
         <Button class="mr-2" type="primary" @click="handleInstall">
           <span>{{
             `${$t('common.installWithName', { name: $t('page.southward.driver.title') })}`

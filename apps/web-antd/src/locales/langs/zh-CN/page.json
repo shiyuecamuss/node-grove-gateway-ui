@@ -150,11 +150,13 @@
         "always": "固定上报"
       },
       "subDevice": "子设备",
-      "configView": "配置预览"
+      "configView": "配置预览",
+      "importDevicePoints": "设备+点位",
+      "importDevicePointsHint": "请上传设备+点位组合模板文件（.xlsx格式）"
     },
     "device": {
       "title": "设备",
-      "importTitle": "导入设备",
+      "importTitle": "设备",
       "name": "名称",
       "type": "设备类型",
       "basic": "基础配置",
@@ -263,7 +265,10 @@
         "step3": "安装"
       },
       "templateDownload": "模板下载",
-      "templateEntity": "模板类型",
+      "templateEntity": {
+        "title": "模板类型",
+        "devicePoints": "设备+点位"
+      },
       "uninstallTips": "卸载后将删除所有关联的通道、设备、点位和动作数据。"
     }
   },

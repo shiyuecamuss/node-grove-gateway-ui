@@ -103,6 +103,11 @@ export function useColumns(
                   icon: 'lucide:zap',
                   label: $t('entity.action'),
                 },
+                {
+                  key: 'DevicePoints',
+                  icon: 'lucide:layers',
+                  label: $t('page.southward.driver.templateEntity.devicePoints'),
+                },
               ],
             },
           },

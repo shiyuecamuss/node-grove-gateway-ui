@@ -248,7 +248,7 @@ const handleFormSubmit = async (
           @update:checked="toggleStatus(row)"
         />
       </template>
-      <template #toolbar-tools>
+      <template #toolbar-actions>
         <Button class="mr-2" type="primary" @click="handleCreate">
           <span>{{
             `${$t('common.createWithName', { name: $t('page.system.user.title') })}`

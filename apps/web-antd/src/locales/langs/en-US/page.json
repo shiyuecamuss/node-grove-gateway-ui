@@ -150,11 +150,13 @@
         "always": "Always"
       },
       "subDevice": "Sub Device",
-      "configView": "Config View"
+      "configView": "Config View",
+      "importDevicePoints": "Device + Points",
+      "importDevicePointsHint": "Please upload the device + points combined template file (.xlsx format)"
     },
     "device": {
       "title": "Device",
-      "importTitle": "Import Device",
+      "importTitle": "Device",
       "name": "Name",
       "type": "Device Type",
       "basic": "Basic Configuration",
@@ -263,7 +265,10 @@
         "step3": "Install"
       },
       "templateDownload": "Template Download",
-      "templateEntity": "Template Entity",
+      "templateEntity": {
+        "title": "Template Entity",
+        "devicePoints": "Device + Points"
+      },
       "uninstallTips": "Uninstalling will delete all associated channel, device, point and action data."
     }
   },

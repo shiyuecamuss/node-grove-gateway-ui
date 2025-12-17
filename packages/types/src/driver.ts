@@ -41,6 +41,7 @@ export const DriverTemplateEntity = {
   Device: 'device',
   Point: 'point',
   Action: 'action',
+  DevicePoints: 'device-points',
 } as const;
 
 export type { DriverInfo, DriverProbeInfo };

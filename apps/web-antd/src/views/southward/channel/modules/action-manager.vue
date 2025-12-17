@@ -276,7 +276,7 @@ const handleFormSubmit = async (
   <Modal>
     <Page auto-content-height>
       <Grid>
-        <template #toolbar-tools>
+        <template #toolbar-actions>
           <Button class="mr-2" type="primary" @click="handleCreate">
             <span>{{
               `${$t('common.createWithName', { name: $t('page.southward.action.title') })}`

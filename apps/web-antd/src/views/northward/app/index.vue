@@ -286,7 +286,7 @@ onMounted(() => {
           @update:checked="toggleStatus(row)"
         />
       </template>
-      <template #toolbar-tools>
+      <template #toolbar-actions>
         <Button class="mr-2" type="primary" @click="handleCreate">
           <span>{{
             `${$t('common.createWithName', {

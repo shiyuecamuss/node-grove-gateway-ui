@@ -24,6 +24,10 @@ export namespace ChannelApi {
     `${base}/${id}/import-device-preview`;
   export const importDeviceCommit = (id: IdType) =>
     `${base}/${id}/import-device-commit`;
+  export const importDevicePointsPreview = (id: IdType) =>
+    `${base}/${id}/import-device-points-preview`;
+  export const importDevicePointsCommit = (id: IdType) =>
+    `${base}/${id}/import-device-points-commit`;
 
   /** channel page params */
   export interface ChannelPageParams
@@ -138,6 +142,42 @@ export async function importChannelDevicesCommit(id: IdType, file: File) {
   fd.append('file', file);
   return requestClient.post<CommitResult>(
     ChannelApi.importDeviceCommit(id),
+    fd,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+}
+
+/**
+ * Upload a file for device with points import preview on a channel.
+ * @param id - Channel ID
+ * @param file - Upload file (xlsx)
+ */
+export async function importChannelDevicesPointsPreview(
+  id: IdType,
+  file: File,
+) {
+  const fd = new FormData();
+  fd.append('file', file);
+  return requestClient.post<ImportPreview>(
+    ChannelApi.importDevicePointsPreview(id),
+    fd,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+}
+
+/**
+ * Commit device with points import for a channel.
+ * @param id - Channel ID
+ * @param file - Upload file (xlsx)
+ */
+export async function importChannelDevicesPointsCommit(
+  id: IdType,
+  file: File,
+) {
+  const fd = new FormData();
+  fd.append('file', file);
+  return requestClient.post<CommitResult>(
+    ChannelApi.importDevicePointsCommit(id),
     fd,
     { headers: { 'Content-Type': 'multipart/form-data' } },
   );
