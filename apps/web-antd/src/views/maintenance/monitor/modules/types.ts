@@ -11,6 +11,14 @@ export interface MonitorRow {
   key: string;
   value: unknown;
   sourceType: MonitorSourceType;
+  /**
+   * Attribute scope for attributes rows.
+   * - telemetry rows: undefined
+   * - attributes rows: client/shared/server
+   *
+   * Used to avoid ambiguity when same key exists in multiple attribute scopes.
+   */
+  scope?: 'client' | 'server' | 'shared';
   lastUpdate: string;
 }
 

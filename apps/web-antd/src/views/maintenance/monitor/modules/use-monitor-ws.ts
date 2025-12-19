@@ -82,6 +82,10 @@ export function useMonitorWs() {
   const status = ref<MonitorConnectionStatus>('disconnected');
   const snapshots = shallowRef<Map<number, MonitorDeviceSnapshot>>(new Map());
   const subscribedDeviceIds = ref<number[]>([]);
+  // Throttle UI notifications: avoid triggering reactive updates per WS frame.
+  let triggerScheduled = false;
+  let lastTriggerAt = 0;
+  const TRIGGER_MIN_INTERVAL_MS = 200;
 
   const {
     status: wsStatus,
@@ -188,7 +192,7 @@ export function useMonitorWs() {
           lastUpdate: msg.lastUpdate,
         };
         snapshots.value.set(snapshot.deviceId, snapshot);
-        triggerRef(snapshots);
+        scheduleTrigger();
         break;
       }
       case 'subscribed': {
@@ -200,24 +204,13 @@ export function useMonitorWs() {
         if (!existing) break;
 
         if (msg.dataType === 'telemetry') {
-          existing.telemetry = {
-            ...existing.telemetry,
-            ...msg.values,
-          };
+          // In-place merge to reduce allocations/GC pressure under high frequency updates.
+          Object.assign(existing.telemetry, msg.values ?? {});
         } else if (msg.dataType === 'attributes') {
           const values = msg.values ?? {};
-          existing.clientAttributes = {
-            ...existing.clientAttributes,
-            ...values.client,
-          };
-          existing.sharedAttributes = {
-            ...existing.sharedAttributes,
-            ...values.shared,
-          };
-          existing.serverAttributes = {
-            ...existing.serverAttributes,
-            ...values.server,
-          };
+          Object.assign(existing.clientAttributes, values.client ?? {});
+          Object.assign(existing.sharedAttributes, values.shared ?? {});
+          Object.assign(existing.serverAttributes, values.server ?? {});
         }
 
         existing.lastUpdate = msg.timestamp;
@@ -227,10 +220,25 @@ export function useMonitorWs() {
         // Yes, existing = snapshots.value.get(...) returns reference.
         // But we modified existing in place above (existing.telemetry = ...).
         // So we just need to trigger.
-        triggerRef(snapshots);
+        scheduleTrigger();
         break;
       }
     }
+  }
+
+  function scheduleTrigger() {
+    if (triggerScheduled) return;
+
+    const now = Date.now();
+    const elapsed = now - lastTriggerAt;
+    const delay = Math.max(0, TRIGGER_MIN_INTERVAL_MS - elapsed);
+    triggerScheduled = true;
+
+    window.setTimeout(() => {
+      triggerScheduled = false;
+      lastTriggerAt = Date.now();
+      triggerRef(snapshots);
+    }, delay);
   }
 
   return {

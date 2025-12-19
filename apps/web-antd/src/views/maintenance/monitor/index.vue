@@ -49,6 +49,9 @@ const {
 
 const { handleRequest } = useRequestHandler();
 
+type MonitorRowMeta = Omit<MonitorRow, 'lastUpdate' | 'value'>;
+const rowMetas = ref<MonitorRowMeta[]>([]);
+
 const gridOptions: VxeGridProps<MonitorRow> = {
   height: 'auto', // 如果设置为 auto，则必须确保存在父节点且不允许存在相邻元素，否则会出现高度闪动问题
   keepSource: true,
@@ -108,59 +111,92 @@ const statusColor = computed(() => {
   }
 });
 
-function buildRows(): MonitorRow[] {
-  const rows: MonitorRow[] = [];
-  const kw = keyword.value.trim().toLowerCase();
+function buildRowMetasFromSnapshots(): MonitorRowMeta[] {
+  const metas: MonitorRowMeta[] = [];
 
-  const pushRow = (
+  const pushMeta = (
     snap: MonitorDeviceSnapshot,
     key: string,
-    value: unknown,
     sourceType: MonitorRow['sourceType'],
+    scope?: MonitorRow['scope'],
   ) => {
-    if (kw && !key.toLowerCase().includes(kw)) return;
-    rows.push({
-      id: `${snap.deviceId}-${sourceType}-${key}`,
+    // Include scope in id so attributes with same key in different scopes won't collide.
+    const scopePart = scope ? `-${scope}` : '';
+    metas.push({
+      id: `${snap.deviceId}-${sourceType}${scopePart}-${key}`,
       deviceId: snap.deviceId,
       deviceName: snap.deviceName,
       key,
-      value,
       sourceType,
-      lastUpdate: snap.lastUpdate,
+      scope,
     });
   };
 
   for (const snap of snapshots.value.values()) {
-    if (snap.telemetry) {
-      for (const k in snap.telemetry) {
-        pushRow(snap, k, snap.telemetry[k], 'telemetry');
+    for (const k in snap.telemetry) pushMeta(snap, k, 'telemetry');
+    for (const k in snap.clientAttributes)
+      pushMeta(snap, k, 'attributes', 'client');
+    for (const k in snap.sharedAttributes)
+      pushMeta(snap, k, 'attributes', 'shared');
+    for (const k in snap.serverAttributes)
+      pushMeta(snap, k, 'attributes', 'server');
+  }
+
+  return metas;
+}
+
+const filteredMetas = computed(() => {
+  const kw = keyword.value.trim().toLowerCase();
+  if (!kw) return rowMetas.value;
+  return rowMetas.value.filter((m) => m.key.toLowerCase().includes(kw));
+});
+
+function hydrateRow(meta: MonitorRowMeta): MonitorRow {
+  const snap = snapshots.value.get(meta.deviceId);
+  if (!snap) {
+    return {
+      ...meta,
+      value: undefined,
+      lastUpdate: '',
+    };
+  }
+
+  let value: unknown;
+  if (meta.sourceType === 'telemetry') {
+    value = snap.telemetry?.[meta.key];
+  } else {
+    switch (meta.scope) {
+      case 'client': {
+        value = snap.clientAttributes?.[meta.key];
+        break;
       }
-    }
-    if (snap.clientAttributes) {
-      for (const k in snap.clientAttributes) {
-        pushRow(snap, k, snap.clientAttributes[k], 'attributes');
+      case 'server': {
+        value = snap.serverAttributes?.[meta.key];
+        break;
       }
-    }
-    if (snap.sharedAttributes) {
-      for (const k in snap.sharedAttributes) {
-        pushRow(snap, k, snap.sharedAttributes[k], 'attributes');
+      case 'shared': {
+        value = snap.sharedAttributes?.[meta.key];
+        break;
       }
-    }
-    if (snap.serverAttributes) {
-      for (const k in snap.serverAttributes) {
-        pushRow(snap, k, snap.serverAttributes[k], 'attributes');
+      default: {
+        value =
+          snap.clientAttributes?.[meta.key] ??
+          snap.sharedAttributes?.[meta.key] ??
+          snap.serverAttributes?.[meta.key];
       }
     }
   }
 
-  return rows;
+  return {
+    ...meta,
+    value,
+    lastUpdate: snap.lastUpdate,
+  };
 }
 
 function updateGridData() {
-  const allRows = buildRows();
-
+  const allRows = filteredMetas.value;
   pager.value.total = allRows.length;
-
   let { currentPage, pageSize } = pager.value;
 
   const maxPage =
@@ -175,7 +211,10 @@ function updateGridData() {
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
 
-  const pageRows = allRows.slice(startIndex, endIndex);
+  // Only hydrate current page values to keep refresh cost O(pageSize).
+  const pageRows = allRows
+    .slice(startIndex, endIndex)
+    .map((row) => hydrateRow(row));
 
   gridApi.setGridOptions({
     data: pageRows,
@@ -189,15 +228,23 @@ function updateGridData() {
 }
 
 watch(
-  [snapshots, keyword],
-  ([, newKeyword], [, oldKeyword]) => {
-    // 只有在搜索关键字变化时才重置到第一页；普通数据刷新保持当前页
-    if (newKeyword === oldKeyword) {
-      updateGridData();
-    } else {
-      pager.value.currentPage = 1;
-      updateGridData();
+  keyword,
+  (newKeyword, oldKeyword) => {
+    // 搜索关键字变化时重置到第一页
+    if (newKeyword !== oldKeyword) pager.value.currentPage = 1;
+    updateGridData();
+  },
+  { flush: 'post' },
+);
+
+watch(
+  snapshots,
+  () => {
+    // Build metas on first snapshot after subscribe (or after device switch).
+    if (rowMetas.value.length === 0 && snapshots.value.size > 0) {
+      rowMetas.value = buildRowMetasFromSnapshots();
     }
+    updateGridData();
   },
   {
     // 在本次 DOM 更新之后再刷新表格，避免和 VXE 内部初始化时序竞争
@@ -230,6 +277,7 @@ async function loadDevices() {
 watch(selectedChannelId, async () => {
   selectedDeviceId.value = undefined;
   unsubscribe();
+  rowMetas.value = [];
   await loadDevices();
 });
 
@@ -238,9 +286,12 @@ watch(
   (id) => {
     if (!id) {
       unsubscribe();
+      rowMetas.value = [];
       return;
     }
     connect();
+    rowMetas.value = [];
+    pager.value.currentPage = 1;
     subscribe([id], selectedChannelId.value);
   },
   { deep: true },
