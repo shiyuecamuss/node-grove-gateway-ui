@@ -1,4 +1,8 @@
-import type { MonitorConnectionStatus, MonitorDeviceSnapshot } from './types';
+import type {
+  MonitorConnectionStatus,
+  MonitorDeviceSnapshot,
+  MonitorUpdateHint,
+} from './types';
 
 import { ref, shallowRef, triggerRef } from 'vue';
 
@@ -82,6 +86,11 @@ export function useMonitorWs() {
   const status = ref<MonitorConnectionStatus>('disconnected');
   const snapshots = shallowRef<Map<number, MonitorDeviceSnapshot>>(new Map());
   const subscribedDeviceIds = ref<number[]>([]);
+  // Hints about which keys changed since last UI trigger.
+  // Used by monitor table to append new keys without scanning all snapshots.
+  const updateHints = shallowRef<MonitorUpdateHint[]>([]);
+  const pendingHintKeys = new Map<string, Set<string>>();
+
   // Throttle UI notifications: avoid triggering reactive updates per WS frame.
   let triggerScheduled = false;
   let lastTriggerAt = 0;
@@ -127,6 +136,8 @@ export function useMonitorWs() {
   function disconnect() {
     subscribedDeviceIds.value = [];
     snapshots.value = new Map();
+    updateHints.value = [];
+    pendingHintKeys.clear();
     status.value = 'disconnected';
     closeWs();
   }
@@ -149,6 +160,8 @@ export function useMonitorWs() {
     // Clear stale snapshots when updating the subscription set so that
     // the grid only reflects the currently subscribed devices.
     snapshots.value = new Map();
+    updateHints.value = [];
+    pendingHintKeys.clear();
     const payload: SubscribePayload = {
       type: 'subscribe',
       channelId,
@@ -162,6 +175,8 @@ export function useMonitorWs() {
     subscribedDeviceIds.value = [];
     // When fully unsubscribing, clear all cached snapshots.
     snapshots.value = new Map();
+    updateHints.value = [];
+    pendingHintKeys.clear();
     sendMessage({ type: 'unsubscribe', requestId: `${Date.now()}` });
   }
 
@@ -206,11 +221,35 @@ export function useMonitorWs() {
         if (msg.dataType === 'telemetry') {
           // In-place merge to reduce allocations/GC pressure under high frequency updates.
           Object.assign(existing.telemetry, msg.values ?? {});
+          addHint(
+            msg.deviceId,
+            'telemetry',
+            undefined,
+            Object.keys(msg.values ?? {}),
+          );
         } else if (msg.dataType === 'attributes') {
           const values = msg.values ?? {};
           Object.assign(existing.clientAttributes, values.client ?? {});
           Object.assign(existing.sharedAttributes, values.shared ?? {});
           Object.assign(existing.serverAttributes, values.server ?? {});
+          addHint(
+            msg.deviceId,
+            'attributes',
+            'client',
+            Object.keys(values.client ?? {}),
+          );
+          addHint(
+            msg.deviceId,
+            'attributes',
+            'shared',
+            Object.keys(values.shared ?? {}),
+          );
+          addHint(
+            msg.deviceId,
+            'attributes',
+            'server',
+            Object.keys(values.server ?? {}),
+          );
         }
 
         existing.lastUpdate = msg.timestamp;
@@ -237,13 +276,56 @@ export function useMonitorWs() {
     window.setTimeout(() => {
       triggerScheduled = false;
       lastTriggerAt = Date.now();
+      flushHints();
+      triggerRef(updateHints);
       triggerRef(snapshots);
     }, delay);
+  }
+
+  function addHint(
+    deviceId: number,
+    dataType: MonitorUpdateHint['dataType'],
+    scope: MonitorUpdateHint['scope'],
+    keys: string[],
+  ) {
+    if (!keys || keys.length === 0) return;
+    const scopePart = scope ?? '';
+    const mapKey = `${deviceId}|${dataType}|${scopePart}`;
+    let set = pendingHintKeys.get(mapKey);
+    if (!set) {
+      set = new Set<string>();
+      pendingHintKeys.set(mapKey, set);
+    }
+    for (const k of keys) set.add(k);
+  }
+
+  function flushHints() {
+    if (pendingHintKeys.size === 0) {
+      updateHints.value = [];
+      return;
+    }
+
+    const next: MonitorUpdateHint[] = [];
+    for (const [compound, keys] of pendingHintKeys.entries()) {
+      const [deviceIdStr, dataTypeStr, scopeStr] = compound.split('|');
+      const deviceId = Number(deviceIdStr);
+      const dataType = dataTypeStr as MonitorUpdateHint['dataType'];
+      const scope = (scopeStr || undefined) as MonitorUpdateHint['scope'];
+      next.push({
+        deviceId,
+        dataType,
+        scope,
+        keys: Array.from(keys),
+      });
+    }
+    pendingHintKeys.clear();
+    updateHints.value = next;
   }
 
   return {
     status,
     snapshots,
+    updateHints,
     subscribedDeviceIds,
     connect,
     disconnect,

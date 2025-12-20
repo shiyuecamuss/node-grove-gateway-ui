@@ -41,6 +41,7 @@ const pager = ref({
 const {
   status: connectionStatus,
   snapshots,
+  updateHints,
   subscribe,
   unsubscribe,
   connect,
@@ -51,6 +52,7 @@ const { handleRequest } = useRequestHandler();
 
 type MonitorRowMeta = Omit<MonitorRow, 'lastUpdate' | 'value'>;
 const rowMetas = ref<MonitorRowMeta[]>([]);
+const rowMetaIdSet = new Set<string>();
 
 const gridOptions: VxeGridProps<MonitorRow> = {
   height: 'auto', // 如果设置为 auto，则必须确保存在父节点且不允许存在相邻元素，否则会出现高度闪动问题
@@ -151,6 +153,11 @@ const filteredMetas = computed(() => {
   return rowMetas.value.filter((m) => m.key.toLowerCase().includes(kw));
 });
 
+function rebuildRowMetaIdSet() {
+  rowMetaIdSet.clear();
+  for (const m of rowMetas.value) rowMetaIdSet.add(m.id);
+}
+
 function hydrateRow(meta: MonitorRowMeta): MonitorRow {
   const snap = snapshots.value.get(meta.deviceId);
   if (!snap) {
@@ -243,6 +250,7 @@ watch(
     // Build metas on first snapshot after subscribe (or after device switch).
     if (rowMetas.value.length === 0 && snapshots.value.size > 0) {
       rowMetas.value = buildRowMetasFromSnapshots();
+      rebuildRowMetaIdSet();
     }
     updateGridData();
   },
@@ -250,6 +258,42 @@ watch(
     // 在本次 DOM 更新之后再刷新表格，避免和 VXE 内部初始化时序竞争
     flush: 'post',
   },
+);
+
+watch(
+  updateHints,
+  (hints) => {
+    if (!hints || hints.length === 0) return;
+
+    let added = 0;
+    for (const hint of hints) {
+      const snap = snapshots.value.get(hint.deviceId);
+      if (!snap) continue;
+
+      const sourceType: MonitorRow['sourceType'] =
+        hint.dataType === 'telemetry' ? 'telemetry' : 'attributes';
+      const scopePart = hint.scope ? `-${hint.scope}` : '';
+
+      for (const key of hint.keys) {
+        const id = `${hint.deviceId}-${sourceType}${scopePart}-${key}`;
+        if (rowMetaIdSet.has(id)) continue;
+
+        rowMetaIdSet.add(id);
+        rowMetas.value.push({
+          id,
+          deviceId: hint.deviceId,
+          deviceName: snap.deviceName,
+          key,
+          sourceType,
+          scope: hint.scope,
+        });
+        added++;
+      }
+    }
+
+    if (added > 0) updateGridData();
+  },
+  { flush: 'post' },
 );
 
 async function loadChannels() {
@@ -278,6 +322,7 @@ watch(selectedChannelId, async () => {
   selectedDeviceId.value = undefined;
   unsubscribe();
   rowMetas.value = [];
+  rowMetaIdSet.clear();
   await loadDevices();
 });
 
@@ -287,10 +332,12 @@ watch(
     if (!id) {
       unsubscribe();
       rowMetas.value = [];
+      rowMetaIdSet.clear();
       return;
     }
     connect();
     rowMetas.value = [];
+    rowMetaIdSet.clear();
     pager.value.currentPage = 1;
     subscribe([id], selectedChannelId.value);
   },

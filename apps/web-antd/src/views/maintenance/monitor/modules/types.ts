@@ -1,5 +1,14 @@
 export type MonitorSourceType = 'attributes' | 'telemetry';
 
+export interface MonitorUpdateHint {
+  deviceId: number;
+  dataType: MonitorSourceType;
+  /** For attributes only */
+  scope?: 'client' | 'server' | 'shared';
+  /** Keys included in this update window */
+  keys: string[];
+}
+
 /**
  * Single row in realtime monitor table.
  */
