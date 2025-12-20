@@ -315,7 +315,7 @@ export function useMonitorWs() {
         deviceId,
         dataType,
         scope,
-        keys: Array.from(keys),
+        keys: [...keys],
       });
     }
     pendingHintKeys.clear();
