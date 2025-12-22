@@ -1,11 +1,17 @@
 import type { VbenFormSchema as FormSchema } from '@vben/common-ui';
 import type { Nullable } from '@vben/types';
+
 import type { CustomRenderType } from '@vben-core/shadcn-ui';
+
 import type { UiText } from './types';
+
 import { get, isEqual } from '@vben/utils';
-import { z } from '#/adapter/form';
-import { resolveUiText } from './types';
+
 import { isNullOrUndefined } from '@vben-core/shared/utils';
+
+import { z } from '#/adapter/form';
+
+import { resolveUiText } from './types';
 
 export type DynamicFormSchema = FormSchema;
 export type DynamicFormSchemas = DynamicFormSchema[];
@@ -115,6 +121,8 @@ export interface When {
   effect:
     | 'Disable'
     | 'Enable'
+    | 'If'
+    | 'IfNot'
     | 'Invisible'
     | 'Optional'
     | 'Require'
@@ -128,19 +136,21 @@ function getNodeOrder(node: Node): number {
 export function sortNodes(nodes: Node[]): Node[] {
   return nodes
     .map((n) => sortNode(n))
-    .sort((a, b) => getNodeOrder(a) - getNodeOrder(b));
+    .toSorted((a, b) => getNodeOrder(a) - getNodeOrder(b));
 }
 
 function sortNode(node: Node): Node {
   switch (node.kind) {
-    case 'Field':
+    case 'Field': {
       return node;
-    case 'Group':
+    }
+    case 'Group': {
       return {
         ...node,
         children: sortNodes(node.children),
       };
-    case 'Union':
+    }
+    case 'Union': {
       return {
         ...node,
         mapping: node.mapping.map((m) => ({
@@ -148,6 +158,7 @@ function sortNode(node: Node): Node {
           children: sortNodes(m.children),
         })),
       };
+    }
   }
 }
 
@@ -213,8 +224,9 @@ function mapNode(
   discriminator?: { equals: any; field: string },
 ): FormSchema[] {
   switch (node.kind) {
-    case 'Field':
+    case 'Field': {
       return [mapField(node, discriminator)];
+    }
     case 'Group': {
       const divider: FormSchema = {
         component: 'Divider',
@@ -227,6 +239,18 @@ function mapNode(
         },
         formItemClass: `col-span-2`,
       };
+
+      // Best-effort: make group divider follow discriminator / the first field's conditions
+      // to avoid "empty divider" artifacts for unions and conditional groups.
+      const controller =
+        node.children && node.children.length > 0
+          ? node.children[0]
+          : undefined;
+      const controllerWhen =
+        controller && controller.kind === 'Field' ? controller.when : undefined;
+      const dividerDeps = buildDependencies(controllerWhen, discriminator);
+      if (dividerDeps) divider.dependencies = dividerDeps;
+
       const children = node.children.flatMap((n) => mapNode(n, discriminator));
       return [divider, ...children];
     }
@@ -242,6 +266,59 @@ function mapNode(
       return acc;
     }
   }
+}
+
+function buildDependencies(
+  when?: null | When[],
+  discriminator?: { equals: any; field: string },
+):
+  | undefined
+  | {
+      if?: (values: Record<string, any>) => boolean;
+      show?: (values: Record<string, any>) => boolean;
+      triggerFields: string[];
+    } {
+  if ((!when || when.length === 0) && !discriminator) return undefined;
+
+  const targets = new Set<string>();
+  if (discriminator) targets.add(discriminator.field);
+  for (const w of when || []) targets.add(w.target);
+
+  const computeIf = (values: Record<string, any>): boolean => {
+    let render = true;
+    if (discriminator) {
+      render = isEqual(get(values, discriminator.field), discriminator.equals);
+    }
+    if (when) {
+      for (const w of when) {
+        const val = get(values, w.target);
+        if (!evalOperator(w.operator, val, w.value)) continue;
+        if (w.effect === 'If') render = true;
+        if (w.effect === 'IfNot') render = false;
+      }
+    }
+    return render;
+  };
+
+  const computeShow = (values: Record<string, any>): boolean => {
+    let show = true;
+    if (when) {
+      for (const w of when) {
+        const val = get(values, w.target);
+        if (!evalOperator(w.operator, val, w.value)) continue;
+        if (w.effect === 'Invisible') show = false;
+        if (w.effect === 'Visible') show = true;
+      }
+    }
+    return show;
+  };
+
+  return {
+    triggerFields: [...targets],
+    // For layout nodes (divider), "rendered" should also respect `Visible/Invisible`.
+    if: (values) => computeIf(values) && computeShow(values),
+    show: (values) => computeShow(values),
+  };
 }
 
 function mapField(
@@ -324,10 +401,10 @@ function mapField(
     if (discriminator) targets.add(discriminator.field);
     for (const w of node.when || []) targets.add(w.target);
     dep.triggerFields = [...targets];
-    dep.if = (values: Record<string, any>) => {
-      let visible = true;
+    const computeIf = (values: Record<string, any>) => {
+      let render = true;
       if (discriminator) {
-        visible = isEqual(
+        render = isEqual(
           get(values, discriminator.field),
           discriminator.equals,
         );
@@ -336,12 +413,33 @@ function mapField(
         for (const w of node.when) {
           const val = get(values, w.target);
           if (!evalOperator(w.operator, val, w.value)) continue;
-          if (w.effect === 'Invisible') visible = false;
-          if (w.effect === 'Visible') visible = visible && true;
+          if (w.effect === 'If') render = true;
+          if (w.effect === 'IfNot') render = false;
         }
       }
-      return visible;
+      return render;
     };
+
+    const computeShow = (values: Record<string, any>) => {
+      let show = true;
+      if (node.when) {
+        for (const w of node.when) {
+          const val = get(values, w.target);
+          if (!evalOperator(w.operator, val, w.value)) continue;
+          if (w.effect === 'Invisible') show = false;
+          if (w.effect === 'Visible') show = true;
+        }
+      }
+      return show;
+    };
+
+    // `if`: controls whether the component is mounted (removes DOM when false).
+    // This is primarily used for union discriminator gating and explicit `If/IfNot` effects.
+    dep.if = (values: Record<string, any>) => computeIf(values);
+
+    // `show`: controls CSS visibility (keeps DOM).
+    dep.show = (values: Record<string, any>) => computeShow(values);
+
     dep.rules = (values: Record<string, any>) => {
       let required = !!extractRuleValue<boolean>(node.rules?.required).value;
       if (node.when) {
@@ -388,52 +486,67 @@ function resolveComponent(node: FieldNode): any {
 
 function evalOperator(op: When['operator'], left: any, right: any): boolean {
   switch (op) {
-    case 'Between':
+    case 'Between': {
       return (
         Array.isArray(right) &&
         right.length >= 2 &&
         Number(left) >= Number(right[0]) &&
         Number(left) <= Number(right[1])
       );
-    case 'Contains':
+    }
+    case 'Contains': {
       if (Array.isArray(left)) return left.includes(right);
       if (typeof left === 'string') return left.includes(String(right));
       return false;
-    case 'Eq':
+    }
+    case 'Eq': {
       return left === right;
-    case 'Gt':
+    }
+    case 'Gt': {
       return Number(left) > Number(right);
-    case 'Gte':
+    }
+    case 'Gte': {
       return Number(left) >= Number(right);
-    case 'Lt':
+    }
+    case 'Lt': {
       return Number(left) < Number(right);
-    case 'Lte':
+    }
+    case 'Lte': {
       return Number(left) <= Number(right);
-    case 'Neq':
+    }
+    case 'Neq': {
       return left !== right;
-    case 'NotBetween':
+    }
+    case 'NotBetween': {
       return (
         Array.isArray(right) &&
         right.length >= 2 &&
         (Number(left) < Number(right[0]) || Number(left) > Number(right[1]))
       );
-    case 'NotIn':
+    }
+    case 'NotIn': {
       return Array.isArray(right) && !right.includes(left);
-    case 'NotNull':
+    }
+    case 'NotNull': {
       return left !== null && left !== undefined;
-    case 'Prefix':
+    }
+    case 'Prefix': {
       return typeof left === 'string' && String(left).startsWith(String(right));
-    case 'Regex':
+    }
+    case 'Regex': {
       try {
         const re = new RegExp(String(right));
         return re.test(String(left));
       } catch {
         return false;
       }
-    case 'In':
+    }
+    case 'In': {
       return Array.isArray(right) && right.includes(left);
-    case 'Suffix':
+    }
+    case 'Suffix': {
       return typeof left === 'string' && String(left).endsWith(String(right));
+    }
   }
 }
 
