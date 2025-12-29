@@ -4,76 +4,66 @@ layout: home
 sidebar: false
 
 hero:
-  name: Vben Admin
-  text: 企业级管理系统框架
-  tagline: 全新升级，开箱即用，简单高效
+  name: NG Gateway
+  text: 新一代高性能 IoT 网关
+  tagline: 运行时热插拔扩展，稳定高吞吐
   image:
-    src: https://unpkg.com/@vbenjs/static-source@0.1.7/source/logo-v1.webp
-    alt: Vben Admin
+    src: https://i.postimg.cc/MTkKmT2b/image.png
+    alt: NG Gateway
   actions:
     - theme: brand
       text: 快速开始 ->
       link: /guide/introduction/vben
     - theme: alt
-      text: 在线预览
-      link: https://www.vben.pro
-    - theme: alt
       text: 在 GitHub 查看
-      link: https://github.com/vbenjs/vue-vben-admin
-    - theme: alt
-      text: DeepWiki 文档
-      link: https://deepwiki.com/vbenjs/vue-vben-admin
+      link: https://github.com/shiyuecamus/node-grove-gateway
 
 features:
-  - icon: 🚀
-    title: 最新技术栈
-    details: 基于 Vue3、Pinia、Vue Router、TypeScript、等最新技术栈。
-    link: /guide/introduction/quick-start
-    linkText: 快速开始
-  - icon: 🦄
-    title: 丰富的配置
-    details: 企业级中后台前端解决方案，提供丰富的组件和模板以及 N 种偏好设置组合方案。
-    link: /guide/essentials/settings
-    linkText: 配置文档
-  - icon: 🎨
-    title: 主题定制
-    details: 通过简单的配置，即可实现各种主题切换，满足个性化需求。
-    link: /guide/in-depth/theme
-    linkText: 主题文档
-  - icon: 🌐
-    title: 国际化
-    details: 内置国际化方案，支持多语言切换，满足国际化需求。
-    link: /guide/in-depth/locale
-    linkText: 国际化文档
-  - icon: 🔐
-    title: 权限管理
-    details: 内置权限管理方案，支持多种权限控制方式，满足各种权限需求。
-    link: /guide/in-depth/access
-    linkText: 权限文档
-  - title: Vite
-    icon:
-      src: /logos/vite.svg
-    details: 现代化的前端构建工具，快速冷启动，瞬间热更新。
-    link: https://vitejs.dev/
-    linkText: 官方站点
-  - title: Shadcn UI
-    icon:
-      src: /logos/shadcn-ui.svg
-    details: 核心基于 Shadcn UI + Tailwindcss，业务可支持任意的 UI 框架。
-    link: https://www.shadcn-vue.com/
-    linkText: 官方站点
-  - title: Turbo Repo
-    icon:
-      src: /logos/turborepo.svg
-    details: 规范且标准的大仓架构，使用 pnpm + monorepo + turbo 工程管理模式，提供企业级开发规范。
-    link: https://turbo.build/
-    linkText: 官方站点
-  - title: Nitro Mock Server
-    icon:
-      src: /logos/nitro.svg
-    details: 内置 Nitro Mock 服务，让你的 mock 服务更加强大。
-    link: https://nitro.unjs.io/
-    linkText: 官方站点
+  - icon: ⚡️
+    title: Rust 高性能内核
+    details: 基于 tokio 异步与背压设计，面向高吞吐数据采集与转发场景。
+    link: /overview/architecture#rust-core
+    linkText: Rust 内核
+  - icon: 🔌
+    title: 南向多协议接入
+    details: Modbus / S7 / IEC104 / DLT645 / CJT188 等驱动体系，强调容错与稳定性。
+    link: /southward/overview
+    linkText: 南向文档
+  - icon: 📡
+    title: 北向 MQTT v5
+    details: 面向平台对接的北向链路，消息结构支持 proto 与 json。
+    link: /northward/mqtt-v5
+    linkText: MQTT v5
+  - icon: 🧩
+    title: 插件化扩展
+    details: 北向平台、转换与增强能力以插件形式演进，支持按需启用与独立配置。
+    link: /dev/plugin-dev
+    linkText: 插件开发
+  - icon: 🛡️
+    title: 安全与认证
+    details: TLS 证书、鉴权与权限控制，覆盖设备接入与北向通信的安全基线。
+    link: /ops/tls
+    linkText: TLS 与安全
+  - icon: 🔁
+    title: 稳健的容错机制
+    details: 超时、重试、退避、队列背压与降级策略，避免瞬时故障拖垮网关。
+    link: /ops/troubleshooting
+    linkText: 故障排查
+  - icon: 📈
+    title: 可观测性
+    details: tracing 日志与 Metrics 指标，帮助快速定位性能瓶颈与链路异常。
+    link: /ops/metrics
+    linkText: 运维观测
+  - icon: 🚢
+    title: 部署与升级
+    details: 支持 Docker/Helm 等部署形态，配套升级、回滚与配置管理建议。
+    link: /ops/deploy-helm
+    linkText: 部署指南
+  - icon: 🧱
+    title: 二次开发友好
+    details: 统一的数据模型与扩展接口，驱动/插件二开路径清晰、可测试、可维护。
+    link: /dev/driver-dev
+    linkText: 驱动开发
 ---
 
 <!-- <script setup>

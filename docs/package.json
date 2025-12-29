@@ -21,6 +21,7 @@
     "@vben/styles": "workspace:*",
     "ant-design-vue": "catalog:",
     "lucide-vue-next": "catalog:",
+    "mermaid": "catalog:",
     "medium-zoom": "catalog:",
     "reka-ui": "catalog:",
     "vitepress-plugin-group-icons": "catalog:"
