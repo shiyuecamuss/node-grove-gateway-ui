@@ -13,7 +13,7 @@ hero:
   actions:
     - theme: brand
       text: 快速开始 ->
-      link: /guide/introduction/vben
+      link: /install/quick-start-opcua
     - theme: alt
       text: 在 GitHub 查看
       link: https://github.com/shiyuecamus/node-grove-gateway
