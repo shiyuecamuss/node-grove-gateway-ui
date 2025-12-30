@@ -5,5 +5,3 @@
 ## 快速开始
 
 - [OPC UA 快速开始（Simulation Server）](/install/quick-start-opcua)
-
-

@@ -246,5 +246,3 @@ docker compose -f deploy/compose/docker-compose.offline.yaml logs -f --tail=200
 - 确认通道连接状态为 `Connected`
 - 确认 `readMode` 与 `collectionType/period` 组合正确
 - 确认 Simulation Server 的变量在变化（或你选择了固定上报/周期读取）
-
-
