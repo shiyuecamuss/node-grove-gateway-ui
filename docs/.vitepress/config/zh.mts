@@ -57,6 +57,14 @@ function sidebar(): DefaultTheme.SidebarItem[] {
     },
     {
       collapsed: false,
+      text: '安装',
+      items: [
+        { link: '/install/', text: '安装与快速开始' },
+        { link: '/install/quick-start-opcua', text: 'OPC UA 快速开始（Simulation Server）' },
+      ],
+    },
+    {
+      collapsed: false,
       text: '运维',
       items: [
         { link: '/ops/deploy-helm', text: 'Helm 部署' },
