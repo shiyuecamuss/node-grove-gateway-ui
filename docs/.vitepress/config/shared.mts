@@ -115,7 +115,12 @@ export const shared = defineConfig({
         ],
         repoURL: () => 'https://github.com/vbenjs/vue-vben-admin',
       }) as any,
-      GitChangelogMarkdownSection() as any,
+      GitChangelogMarkdownSection({
+        sections: {
+          disableChangelog: true,
+          disableContributors: true,
+        },
+      }) as any,
       viteArchiverPlugin({ outputDir: '.vitepress' }) as any,
       groupIconVitePlugin() as any,
       (await viteVxeTableImportsPlugin()) as any,
