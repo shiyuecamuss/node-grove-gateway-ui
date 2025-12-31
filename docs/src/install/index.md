@@ -295,7 +295,6 @@ Prosys OPC UA Simulation Server默认为EndpointUrl：
 
 ![Monitor](./assets/monitor.png)
 
-
 如果数据不更新：
 
 - 确认通道连接状态为 `Connected`
