@@ -8,76 +8,60 @@ title: 快速开始
 
 ## 0. 前置条件
 
-- **Docker Engine** 与 **Docker Compose v2**
+- **Docker Engine**
 - 一台可运行 NG Gateway 的主机（Linux/macOS/Windows 均可）
 - 一台安装并运行 OPC UA Simulation Server 的主机（可与 NG Gateway 同机）
 
-## 1. 安装并启动 NG Gateway（Docker Compose 推荐）
+## 1. 安装并启动 NG Gateway（Docker 推荐）
 
-本章节**只使用 Docker Compose 安装**（无需创建额外 `.env` 覆盖环境变量配置），直接使用默认配置开箱即用。
+本章节**只使用 Docker 安装**，直接使用默认配置开箱即用。
 
-NG Gateway 默认包含两个服务：
+NG Gateway 采用 **All-in-one** 架构：
 
-- `gateway`：网关后端服务
-- `web`：NG Gateway UI（静态站点，由 nginx 提供）
+- **一个服务 `gateway`**：网关进程同时提供 **API（`/api`）+ Web UI（`/`）**
 
-### 1.1 创建 `docker-compose.yaml`
+### 1.1 启动（docker run）
 
-在任意目录新建一个用于部署的文件夹（例如 `ng-gateway-deploy/`），并创建 `docker-compose.yaml`：
-
-```yaml
-services:
-  gateway:
-    image: node-grove-gateway:latest
-    restart: unless-stopped
-    ports:
-      # host:container
-      - '8978:8978' # Gateway HTTP
-    volumes:
-      - gateway-data:/app/data
-      - gateway-drivers:/app/drivers/custom
-      - gateway-plugins:/app/plugins/custom
-
-  web:
-    image: node-grove-gateway-ui:latest
-    restart: unless-stopped
-    depends_on:
-      - gateway
-    ports:
-      # host:container
-      - '5678:80' # UI HTTP (nginx)
-
-volumes:
-  gateway-data:
-  gateway-drivers:
-  gateway-plugins:
+```bash
+docker run -d --name ng-gateway \
+  -p 8978:8978 \
+  -p 8979:8979 \
+  -v gateway-data:/app/data \
+  -v gateway-drivers:/app/drivers/custom \
+  -v gateway-plugins:/app/plugins/custom \
+  --privileged=true --restart=always \
+  node-grove-gateway:latest
 ```
 
 > 关键提醒（务必检查/修改）：
 >
-> - **端口映射**：如果宿主机端口被占用，修改左侧宿主机端口即可（如 `"18978:8978"`）。文档后续示例默认使用 `5678、8978`。
+> - **端口映射**：如果宿主机端口被占用，修改 `-p` 左侧宿主机端口即可（如 `-p 18978:8978`）。文档后续示例默认使用 `8978`。
 > - **数据持久化**：请保留 `gateway-data` 卷，否则重启/升级容器会丢失 `data/` 下的`内置SQLite数据库`与`运行数据`。
 > - **自定义驱动/插件**：如果你会安装自定义 driver/plugin，请保留 `gateway-drivers/gateway-plugins` 卷，避免容器重建导致驱动文件丢失。
 > - **Docker 网络地址**：后续在网关里配置南向设备地址时，**不要使用 `127.0.0.1` 指向宿主机服务**；请优先使用 **宿主机局域网 IP**
+>
+> - **UI 访问**：Web UI 与 API 同端口（默认 `8978`），UI 为 `http://<host>:8978/`，API 为 `http://<host>:8978/api`
 
-### 1.2 启动
+### 1.2 验证容器启动
 
 ```bash
-docker compose up -d
+docker ps
+docker logs -f --tail=200 ng-gateway
 ```
 
-### 1.3 验证服务启动
+### 1.3 升级（拉取新镜像并重建容器）
 
 ```bash
-docker compose ps
-docker compose logs -f --tail=200
-```
-
-### 1.4 升级（拉取新镜像并滚动重建）
-
-```bash
-docker compose pull
-docker compose up -d
+docker pull node-grove-gateway:latest
+docker rm -f ng-gateway
+docker run -d --name ng-gateway \
+  -p 8978:8978 \
+  -p 8979:8979 \
+  -v gateway-data:/app/data \
+  -v gateway-drivers:/app/drivers/custom \
+  -v gateway-plugins:/app/plugins/custom \
+  --privileged=true --restart=always \
+  node-grove-gateway:latest
 ```
 
 ## 2. 安装 Prosys OPC UA Simulation Server 模拟器
@@ -107,9 +91,9 @@ Prosys OPC UA Simulation Server默认为EndpointUrl：
 
 默认 UI 地址：
 
-- `http://x.x.x.x:5678`
+- `http://x.x.x.x:8978/`
 
-其中 `x.x.x.x` 为运行 `web` 服务所在主机的 IP（同机可用 `http://127.0.0.1:5678`）。
+其中 `x.x.x.x` 为运行 `gateway` 服务所在主机的 IP（同机可用 `http://127.0.0.1:8978/`）。
 
 ## 5. 登录 Web UI
 
