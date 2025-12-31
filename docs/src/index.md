@@ -13,7 +13,7 @@ hero:
   actions:
     - theme: brand
       text: 快速开始 ->
-      link: /install/quick-start-opcua
+      link: /install
     - theme: alt
       text: 在 GitHub 查看
       link: https://github.com/shiyuecamus/node-grove-gateway
@@ -26,17 +26,17 @@ features:
     linkText: Rust 内核
   - icon: 🔌
     title: 南向多协议接入
-    details: Modbus / S7 / IEC104 / DLT645 / CJT188 等驱动体系，强调容错与稳定性。
+    details: 内置Modbus / S7 / IEC104 / DLT645 / CJT188 等驱动体系，面向南向设备读写、控制，强调容错与稳定性。
     link: /southward/overview
     linkText: 南向文档
   - icon: 📡
-    title: 北向 MQTT v5
-    details: 面向平台对接的北向链路，消息结构支持 proto 与 json。
-    link: /northward/mqtt-v5
-    linkText: MQTT v5
+    title: 北向多应用接入
+    details: 内置 Thingsboard / OPC UA Server / Kafka / MQTT 等插件体系，面向北向应用对接，强调容错与稳定性。
+    link: /northward/overview
+    linkText: 北向文档
   - icon: 🧩
     title: 插件化扩展
-    details: 北向平台、转换与增强能力以插件形式演进，支持按需启用与独立配置。
+    details: 南向驱动、北向应用以插件形式演进，支持运行时热插拔、自定义开发、按需启用、独立配置、。
     link: /dev/plugin-dev
     linkText: 插件开发
   - icon: 🛡️
@@ -56,9 +56,9 @@ features:
     linkText: 运维观测
   - icon: 🚢
     title: 部署与升级
-    details: 支持 Docker/Helm 等部署形态，配套升级、回滚与配置管理建议。
-    link: /ops/deploy-helm
-    linkText: 部署指南
+    details: 支持 宿主机/Docker/Helm 等部署形态，配套升级、回滚与配置管理建议。
+    link: /install/helm
+    linkText: helm部署指南
   - icon: 🧱
     title: 二次开发友好
     details: 统一的数据模型与扩展接口，驱动/插件二开路径清晰、可测试、可维护。

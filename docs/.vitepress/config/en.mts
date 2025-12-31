@@ -35,6 +35,7 @@ export const en = defineConfig({
     nav: nav(),
     outline: {
       label: 'Navigate',
+      level: 'deep',
     },
     returnToTopLabel: 'Back to top',
     // Best practice for product docs: a global sidebar tree so readers can always see the full TOC.

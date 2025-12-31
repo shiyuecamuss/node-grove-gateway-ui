@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "vitepress build",
-    "dev": "vitepress dev",
+    "dev": "vitepress dev --host 0.0.0.0",
     "docs:preview": "vitepress preview"
   },
   "imports": {

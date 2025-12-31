@@ -129,6 +129,7 @@ export const shared = defineConfig({
       fs: {
         allow: ['../..'],
       },
+      allowedHosts: true,
       host: true,
       port: 6173,
     },
