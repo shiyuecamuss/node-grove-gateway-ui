@@ -24,12 +24,13 @@ NG Gateway 采用 **All-in-one** 架构：
 
 ```bash
 docker run -d --name ng-gateway \
-  -p 8978:8978 \
-  -p 8979:8979 \
+  --privileged=true \
+  --restart unless-stopped \
+  -p 8978:8080 \
+  -p 8979:8443 \
   -v gateway-data:/app/data \
   -v gateway-drivers:/app/drivers/custom \
   -v gateway-plugins:/app/plugins/custom \
-  --privileged=true --restart=always \
   node-grove-gateway:latest
 ```
 
@@ -37,7 +38,7 @@ docker run -d --name ng-gateway \
 >
 > - **端口映射**：如果宿主机端口被占用，修改 `-p` 左侧宿主机端口即可（如 `-p 18978:8978`）。文档后续示例默认使用 `8978`。
 > - **数据持久化**：请保留 `gateway-data` 卷，否则重启/升级容器会丢失 `data/` 下的`内置SQLite数据库`与`运行数据`。
-> - **自定义驱动/插件**：如果你会安装自定义 driver/plugin，请保留 `gateway-drivers/gateway-plugins` 卷，避免容器重建导致驱动文件丢失。
+> - **自定义驱动/插件**：如果你会安装自定义 driver/plugin，请保留 `gateway-drivers/gateway-plugins` 卷，避免容器重建导致 **「驱动」** / **「插件」** 文件丢失。
 > - **Docker 网络地址**：后续在网关里配置南向设备地址时，**不要使用 `127.0.0.1` 指向宿主机服务**；请优先使用 **宿主机局域网 IP**
 > - **UI 访问**：Web UI 与 API 同端口（默认 `8978`），UI 为 `http://<host>:8978/`，API 为 `http://<host>:8978/api`
 
@@ -54,12 +55,13 @@ docker logs -f --tail=200 ng-gateway
 docker pull node-grove-gateway:latest
 docker rm -f ng-gateway
 docker run -d --name ng-gateway \
-  -p 8978:8978 \
-  -p 8979:8979 \
+  --privileged=true \
+  --restart unless-stopped \
+  -p 8978:8080 \
+  -p 8979:8443 \
   -v gateway-data:/app/data \
   -v gateway-drivers:/app/drivers/custom \
   -v gateway-plugins:/app/plugins/custom \
-  --privileged=true --restart=always \
   node-grove-gateway:latest
 ```
 
