@@ -30,7 +30,7 @@ docker run -d --name ng-gateway \
 ### 参数说明
 
 | 参数 | 说明 |
-| :--- | :--- |
+| :-- | :-- |
 | `-p 8978:8080` | 映射 Web UI/API 端口（HTTP） |
 | `-p 8979:8443` | 映射 HTTPS 端口 |
 | `-v gateway-data:/app/data` | **重要**：持久化核心数据（SQLite 数据库、配置等） |
@@ -38,6 +38,7 @@ docker run -d --name ng-gateway \
 | `-v gateway-plugins:/app/plugins/custom` | 持久化自定义插件 |
 
 > **注意**：
+>
 > - 生产环境强烈建议挂载 `gateway-data` 卷，否则重启容器将丢失所有配置。
 > - UI 访问地址：`http://<host-ip>:8978/`
 > - 默认账号：`system_admin` / `system_admin`
@@ -55,8 +56,8 @@ services:
     container_name: ng-gateway
     restart: unless-stopped
     ports:
-      - "8978:8080"
-      - "8979:8443"
+      - '8978:8080'
+      - '8979:8443'
     volumes:
       - gateway-data:/app/data
       - gateway-drivers:/app/drivers/custom
@@ -96,4 +97,3 @@ docker run -d --name ng-gateway ... # 使用相同的启动命令
 docker-compose pull
 docker-compose up -d
 ```
-

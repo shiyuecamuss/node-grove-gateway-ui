@@ -66,9 +66,9 @@ kubectl get svc -n node-grove
 ```yaml
 gateway:
   image:
-    registry: "" # 如果使用私有仓库，请配置
+    registry: '' # 如果使用私有仓库，请配置
     repository: node-grove-gateway
-    tag: "latest"
+    tag: 'latest'
 ```
 
 ### 持久化 (Persistence)
@@ -80,7 +80,7 @@ persistence:
   gatewayData:
     enabled: true
     size: 10Gi
-    storageClass: "" # 留空使用默认存储类
+    storageClass: '' # 留空使用默认存储类
   gatewayDrivers:
     enabled: true
     size: 2Gi
@@ -119,4 +119,3 @@ helm uninstall ng-gateway -n node-grove
 ```
 
 > 注意：PVC 默认不会被删除，以防止数据丢失。如果需要彻底清除，请手动删除 PVC。
-
