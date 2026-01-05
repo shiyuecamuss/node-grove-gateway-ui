@@ -4,7 +4,7 @@ title: 快速开始
 
 # 快速开始
 
-本文以 **OPC UA Simulation Server（Prosys）** 为数据源，带你完成从 **安装 NG Gateway + NG Gateway UI** 到 **创建南向 OPC UA 通道/设备/点位**，最终在「监控」中看到实时数据的全流程。
+本文以 **OPC UA Simulation Server（Prosys）** 为数据源，带你完成从 **安装 NG Gateway** 到 **创建南向 OPC UA 通道/设备/点位**，最终在「监控」中看到实时数据的全流程。
 
 ## 0. 前置条件
 
@@ -12,7 +12,7 @@ title: 快速开始
 - 一台可运行 NG Gateway 的主机（Linux/macOS/Windows 均可）
 - 一台安装并运行 OPC UA Simulation Server 的主机（可与 NG Gateway 同机）
 
-## 1. 安装并启动 NG Gateway（Docker 推荐）
+## 1. 安装并启动 NG Gateway
 
 本章节**只使用 Docker 安装**，直接使用默认配置开箱即用。
 
@@ -31,16 +31,16 @@ docker run -d --name ng-gateway \
   -v gateway-data:/app/data \
   -v gateway-drivers:/app/drivers/custom \
   -v gateway-plugins:/app/plugins/custom \
-  node-grove-gateway:latest
+  shiyuecamus/ng-gateway:latest
 ```
 
-> 关键提醒（务必检查/修改）：
->
-> - **端口映射**：如果宿主机端口被占用，修改 `-p` 左侧宿主机端口即可（如 `-p 18978:8978`）。文档后续示例默认使用 `8978`。
-> - **数据持久化**：请保留 `gateway-data` 卷，否则重启/升级容器会丢失 `data/` 下的`内置SQLite数据库`与`运行数据`。
-> - **自定义驱动/插件**：如果你会安装自定义 driver/plugin，请保留 `gateway-drivers/gateway-plugins` 卷，避免容器重建导致 **「驱动」** / **「插件」** 文件丢失。
-> - **Docker 网络地址**：后续在网关里配置南向设备地址时，**不要使用 `127.0.0.1` 指向宿主机服务**；请优先使用 **宿主机局域网 IP**
-> - **UI 访问**：Web UI 与 API 同端口（默认 `8978`），UI 为 `http://<host>:8978/`，API 为 `http://<host>:8978/api`
+::: tip 关键提醒（务必检查/修改）：
+- **端口映射**：如果宿主机端口被占用，修改 `-p` 左侧宿主机端口即可（如 `-p 18978:8978`）。文档后续示例默认使用 `8978`。
+- **数据持久化**：请保留 `gateway-data` 卷，否则重启/升级容器会丢失 `data/` 下的`内置SQLite数据库`与`运行数据`。
+- **自定义驱动/插件**：如果你会安装自定义 driver/plugin，请保留 `gateway-drivers/gateway-plugins` 卷，避免容器重建导致 **「驱动」** / **「插件」** 文件丢失。
+- **Docker 网络地址**：后续在网关里配置南向设备地址时，**不要使用 `127.0.0.1` 指向宿主机服务**；请优先使用 **宿主机局域网 IP**
+- **UI 访问**：Web UI 与 API 同端口（默认 `8978`），UI 为 `http://<host>:8978/`，API 为 `http://<host>:8978/api` 
+:::
 
 ### 1.2 验证容器启动
 
@@ -52,7 +52,7 @@ docker logs -f --tail=200 ng-gateway
 ### 1.3 升级（拉取新镜像并重建容器）
 
 ```bash
-docker pull node-grove-gateway:latest
+docker pull shiyuecamus/ng-gateway:latest
 docker rm -f ng-gateway
 docker run -d --name ng-gateway \
   --privileged=true \
@@ -62,7 +62,7 @@ docker run -d --name ng-gateway \
   -v gateway-data:/app/data \
   -v gateway-drivers:/app/drivers/custom \
   -v gateway-plugins:/app/plugins/custom \
-  node-grove-gateway:latest
+  shiyuecamus/ng-gateway:latest
 ```
 
 ## 2. 安装 Prosys OPC UA Simulation Server 模拟器
@@ -215,13 +215,17 @@ Prosys OPC UA Simulation Server默认为EndpointUrl：
 - **状态**：启用/禁用（成功连接通道后通常默认启用）
 - **连接状态（runtime）**：`Disconnected` / `Connecting` / `Connected` / `Reconnecting` / `Failed`
 
-> Tip：如果连接状态为 `Failed`，优先检查：Endpoint URL 是否可达、防火墙、以及安全策略/认证是否匹配。
+::: tip
+如果连接状态为 `Failed`，优先检查：Endpoint URL 是否可达、防火墙、以及安全策略/认证是否匹配。
+:::
 
 ![Channel connection state](./assets/opcua-channel-state.png)
 
 ## 9. 创建通道子设备
 
-> Tip：通道下子设备、点位、动作的新增入口包含`ui`、`excel导入`两种，且`ui`、`excel` **模版**均根据驱动metadata schema动态渲染，无需额外编写代码。本文档示例以**ui**为入口示例
+::: tip
+通道下子设备、点位、动作的新增入口包含`ui`、`excel导入`两种，且`ui`、`excel` **模版**均根据驱动metadata schema动态渲染，无需额外编写代码。本文档示例以**ui**为入口示例 
+:::
 
 点击通道表格 **「操作」** 列的 **「子设备」** 打开子设备管理弹窗，点击 **「创建设备」**。
 
@@ -266,7 +270,9 @@ Prosys OPC UA Simulation Server默认为EndpointUrl：
   - 语义：OPC UA nodeId
   - 示例：`ns=3;i=1001`
 
-> Tip：NodeId 写错最常见的现象是通道在线但该点位无数据或订阅失败；建议先在 Simulation Server UI 中确认该变量的 NodeId。
+::: tip 
+NodeId 写错最常见的现象是通道在线但该点位无数据或订阅失败；建议先在 Simulation Server UI 中确认该变量的 NodeId。
+:::
 
 ![Point config](./assets/opcua-point-config.png)
 

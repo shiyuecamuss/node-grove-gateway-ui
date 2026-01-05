@@ -67,7 +67,7 @@ kubectl get svc -n node-grove
 gateway:
   image:
     registry: '' # 如果使用私有仓库，请配置
-    repository: node-grove-gateway
+    repository: shiyuecamus/ng-gateway
     tag: 'latest'
 ```
 
@@ -118,4 +118,6 @@ ingress:
 helm uninstall ng-gateway -n node-grove
 ```
 
-> 注意：PVC 默认不会被删除，以防止数据丢失。如果需要彻底清除，请手动删除 PVC。
+::: tip 注意
+PVC 默认不会被删除，以防止数据丢失。如果需要彻底清除，请手动删除 PVC。
+:::

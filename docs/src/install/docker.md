@@ -11,7 +11,7 @@ title: Docker 安装
 - **Docker Engine** (建议 20.10+)
 - **Docker Compose** (可选，用于编排)
 
-## 2. 快速启动 (Docker Run)
+## 2. 快速启动
 
 NG Gateway 采用 **All-in-one** 架构，单容器即可运行。
 
@@ -24,7 +24,7 @@ docker run -d --name ng-gateway \
   -v gateway-data:/app/data \
   -v gateway-drivers:/app/drivers/custom \
   -v gateway-plugins:/app/plugins/custom \
-  node-grove-gateway:latest
+  shiyuecamus/ng-gateway:latest
 ```
 
 ### 参数说明
@@ -37,11 +37,12 @@ docker run -d --name ng-gateway \
 | `-v gateway-drivers:/app/drivers/custom` | 持久化自定义驱动 |
 | `-v gateway-plugins:/app/plugins/custom` | 持久化自定义插件 |
 
-> **注意**：
->
-> - 生产环境强烈建议挂载 `gateway-data` 卷，否则重启容器将丢失所有配置。
-> - UI 访问地址：`http://<host-ip>:8978/`
-> - 默认账号：`system_admin` / `system_admin`
+::: tip 注意
+
+- 生产环境强烈建议挂载 `gateway-data` 卷，否则重启容器将丢失所有配置。
+- UI 访问地址：`http://<host-ip>:8978/`
+- 默认账号：`system_admin` / `system_admin`
+:::
 
 ## 3. 使用 Docker Compose
 
@@ -52,7 +53,7 @@ version: '3.8'
 
 services:
   gateway:
-    image: node-grove-gateway:latest
+    image: shiyuecamus/ng-gateway:latest
     container_name: ng-gateway
     restart: unless-stopped
     ports:
@@ -82,7 +83,7 @@ docker-compose up -d
 
 ```bash
 # 1. 拉取最新镜像
-docker pull node-grove-gateway:latest
+docker pull shiyuecamus/ng-gateway:latest
 
 # 2. 停止并删除旧容器 (数据保留在 volume 中)
 docker rm -f ng-gateway

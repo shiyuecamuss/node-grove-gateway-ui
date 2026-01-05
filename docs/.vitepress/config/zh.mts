@@ -73,15 +73,90 @@ function sidebar(): DefaultTheme.SidebarItem[] {
       text: '南向',
       items: [
         { link: '/southward/overview', text: '南向总览' },
-        { link: '/southward/modbus', text: 'Modbus' },
-        { link: '/southward/s7', text: '西门子 S7' },
-        { link: '/southward/iec104', text: 'IEC 60870-5-104' },
-        { link: '/southward/dlt645', text: 'DLT645' },
-        { link: '/southward/cjt188', text: 'CJT188' },
-        { link: '/southward/opcua', text: 'OPC UA' },
-        { link: '/southward/ethernet-ip', text: 'Ethernet-IP' },
-        { link: '/southward/dnp3', text: 'DNP3' },
-        { link: '/southward/mc', text: '三菱 MC' },
+        {
+          link: '/southward/driver-metadata-schema',
+          text: 'Driver Metadata Schema',
+        },
+        { link: '/southward/iec104-bulk-import', text: 'IEC104 批量导入示例' },
+        {
+          text: 'Modbus',
+          collapsed: true,
+          items: [
+            { link: '/southward/modbus/', text: '驱动概览与配置' },
+            { link: '/southward/modbus/addressing', text: '地址与 quantity' },
+            { link: '/southward/modbus/batching', text: '批量读写与调优' },
+          ],
+        },
+        {
+          text: '西门子 S7',
+          collapsed: true,
+          items: [
+            { link: '/southward/s7/', text: '驱动概览与配置' },
+            { link: '/southward/s7/addressing', text: 'S7 地址语法' },
+          ],
+        },
+        {
+          text: 'IEC 60870-5-104',
+          collapsed: true,
+          items: [
+            { link: '/southward/iec104/', text: '驱动概览与配置' },
+            { link: '/southward/iec104/typeid', text: 'TypeID 与建模' },
+            { link: '/southward/iec104/link-timers', text: '链路定时器与背压' },
+          ],
+        },
+        {
+          text: 'DLT645',
+          collapsed: true,
+          items: [
+            { link: '/southward/dlt645/', text: '驱动概览与配置' },
+            {
+              link: '/southward/dlt645/address-di',
+              text: '表地址 / DI / 小数位',
+            },
+          ],
+        },
+        {
+          text: 'CJT188',
+          collapsed: true,
+          items: [
+            { link: '/southward/cjt188/', text: '驱动概览与配置' },
+            { link: '/southward/cjt188/address-di', text: '地址 / 类型 / DI' },
+          ],
+        },
+        {
+          text: 'OPC UA',
+          collapsed: true,
+          items: [
+            { link: '/southward/opcua/', text: '驱动概览与配置' },
+            { link: '/southward/opcua/nodeid', text: 'NodeId 语法与获取' },
+            { link: '/southward/opcua/security', text: '安全与认证' },
+          ],
+        },
+        {
+          text: 'Ethernet-IP',
+          collapsed: true,
+          items: [
+            { link: '/southward/ethernet-ip/', text: '驱动概览与配置' },
+            { link: '/southward/ethernet-ip/tag', text: 'Tag 建模与限制' },
+          ],
+        },
+        {
+          text: 'DNP3',
+          collapsed: true,
+          items: [
+            { link: '/southward/dnp3/', text: '驱动概览与配置' },
+            { link: '/southward/dnp3/groups', text: '对象组/索引/命令类型' },
+          ],
+        },
+        {
+          text: '三菱 MC',
+          collapsed: true,
+          items: [
+            { link: '/southward/mc/', text: '驱动概览与配置' },
+            { link: '/southward/mc/addressing', text: 'MC 地址语法' },
+            { link: '/southward/mc/batching', text: '批量读写与调优' },
+          ],
+        },
       ],
     },
     {
