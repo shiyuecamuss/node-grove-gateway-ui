@@ -14,6 +14,8 @@ NG Gateway IEC104 驱动以 **单 Channel 单 TCP 会话** 的方式运行，核
 
 ## 2. 配置模型：Channel / Device / Point / Action
 
+可配置字段由 `@ng-gateway-southward/iec104/src/metadata.rs` 定义，对应运行时结构 `Iec104ChannelConfig/Iec104Device/Iec104Point/Iec104Parameter`。
+
 ### 2.1 Channel（通道）配置
 
 #### 2.1.1 基础连接
