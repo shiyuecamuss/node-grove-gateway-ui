@@ -22,6 +22,7 @@ NG Gateway 当前版本简化为：
 - DoubleBitBinaryInput：双点开关量输入
 - BinaryOutput：开关量输出状态
 - Counter：计数器
+- FrozenCounter：冻结计数器
 - AnalogInput：模拟量输入
 - AnalogOutput：模拟量输出状态
 - OctetString：字节串
@@ -30,24 +31,161 @@ NG Gateway 当前版本简化为：
 
 - `BinaryInput` / `DoubleBitBinaryInput`：推荐 `data_type=Boolean` 或 `UInt8`（按现场语义）
 - `AnalogInput`：推荐 `Float32/Float64`（必要时配 `scale`）
-- `Counter`：推荐 `UInt32/UInt64`
+- `Counter` / `FrozenCounter`：推荐 `UInt32/UInt64`
 - `OctetString`：推荐 `String` 或 `Binary`
 
-## 2) 扫描语义：Integrity vs Event
+## 2) DataType 与 DNP3 Variation 的映射关系
+
+### 2.1 设计理念
+
+DNP3 协议中，每个对象组（Group）有多个变体（Variation），例如：
+
+| Group | Variation | 含义 |
+|-------|-----------|------|
+| 30 | 1 | 32-bit Analog Input With Flag |
+| 30 | 2 | 16-bit Analog Input With Flag |
+| 30 | 3 | 32-bit Analog Input Without Flag |
+| 30 | 5 | Single-precision (Float32) With Flag |
+| 30 | 6 | Double-precision (Float64) With Flag |
+
+NG Gateway 采用**简化建模**策略：
+
+- **读取方向**：使用 Class Data 请求（Group 60），让 Outstation 自行决定返回哪个 Variation
+- **写入方向**：通过 `DataType` 字段隐式选择对应的 Variation
+
+这种设计的优势：
+1. **兼容性最佳**：不同 Outstation 可能支持不同的 Variation
+2. **用户友好**：无需深入理解 DNP3 协议细节
+3. **符合 IEEE 1815 标准**：Class Data 是推荐的数据请求方式
+
+### 2.2 读取时的 Variation 处理
+
+当 NG Gateway 执行 Integrity Scan 或 Event Scan 时：
+
+```
+Master (NG Gateway)                    Outstation
+        |                                   |
+        |--- READ Class 0/1/2/3 ----------->|
+        |    (Group60Var1~4)                |
+        |                                   |
+        |<-- Response with actual data -----|
+        |    (Group30Var1 或 Var5 等)        |
+```
+
+- 驱动底层库（dnp3-rs）会将不同 Variation 的响应**统一转换**为标准 Rust 类型
+- 例如：`Group30Var1`、`Group30Var5`、`Group30Var6` 都被转换为 `AnalogInput { value: f64, flags: Flags, time: Option<Time> }`
+- 您配置的 `DataType` 用于**最终值转换**（如 `f64` → `Int32` 截断）
+
+::: tip 重要
+读取时，Outstation 决定返回哪个 Variation。您的 `DataType` 配置不影响请求，只影响最终值的类型转换。
+:::
+
+### 2.3 写入时的 Variation 选择（关键）
+
+写入命令（WritePoint / Action）时，`DataType` **直接决定**使用哪个 DNP3 Variation：
+
+#### 模拟量输出命令（AnalogOutputCommand - Group 41）
+
+| DataType | DNP3 Variation | 说明 |
+|----------|----------------|------|
+| `Int16` / `UInt16` | Group41Var2 | 16-bit Analog Output |
+| `Int32` / `UInt32` | Group41Var1 | 32-bit Analog Output |
+| `Float32` | Group41Var3 | Single-precision Float |
+| `Float64` | Group41Var4 | Double-precision Float |
+
+**驱动内部实现**：
+
+```rust
+match data_type {
+    DataType::Int16 | DataType::UInt16 => Group41Var2 { value: i16 },
+    DataType::Int32 | DataType::UInt32 => Group41Var1 { value: i32 },
+    DataType::Float32 => Group41Var3 { value: f32 },
+    DataType::Float64 => Group41Var4 { value: f64 },
+}
+```
+
+#### CROB 命令（Control Relay Output Block - Group 12）
+
+CROB 不受 `DataType` 影响，始终使用 `Group12Var1`：
+
+| DataType | 值解析 | 说明 |
+|----------|--------|------|
+| `Boolean` | `true` → LatchOn, `false` → LatchOff | 推荐 |
+| `UInt8` / `Int*` | 0=PulseOn, 1=PulseOff, 3=LatchOn, 4=LatchOff | 兼容 |
+| `String` | "PULSE_ON", "LATCH_OFF" 等 | 人类可读 |
+
+### 2.4 完整 Variation 参考表
+
+以下是 DNP3 各对象组的主要 Variation 及其用途（供参考）：
+
+#### Binary Input (Group 1/2)
+
+| Group | Var | 类型 | 说明 |
+|-------|-----|------|------|
+| 1 | 1 | Static | Packed Format (无 flags) |
+| 1 | 2 | Static | With Flags |
+| 2 | 1 | Event | Without Time |
+| 2 | 2 | Event | With Absolute Time |
+| 2 | 3 | Event | With Relative Time |
+
+#### Analog Input (Group 30/32)
+
+| Group | Var | 类型 | 说明 |
+|-------|-----|------|------|
+| 30 | 1 | Static | 32-bit With Flag |
+| 30 | 2 | Static | 16-bit With Flag |
+| 30 | 3 | Static | 32-bit Without Flag |
+| 30 | 5 | Static | Single-precision (f32) With Flag |
+| 30 | 6 | Static | Double-precision (f64) With Flag |
+| 32 | 1 | Event | 32-bit Without Time |
+| 32 | 3 | Event | 32-bit With Time |
+| 32 | 5 | Event | Single-precision Without Time |
+| 32 | 7 | Event | Single-precision With Time |
+
+#### Counter (Group 20/21/22)
+
+| Group | Var | 类型 | 说明 |
+|-------|-----|------|------|
+| 20 | 1 | Static | 32-bit With Flag |
+| 20 | 2 | Static | 16-bit With Flag |
+| 20 | 5 | Static | 32-bit Without Flag |
+| 21 | 1 | Frozen | 32-bit With Flag |
+| 21 | 5 | Frozen | 32-bit With Flag and Time |
+| 22 | 1 | Event | 32-bit With Flag |
+| 22 | 5 | Event | 32-bit With Flag and Time |
+
+#### Analog Output (Group 40/41/42)
+
+| Group | Var | 类型 | 说明 |
+|-------|-----|------|------|
+| 40 | 1 | Status | 32-bit With Flag |
+| 40 | 2 | Status | 16-bit With Flag |
+| 40 | 3 | Status | Single-precision With Flag |
+| 41 | 1 | Command | 32-bit ← **DataType=Int32** |
+| 41 | 2 | Command | 16-bit ← **DataType=Int16** |
+| 41 | 3 | Command | Single-precision ← **DataType=Float32** |
+| 41 | 4 | Command | Double-precision ← **DataType=Float64** |
+| 42 | 7 | Event | Single-precision With Time |
+
+::: warning 注意
+NG Gateway 使用 Class Data 请求，因此**不需要**在配置中指定具体的 Variation。Outstation 会返回它支持的 Variation，驱动自动处理转换。
+:::
+
+## 3) 扫描语义：Integrity vs Event
 
 驱动会定期执行：
 
-- Integrity Scan：获取“全量快照”（Class 0/1/2/3）
-- Event Scan：获取“事件变化”（Class 1/2/3）
+- Integrity Scan：获取"全量快照"（Class 0/1/2/3）
+- Event Scan：获取"事件变化"（Class 1/2/3）
 
 两者的差异取决于 Outstation 配置与数据点是否支持事件上送。
 
 调参建议：
 
 - eventScanIntervalMs 不要太小（否则会增加 Outstation 压力）
-- integrityScanIntervalMs 作为“兜底”不宜太大（否则断连后恢复会慢）
+- integrityScanIntervalMs 作为"兜底"不宜太大（否则断连后恢复会慢）
 
-## 3) Action：命令类型（group）与输入值
+## 4) Action：命令类型（group）与输入值
 
 当前动作类型：
 

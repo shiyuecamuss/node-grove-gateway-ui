@@ -118,6 +118,6 @@ ingress:
 helm uninstall ng-gateway -n node-grove
 ```
 
-::: tip 注意
+::: warning 注意
 PVC 默认不会被删除，以防止数据丢失。如果需要彻底清除，请手动删除 PVC。
 :::

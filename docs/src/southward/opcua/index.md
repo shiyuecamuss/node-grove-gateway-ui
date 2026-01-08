@@ -34,7 +34,7 @@ Channel 是 OPC UA 会话边界：一个 Channel 对应一个 OPC UA Server（�
 - **issuedToken**：颁发令牌（token 字符串）
 - **certificate**：证书方式（`privateKey` + `certificate`）
 
-::: tip 注意
+::: warning 注意
 证书内容通常以 PEM 字符串存储。
 :::
 
@@ -53,7 +53,7 @@ Channel 是 OPC UA 会话边界：一个 Channel 对应一个 OPC UA Server（�
 - **Subscribe（订阅）**：驱动创建 Subscription + MonitoredItems，Server 推送变化（推荐）
 - **Read（周期采集）**：按采集周期主动 Read（适合少量点或 Server 不支持订阅/限制订阅）
 
-::: tip 注意
+::: warning 注意
 Subscribe 模式更“事件驱动”，对高频变化点位更高效，但要关注 subscription 的批量与保活参数。
 :::
 

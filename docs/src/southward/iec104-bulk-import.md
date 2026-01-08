@@ -11,7 +11,7 @@ description: 'IEC 60870-5-104：批量点位、批量动作、批量设备+点�
 
 可以使用网关提供的 **Excel 导入模板**，用“预览（preview）→ 提交（commit）”两步完成批量建模。
 
-::: tip 注意
+::: warning 注意
 请始终从网关[下载模板](./driver-metadata-schema.md#driver-template-download)再填写。不要修改表头，也不要删除隐藏的 `__meta__` sheet，否则导入会失败。
 :::
 

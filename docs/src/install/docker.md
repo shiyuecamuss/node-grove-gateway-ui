@@ -37,7 +37,7 @@ docker run -d --name ng-gateway \
 | `-v gateway-drivers:/app/drivers/custom` | 持久化自定义驱动 |
 | `-v gateway-plugins:/app/plugins/custom` | 持久化自定义插件 |
 
-::: tip 注意
+::: warning 注意
 
 - 生产环境强烈建议挂载 `gateway-data` 卷，否则重启容器将丢失所有配置。
 - UI 访问地址：`http://<host-ip>:8978/`

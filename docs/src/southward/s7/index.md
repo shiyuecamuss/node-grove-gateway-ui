@@ -92,7 +92,7 @@ Action 用于封装一组“写入变量”的操作；**Action 本身不承载�
 
 - **`address`**：S7 地址表达式
 
-::: tip 注意
+::: warning 注意
 地址语法非常关键，见 [S7地址语法](./addressing.md)。
 :::
 
