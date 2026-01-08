@@ -5,13 +5,11 @@ description: 'NG Gateway Ethernet/IP 南向驱动：连接/slot/timeout 配置�
 
 ## 1. 协议介绍与常见场景
 
-EtherNet/IP 基于 CIP（Common Industrial Protocol），常用于 Rockwell/Allen-Bradley 等 PLC 的变量（Tag）读写。默认端口通常为 44818。
+EtherNet/IP (Industrial Protocol) 是一种工业自动化网络协议，由 ODVA (Open DeviceNet Vendor Association) 组织开发和维护，可以帮助实现设备间的自动化控制和数据交换，如制造业、能源行业、交通物流、建筑等行业。
 
 NG Gateway Ethernet/IP 驱动以客户端方式连接 PLC，并以 Tag 名称进行读写。
 
-## 2. 配置模型：Channel / Device / Point / Action
-
-可配置字段由 `@ng-gateway-southward/ethernet-ip/src/metadata.rs` 定义，对应运行时结构 `EthernetIpChannelConfig/EthernetIpPoint/EthernetIpParameter`。
+## 2. 配置模型
 
 ### 2.1 Channel（通道）配置
 
@@ -20,7 +18,9 @@ NG Gateway Ethernet/IP 驱动以客户端方式连接 PLC，并以 Tag 名称进
 - **`timeout`**：请求超时（ms，默认 2000）
 - **`slot`**：槽号（默认 0）
 
+::: tip
 slot 的语义取决于 PLC 型号/机架结构；若不确定，保持默认并用一个已知 Tag 验证读写。
+:::
 
 ### 2.2 Device（设备）配置
 
@@ -43,60 +43,98 @@ Action 用于封装一组“写入 Tag”的操作；**Action 本身不承载协
 
 - **`tagName`**：Tag 名称（必填），例如 `Program:Main.MyTag`
 
-::::
-tip 兼容性说明
-历史版本可能把 Tag 编码在 `Action.command` 里。当前版本仍会在**单参数动作且缺少 tagName**时回退到 `Action.command`（并输出 warn），但该用法已废弃，请尽快迁移到 `Parameter.driver_config.tagName`。
-::::
 
-## 3. 数据类型映射表（CIP PlcValue ↔ NGValue）
+## 3. 值类型转换
 
-驱动的值映射位于 `@ng-gateway-southward/ethernet-ip/src/codec.rs`：
+- **读（uplink）**：PLC 返回的 `PlcValue` 会按 Point 声明的 `data_type` 与 `scale` 做 coercion（带范围检查/字符串解析）。
+- **写（downlink）**：输入的 `NGValue` 会按 Point/Parameter 声明的 `data_type` 做 cast（带范围检查/字符串解析），再编码成要写入 PLC 的 `PlcValue`。
 
-| PlcValue | NGValue |
-| --- | --- |
-| Bool | Boolean |
-| Sint | Int8 |
-| Int | Int16 |
-| Dint | Int32 |
-| Lint | Int64 |
-| Usint | UInt8 |
-| Uint | UInt16 |
-| Udint | UInt32 |
-| Ulint | UInt64 |
-| Real | Float32 |
-| Lreal | Float64 |
-| String | String |
+::: tip 解释
+网关侧会尽力按 `data_type` 做转换，但 **PLC 侧仍会对 Tag 的真实 CIP 类型做检查**。因此 `data_type` 选错时，写入仍可能失败（类型不匹配/越界/截断等）。
+:::
 
-当前版本对结构体/数组等复杂类型会报错。
+### 3.1 标量类型推荐映射表
 
-### 3.1 Point / Action Parameter 的 DataType 选择建议
+这张表给出“最少踩坑”的建模选择：**让 `data_type` 与 PLC Tag 的真实类型一致**（读写都最稳）。
 
-- **对齐原则**：`data_type` 应与 PLC Tag 的真实类型一致（Bool/Int/Dint/Real/String...）。否则可能出现写入失败或数值截断。
-- **当前不支持的 DataType**：
-  - `Binary` / `Timestamp`：当前驱动不支持与 CIP 的直接映射（会返回 CodecError）
-
-| PLC Tag 类型（CIP） | 推荐 DataType | 备注 |
+| PLC Tag 类型（CIP） | 推荐 DataType | 说明 |
 | --- | --- | --- |
-| BOOL | Boolean | 最常见 |
-| SINT | Int8 | |
-| INT | Int16 | |
-| DINT | Int32 | |
-| LINT | Int64 | |
-| USINT | UInt8 | |
-| UINT | UInt16 | |
-| UDINT | UInt32 | |
-| ULINT | UInt64 | |
-| REAL | Float32 | |
-| LREAL | Float64 | |
-| STRING | String | |
+| BOOL | Boolean | - |
+| SINT | Int8 | - |
+| INT | Int16 | - |
+| DINT | Int32 | - |
+| LINT | Int64 | - |
+| USINT | UInt8 | - |
+| UINT | UInt16 | - |
+| UDINT | UInt32 | - |
+| ULINT | UInt64 | - |
+| REAL | Float32 | - |
+| LREAL | Float64 | - |
+| STRING | String | - |
+| LINT（Unix epoch ms） | Timestamp | **语义约定**：i64 毫秒时间戳；写入会编码为 `LINT` |
 
-::::
-tip 最佳实践
-如果你的 PLC 里是 UDT/结构体/数组，建议在 PLC 侧提供“标量镜像 Tag”，或在边缘侧做展开/聚合；当前版本驱动对复杂类型会报错。
-::::
+::: tip
+复杂类型（数组/UDT/结构体）支持现状与替代建模策略见 [Tag建模](./tag.md)。
+:::
 
-## 4. 进阶文档
+### 3.2 Uplink转换规则
 
-- `Tag 语法、数组/结构体限制与建模建议`：见 `./tag.md`
+::: tip 核心语义
+- **按 `data_type` coercion（带范围检查）**：例如 PLC 返回 `UDINT=42`，点位声明 `Int32`，则会上报 `NGValue::Int32(42)`；如果超出范围（例如 `UDINT > i32::MAX`）会报错并跳过该点位。
+- **按 `scale` 缩放（仅读路径）**：仅对数值转换生效，语义为 `value * scale`。例如 PLC `INT=10`，点位 `data_type=Float64`，`scale=0.1`，则上报为 `1.0`。
+  - 提醒：`Timestamp` 也是数值（i64 ms）。除非你非常确定，否则**不要**给时间戳配置 `scale`，否则会把时间戳本身缩放导致语义错误。
+- **当 PLC 返回 `STRING` 时的特殊规则**：
+  - `data_type=String`：原样上报字符串
+  - `data_type=Boolean`：按 SDK 规则解析（`true/false/1/0/on/off/yes/no/y/n/t/f`，忽略大小写与首尾空白）
+  - `data_type=Timestamp`：优先解析 RFC3339；否则把字符串当作“数字型时间戳”解析为 epoch ms（带范围检查）
+  - 其它数值类型：先 `parse f64`，再按 `data_type` 强制转换并应用 `scale`
+:::
 
+### 3.3 Downlink转换规则
 
+::: tip 核心语义
+- **按 `data_type` cast + range check**：例如参数声明 `Int32`，输入是 `"123"`（String），会尝试解析并写入 `DINT(123)`。
+- **不会自动应用 `scale`**：`scale` 是点位上行（读）语义；写入时请直接写 PLC 期望的“真实值”。
+- **转换失败会返回 ValidationError**：例如越界、NaN/Inf、无法解析字符串等。
+- **Boolean 的兼容输入**（写入 `data_type=Boolean` 时）：
+  - `true/false`
+  - 数值（0=false，非 0=true）
+  - 字符串（同 uplink 的 token 规则）
+:::
+
+### 3.4 DataType 选择建议
+
+- **第一优先级：对齐 PLC Tag 的真实类型**：这是“读写都稳定”的唯一方案。网关的 cast/coercion 是容错能力，不是让你随意混用类型。
+- **Point（读）可以做 coercion，但要承担后果**：
+  - 例如 PLC `UDINT` + `data_type=Int32`：只要数值在范围内就能上报；超范围会报错跳点
+  - 例如 PLC `REAL` + `data_type=Int32`：会先按浮点取整再转整数，可能丢失小数
+- **Action Parameter（写）必须更谨慎**：
+  - 即使网关能把 `"123"` cast 成 `DINT(123)`，如果 PLC Tag 是 `REAL` 或 `STRING`，PLC 仍可能因 CIP 类型不匹配而拒绝写入
+  - 结论：**写入的 `data_type` 更应该严格对齐 PLC Tag 类型**
+- **Binary 支持现状（重要）**：
+  - `Binary` 当前驱动不支持（现场最常见是 `SINT[]/BYTE[]` 数组，而当前底层 `PlcValue` 只支持标量与 UDT，不支持数组/字节串）
+  - 替代建模策略见 `./tag.md`（例如：PLC 侧拆成多个标量 Tag；或用 `STRING` 承载 hex/base64 文本）
+- **Timestamp 最佳实践**：
+  - `Timestamp` 的语义固定为 **i64 毫秒（epoch ms）**
+  - 写入时会编码为 PLC `LINT`
+  - 不建议用 `ULINT` 承载时间戳：超过 `i64::MAX` 会被判定为非法时间戳并转换失败
+
+::: tip 最佳实践
+- 如果你的 PLC 里是 UDT/结构体/数组：建议在 PLC 侧提供“标量镜像 Tag”（把成员拆成独立 Tag），或在 PLC/OPC Server 侧提供映射节点；当前版本驱动对复杂类型会报错。
+- 先用一个“简单标量 Tag”（例如 `DINT` 计数器）验证读写通路与 `slot` 语义，再批量建模。
+:::
+
+### 3.5 常见失败模式与排障
+
+- **Unsupported PlcValue type ...**
+  - **含义**：PLC 返回了复杂类型（例如 UDT/结构体/数组），当前驱动无法映射为 `NGValue`。
+  - **处理**：按 `./tag.md` 的建议在 PLC/Server 侧提供标量镜像 Tag，再在网关侧建模。
+- **typed conversion failed ...**
+  - **含义**：读路径按 `data_type/scale` 转换失败（常见原因：越界、字符串无法解析为数字/布尔、Timestamp 越界）。
+  - **处理**：检查 Point 的 `data_type` 是否与 PLC Tag 对齐；检查 `scale` 是否合理（尤其避免给 `Timestamp` 配 `scale`）。
+- **write value cast failed ... / ValidationError**
+  - **含义**：写入前的 cast 失败（越界、NaN/Inf、字符串无法解析等）。
+  - **处理**：检查 Parameter/Point 的 `data_type` 与输入 value；必要时先用数值类型输入而不是字符串。
+- **PLC 侧写入失败（CIP type mismatch 等）**
+  - **含义**：网关侧转换成功，但 PLC 拒绝（Tag 类型不匹配、权限/运行模式限制、越界等）。
+  - **处理**：优先让写入 `data_type` 严格等于 PLC Tag 类型；并在PLC 工具侧核对 Tag 类型与写入权限/状态。

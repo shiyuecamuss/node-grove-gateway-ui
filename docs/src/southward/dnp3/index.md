@@ -3,7 +3,7 @@ title: 'DNP3'
 description: 'NG Gateway DNP3 南向驱动：TCP/UDP/串口连接、主站/从站地址、总召/事件扫描、对象组/索引建模与数据类型映射。'
 ---
 
-## 1. 协议介绍与常见场景
+## 1. 协议介绍
 
 DNP3（Distributed Network Protocol）常用于电力/水务等 SCADA 场景，支持完整性扫描（Integrity Scan）与事件扫描（Event Scan），并可通过 TCP/UDP/串口运行。
 
@@ -13,9 +13,7 @@ NG Gateway DNP3 驱动作为 **Master** 与 Outstation 通信：
 - 周期执行事件扫描（Class 1/2/3）
 - 支持部分下行命令（CROB/模拟量输出/重启等）
 
-## 2. 配置模型：Channel / Device / Point / Action
-
-可配置字段由 `@ng-gateway-southward/dnp3/src/metadata.rs` 定义，对应运行时结构 `Dnp3ChannelConfig/Dnp3Point/Dnp3CommandType`。
+## 2. 配置模型
 
 ### 2.1 Channel（通道）配置
 
@@ -47,8 +45,6 @@ NG Gateway DNP3 驱动作为 **Master** 与 Outstation 通信：
 - `group`：对象组（BinaryInput/AnalogInput/Counter/OctetString 等）
 - `index`：索引（从 0 开始）
 
-详细见 `./groups.md`。
-
 ### 2.4 Action（动作）配置
 
 Action 用于封装一组“下行命令”的操作；**Action 本身不承载协议细节配置**。
@@ -61,11 +57,13 @@ Action 用于封装一组“下行命令”的操作；**Action 本身不承载�
 - **`group`**：命令类型（`CROB` / `AnalogOutputCommand` / `WarmRestart` / `ColdRestart`）
 - **`index`**：目标索引（`CROB`/`AnalogOutputCommand` 必填；重启类可忽略）
 
-## 3. 数据类型映射表（DNP3 ↔ DataType）
+::: tip
+group/index 详细见 [对象组/索引/命令类型](./groups.md)
+:::
 
-驱动的解码转换集中在 `@ng-gateway-southward/dnp3/src/codec.rs`（`Dnp3Codec`），下行命令的 value 约束见 `dnp3/src/driver.rs::build_*_command`。
+## 3. 数据类型映射表
 
-### 3.1 Point（上行）推荐映射（对象组 → 原始值 → DataType）
+### 3.1 Point（上行）推荐映射
 
 | Point group（对象组） | 原始值类型 | 推荐 DataType | 说明 |
 | --- | --- | --- | --- |
@@ -74,7 +72,9 @@ Action 用于封装一组“下行命令”的操作；**Action 本身不承载�
 | Counter（累计量） | u64 | UInt64（或 Int64） | 累计量常用无符号；现场约定负值时才选 Int64 |
 | OctetString | bytes | Binary / String | `String` 会尝试 UTF-8，失败回退 Binary |
 
-> 注意：DNP3 的对象组很多，完整列表与建模建议见 `./groups.md`。上表给出最常见、最稳定的组合。
+::: tip 注意
+DNP3 的对象组很多，完整列表与建模建议见 `./groups.md`。上表给出最常见、最稳定的组合。
+:::
 
 ### 3.2 WritePoint（下行写点）DataType 选择
 
@@ -96,9 +96,3 @@ Action Parameter 与 WritePoint 规则一致：每个参数携带 `group/index`�
 
 - `group=CROB`：推荐 `data_type=Boolean`（也可用 `UInt8` 表示 0/1/2）
 - `group=AnalogOutputCommand`：仅支持 `Int16/Int32/Float32/Float64`（否则 driver 返回错误）
-
-## 4. 进阶文档
-
-- `对象组/索引/命令类型建模与最佳实践`：见 `./groups.md`
-
-

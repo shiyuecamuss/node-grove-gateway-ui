@@ -10,29 +10,22 @@ Point/Action 的 `tagName` 是 PLC 变量名（由 PLC 程序定义）。常见�
 - **Controller Scope**：`MyTag`
 - **Program Scope**：`Program:Main.MyTag`
 
-不同工程命名风格可能不同；建议用厂商工具（如 Studio 5000）确认变量路径，并用一个“简单标量 Tag”先验证读写通路。
+不同工程命名风格可能不同；建议用厂商工具确认变量路径，并用一个“简单标量 Tag”先验证读写通路。
 
-## 2) DataType 如何选择
-
-当前驱动的值编码基于 `rust_ethernet_ip::PlcValue`，标量类型可以与 NG 的 `DataType` 一一对应（见驱动主页映射表）。
-
-如果你把 `data_type` 设为不匹配的类型：
-
-- core 或 driver 会在写入时返回类型错误
-- 读路径也可能无法正确解析
-
-## 3) 数组/结构体支持现状
+## 2) 数组 / UDT / 结构体支持现状
 
 当前版本：
 
 - 标量类型：支持
-- 结构体/数组：返回 “Unsupported PlcValue type”
+- UDT/结构体/数组等复杂类型：会返回 “Unsupported PlcValue type …”
 
 推荐的替代方案：
 
-- 在 PLC 侧提供标量 Tag（把结构体成员拆成独立 Tag）
-- 或在 PLC/OPC Server 侧提供映射 Tag（例如把数组映射为多个标量）
+- **标量镜像 Tag（最推荐）**：在 PLC 侧提供标量 Tag（把 UDT 成员拆成独立 Tag；把数组拆成多个标量 Tag）。
+- **STRING 承载编码文本（折中）**：如果你必须传输“字节序列”，可以在 PLC 侧提供 `STRING` Tag，约定其内容为 hex/base64 文本；网关侧把点位建模为 `String`（或在北向/边缘侧再解码为 Binary）。
 
-如果你希望网关侧直接支持结构体/数组到 JSON 的映射，我们可以在后续版本中扩展（需要明确字段/数组长度/内存布局策略）。
-
-
+::: tip
+如果你希望网关侧直接支持结构体/数组到 JSON/Binary 的映射，我们可以在后续版本中扩展，但需要先明确：
+- UDT 字段列表与稳定的字段类型（以及版本演进策略）
+- 数组长度、字节序（endianness）、以及“字节序列 → 业务语义”的解释方式（例如固定宽度、TLV、或自定义协议）
+:::
