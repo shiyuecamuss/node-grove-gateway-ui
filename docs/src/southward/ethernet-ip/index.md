@@ -113,7 +113,7 @@ Action 用于封装一组“写入 Tag”的操作；**Action 本身不承载协
   - 结论：**写入的 `data_type` 更应该严格对齐 PLC Tag 类型**
 - **Binary 支持现状（重要）**：
   - `Binary` 当前驱动不支持（现场最常见是 `SINT[]/BYTE[]` 数组，而当前底层 `PlcValue` 只支持标量与 UDT，不支持数组/字节串）
-  - 替代建模策略见 `./tag.md`（例如：PLC 侧拆成多个标量 Tag；或用 `STRING` 承载 hex/base64 文本）
+  - 替代建模策略见 [Tag建模](./tag.md)
 - **Timestamp 最佳实践**：
   - `Timestamp` 的语义固定为 **i64 毫秒（epoch ms）**
   - 写入时会编码为 PLC `LINT`
@@ -128,7 +128,7 @@ Action 用于封装一组“写入 Tag”的操作；**Action 本身不承载协
 
 - **Unsupported PlcValue type ...**
   - **含义**：PLC 返回了复杂类型（例如 UDT/结构体/数组），当前驱动无法映射为 `NGValue`。
-  - **处理**：按 `./tag.md` 的建议在 PLC/Server 侧提供标量镜像 Tag，再在网关侧建模。
+  - **处理**：按 [Tag建模](./tag.md) 的建议在 PLC/Server 侧提供标量镜像 Tag，再在网关侧建模。
 - **typed conversion failed ...**
   - **含义**：读路径按 `data_type/scale` 转换失败（常见原因：越界、字符串无法解析为数字/布尔、Timestamp 越界）。
   - **处理**：检查 Point 的 `data_type` 是否与 PLC Tag 对齐；检查 `scale` 是否合理（尤其避免给 `Timestamp` 配 `scale`）。

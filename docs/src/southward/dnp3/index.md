@@ -87,7 +87,7 @@ WritePoint 只支持写以下 group：
 
 | 写入目标（point.group） | 底层命令 | 推荐 DataType | value 说明 |
 | --- | --- | --- | --- |
-| BinaryOutput | CROB | Boolean（推荐）/ UInt8 | Boolean：false/true；UInt8：0=Nul,1=Close,2=Trip |
+| BinaryOutput | CROB | UInt8（推荐） | **仅支持 UInt8 控制码**：value 需从网关允许的取值表中选择（见 [`crob.md`](./crob.md)） |
 | AnalogOutput | AnalogOutputCommand | Int16 / Int32 / Float32 / Float64 | DataType 决定使用 Group41 的变体（Var2/Var1/Var3/Var4） |
 
 #### DataType 与 Group41 Variation 映射（关键）
@@ -102,31 +102,21 @@ WritePoint 只支持写以下 group：
 | Float64 | Group41Var4 | Double-precision Float | IEEE 754 double |
 
 ::: tip 为什么不需要配置 Variation？
-NG Gateway 采用**简化建模**策略：
-- **读取时**：使用 Class Data (Group 60) 请求，Outstation 自行决定返回的 Variation，驱动自动处理转换
-- **写入时**：通过 `DataType` 隐式选择正确的 Variation
-
-这种设计简化了配置，同时保证了协议兼容性。详见 [DataType 与 Variation 映射](./groups.md#_2-datatype-与-dnp3-variation-的映射关系)。
+NG Gateway 采用**简化建模**策略，这种设计简化了配置，用户无需了解协议细节，同时保证了协议兼容性。详见 [DataType 与 Variation 映射](./groups.md#_2-datatype-与-dnp3-variation-的映射关系)。
 :::
 
 ### 3.3 Action Parameter（下行动作参数）DataType 选择
 
 Action Parameter 与 WritePoint 规则一致：每个参数携带 `group/index`，并按其 `data_type` 解析 value。
 
-- `group=CROB`：推荐 `data_type=Boolean`（也可用 `UInt8` 表示 0/1/2）
-- `group=AnalogOutputCommand`：仅支持 `Int16/Int32/Float32/Float64`（否则 driver 返回错误）
+- `group=CROB`：推荐 `data_type=UInt8`，value 作为 **CROB Control Code(u8)**（从网关允许取值表中选择）
+::: warning 说明
+value 的类型是 u8，但驱动只接受其中 **48 个明确组合**（其余会拒绝），详见 [`crob.md`](./crob.md)。
+:::
+- `group=AnalogOutputCommand`：value仅支持 `Int16/Int32/Float32/Float64`（否则 driver 返回错误）
 
-### 3.4 读取时的 Variation 处理
+#### 3.3.1 CROB 参数的“协议级字段”如何配置？
 
-读取数据时，NG Gateway **不指定**具体的 Variation，而是使用 Class Data 请求：
-
-```
-请求: Group60Var1 (Class 0 - 静态数据)
-响应: Outstation 返回 Group30Var1 或 Group30Var5 等（取决于设备配置）
-```
-
-驱动底层会将不同 Variation 的响应**统一转换**为标准类型：
-- 所有 `Group30VarX` → `f64` → 根据您配置的 `DataType` 进行最终转换
-- 所有 `Group1VarX` → `bool` → 根据您配置的 `DataType` 进行最终转换
-
-因此，您配置的 `DataType` 仅影响**最终值的类型转换**，不影响协议层的请求。
+为保证 **WritePoint 简单、安全**，WritePoint 路径 **不提供** CROB 的 count/on/off 等“协议级字段”控制能力：
+- **WritePoint（BinaryOutput）**：仅支持下发 `value=ControlCode(u8)`，无法控制 `crobCount/crobOnTimeMs/crobOffTimeMs`
+- **Action（CROB）**：通过 **Parameter 级别**的建模字段控制 `crobCount/crobOnTimeMs/crobOffTimeMs`（因此同一个 Action 内不同 input 可配置不同脉冲时序及次数）

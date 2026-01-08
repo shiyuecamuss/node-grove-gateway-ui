@@ -5,7 +5,7 @@ description: '如何选择 Point 的对象组与 index，完整性/事件扫描�
 
 ## 1) Point：对象组（group）与 index
 
-DNP3 的数据点通常由：
+DNP3 的数据点通常由以下几个关键点组成：
 
 - 对象组（Object Group）
 - 变体（Variation）
@@ -50,7 +50,7 @@ DNP3 协议中，每个对象组（Group）有多个变体（Variation），例�
 
 NG Gateway 采用**简化建模**策略：
 
-- **读取方向**：使用 Class Data 请求（Group 60），让 Outstation 自行决定返回哪个 Variation
+- **读取方向**：使用 Class Data 请求，让 Outstation 自行决定返回哪个 Variation
 - **写入方向**：通过 `DataType` 字段隐式选择对应的 Variation
 
 这种设计的优势：
@@ -77,10 +77,10 @@ Master (NG Gateway)                    Outstation
 - 您配置的 `DataType` 用于**最终值转换**（如 `f64` → `Int32` 截断）
 
 ::: tip 重要
-读取时，Outstation 决定返回哪个 Variation。您的 `DataType` 配置不影响请求，只影响最终值的类型转换。
+上行路径中，您的 `DataType` 配置不影响请求，只影响最终值的类型转换。
 :::
 
-### 2.3 写入时的 Variation 选择（关键）
+### 2.3 写入时的 Variation 选择
 
 写入命令（WritePoint / Action）时，`DataType` **直接决定**使用哪个 DNP3 Variation：
 
@@ -93,26 +93,39 @@ Master (NG Gateway)                    Outstation
 | `Float32` | Group41Var3 | Single-precision Float |
 | `Float64` | Group41Var4 | Double-precision Float |
 
-**驱动内部实现**：
-
-```rust
-match data_type {
-    DataType::Int16 | DataType::UInt16 => Group41Var2 { value: i16 },
-    DataType::Int32 | DataType::UInt32 => Group41Var1 { value: i32 },
-    DataType::Float32 => Group41Var3 { value: f32 },
-    DataType::Float64 => Group41Var4 { value: f64 },
-}
-```
-
 #### CROB 命令（Control Relay Output Block - Group 12）
 
-CROB 不受 `DataType` 影响，始终使用 `Group12Var1`：
+CROB 始终使用 `Group12Var1`：
 
 | DataType | 值解析 | 说明 |
 |----------|--------|------|
-| `Boolean` | `true` → LatchOn, `false` → LatchOff | 推荐 |
-| `UInt8` / `Int*` | 0=PulseOn, 1=PulseOff, 3=LatchOn, 4=LatchOff | 兼容 |
-| `String` | "PULSE_ON", "LATCH_OFF" 等 | 人类可读 |
+| `UInt8`（推荐） | value=u8（Control Code） | 产品级统一语义：下行 value 只接收数值控制码；但网关仅允许明确的安全子集（见 [`crob.md`](./crob.md)） |
+
+### 2.3.1 CROB Control Code 位域语义
+
+在 NG Gateway 当前实现里，CROB 的 `ControlCode` 是一个 **8-bit 位域**，由以下字段组合而成：
+
+- **op_type**：4 bits（低 4 位）
+  - 常用：PulseOn / PulseOff / LatchOn / LatchOff
+- **queue**：1 bit（第 4 位，标准中已 obsolete，但仍可表示）
+- **clear**：1 bit（第 5 位）
+- **trip_close_code (TCC)**：2 bits（第 6-7 位）
+  - `Nul / Close / Trip`（`Reserved=0b11` 会被网关拒绝）
+
+#### 常用控制码示例
+
+::: warning 说明
+下表假设 `tcc=Nul`、`clear=false`、`queue=false`，因此控制码就是 op（低 4 位）。注意网关 **不允许 op=0(Nul)**。
+
+如果你需要 Trip/Close 或 queue/clear，请以网关允许值为准，完整取值表见 [`crob.md`](./crob.md)。
+:::
+
+| 语义 | op_type | control_code (十进制) | control_code (十六进制) |
+| --- | --- | ---:| ---:|
+| PulseOn | PulseOn | 1 | 0x01 |
+| PulseOff | PulseOff | 2 | 0x02 |
+| LatchOn | LatchOn | 3 | 0x03 |
+| LatchOff | LatchOff | 4 | 0x04 |
 
 ### 2.4 完整 Variation 参考表
 
@@ -167,10 +180,6 @@ CROB 不受 `DataType` 影响，始终使用 `Group12Var1`：
 | 41 | 4 | Command | Double-precision ← **DataType=Float64** |
 | 42 | 7 | Event | Single-precision With Time |
 
-::: warning 注意
-NG Gateway 使用 Class Data 请求，因此**不需要**在配置中指定具体的 Variation。Outstation 会返回它支持的 Variation，驱动自动处理转换。
-:::
-
 ## 3) 扫描语义：Integrity vs Event
 
 驱动会定期执行：
@@ -179,23 +188,3 @@ NG Gateway 使用 Class Data 请求，因此**不需要**在配置中指定具�
 - Event Scan：获取"事件变化"（Class 1/2/3）
 
 两者的差异取决于 Outstation 配置与数据点是否支持事件上送。
-
-调参建议：
-
-- eventScanIntervalMs 不要太小（否则会增加 Outstation 压力）
-- integrityScanIntervalMs 作为"兜底"不宜太大（否则断连后恢复会慢）
-
-## 4) Action：命令类型（group）与输入值
-
-当前动作类型：
-
-- CROB：控制中继输出块（常用于开关量输出）
-- AnalogOutputCommand：模拟量输出命令
-- WarmRestart / ColdRestart：重启命令
-
-值类型要求取决于 driver 的实现与 DNP3 库接口；建议：
-
-- CROB：使用 bool 或明确的枚举值（建议我们后续把 CROB 的 on/off/trip/close 等动作显式建模成参数）
-- AnalogOutputCommand：使用数值型（与 point/参数的 `data_type` 对齐）
-
-

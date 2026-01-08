@@ -146,6 +146,7 @@ function sidebar(): DefaultTheme.SidebarItem[] {
           items: [
             { link: '/southward/dnp3/', text: '驱动概览与配置' },
             { link: '/southward/dnp3/groups', text: '对象组/索引/命令类型' },
+            { link: '/southward/dnp3/crob', text: 'CROB ControlCode' },
           ],
         },
         {

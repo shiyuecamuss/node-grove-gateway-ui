@@ -161,7 +161,7 @@ Subscription不是由 `Collector` 调度；它属于 driver 的“会话层/协�
 - **Parameter.default_value**：默认值（如有）。
 - **Parameter.min_value / max_value**：范围约束（如有）。
 
-Parameter 在动作执行时会被 core 统一校验与解析（`validate_and_resolve_action_inputs`），关键语义如下：
+Parameter 在动作执行时会被 core 统一校验与解析，关键语义如下：
 
 - **参数结构**：
   - 多参数动作：`params` 必须是 JSON Object（按 `key` 取值）。
