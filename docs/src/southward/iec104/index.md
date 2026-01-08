@@ -3,18 +3,16 @@ title: 'IEC 60870-5-104'
 description: 'NG Gateway IEC 60870-5-104 南向驱动：链路/会话参数、CA/IOA/TypeID 建模、上送解析与写命令最佳实践。'
 ---
 
-## 1. 协议介绍与常见场景
+## 1. 协议介绍
 
 IEC 60870-5-104（简称 IEC104）是电力自动化领域常见的远动规约，基于 TCP（默认端口 2404）。它以 ASDU（Application Service Data Unit）承载遥信/遥测/累计量/事件等信息对象，并支持遥控/遥调/总召/对时等命令。
 
-NG Gateway IEC104 驱动以 **单 Channel 单 TCP 会话** 的方式运行，核心模式是 **Driver Push**：
+NG Gateway IEC104 驱动以 **单 Channel 单 TCP 会话** 的方式运行，核心数据路径是`Driver Push`：
 
 - 上送（遥测/遥信/累计量等）：驱动接收 ASDU 并通过 publisher 推送到北向链路
 - 下行（遥控/设点/比特串等）：通过 WritePoint 或 Action 触发命令发送
 
-## 2. 配置模型：Channel / Device / Point / Action
-
-可配置字段由 `@ng-gateway-southward/iec104/src/metadata.rs` 定义，对应运行时结构 `Iec104ChannelConfig/Iec104Device/Iec104Point/Iec104Parameter`。
+## 2. 配置模型
 
 ### 2.1 Channel（通道）配置
 
@@ -50,23 +48,18 @@ IEC104 的稳定性与吞吐很大程度取决于链路层的定时器与窗口�
 - **`startupQoi`**：启动总召 QOI（默认 20）
 - **`startupQcc`**：启动电能总召 QCC（默认 5）
 
-驱动还支持“启动时自动触发总召/电能总召”（当前通过配置默认值启用，未在 UI 暴露）：
-
-- `autoStartupGeneralInterrogation`（默认 true）
-- `autoStartupCounterInterrogation`（默认 true）
-
-### 2.2 Device（设备）配置：`ca`（公共地址）
+### 2.2 Device（设备）配置
 
 IEC104 中 CA（Common Address）用于区分站/间隔（按现场定义）。NG Gateway 将 **CA 建模为 Device 级配置**：
 
 - **`ca`**：公共地址（1..65535）
 
-建模建议：
-
+::: tip 建模建议
 - 如果一个 TCP 连接下承载多个 CA（常见于站端/集控侧），建议每个 CA 建一个 Device，便于北向分组与权限隔离。
 - 同一 CA 下不同 IOA/TypeID 建模为不同 Point。
+:::
 
-### 2.3 Point（点位）配置：`ioa` + `typeId`
+### 2.3 Point（点位）配置
 
 Point 驱动配置字段：
 
@@ -77,18 +70,19 @@ Point 驱动配置字段：
 
 ### 2.4 Action（动作）配置
 
-Action 驱动配置字段：
+Action 用于封装一组“下行命令”的操作；**Action 本身不承载协议细节配置**。
 
-- **`ioa`**
-- **`typeId`**（命令类 TypeID：C_SC/C_DC/C_SE/...）
+- **关键语义**：IEC104 的下行命令目标 `(typeId, ioa)` 必须配置在 **Action 的 `inputs(Parameter)` 上**，即每个参数都通过 `Parameter.driver_config.typeId` 与 `Parameter.driver_config.ioa` 指定要下发的命令类型与 IOA。
+- **为什么这样设计**：一个 Action 往往需要下发多个 IOA（例如一次下发多个遥控/设点），Action 只是“操作集合”的抽象；协议字段必须落在 Parameter 本体上。
 
-Action 的输入参数 `Iec104Parameter` 也携带 `(ioa, typeId)`，用于“一个动作下发多个 IOA 命令”。
+参数级驱动配置字段（每个 input parameter）：
 
-## 3. 数据类型映射表（TypeID → 原始值 → DataType）
+- **`ioa`**：信息对象地址（0..65535）
+- **`typeId`**：命令类 TypeID（例如 C_SC/C_DC/C_SE/...）
+
+## 3. 数据类型映射表
 
 驱动接收 ASDU 后，会按 TypeID 解码，并用 `ValueCodec` 将原始值强制转换为 Point 声明的 `data_type`（同时应用 `scale`）。
-
-核心解码逻辑在 `@ng-gateway-southward/iec104/src/driver.rs` 的 `extract_values_by_kind`：
 
 | 上送 TypeID（点位 typeId） | 原始值来源 | 原始值类型 | 推荐 DataType |
 | --- | --- | --- | --- |
@@ -97,16 +91,11 @@ Action 的输入参数 `Iec104Parameter` 也携带 `(ioa, typeId)`，用于“�
 | M_BO_*（32bit 串） | `bsi` | u32 | UInt32 |
 | M_ST_*（步进） | `vti.value()` | i8/i16（按实现） | Int16 |
 | M_ME_NA/ND（归一化） | `value()` | f64 | Float32/Float64 |
-| M_ME_NB（标度化） | `sva` | i16（实现中转为 f64） | Int16/Float32 |
-| M_ME_NC（短浮点） | `r` | f32（实现中转为 f64） | Float32 |
+| M_ME_NB（标度化） | `sva` | i16 | Int16/Float32 |
+| M_ME_NC（短浮点） | `r` | f32 | Float32 |
 | M_IT_*（累计量） | `bcr.value` | i32/i64 | Int64/UInt64 |
 
-更详细的 TypeID 与建模建议见 `./typeid.md`。
-
-## 4. 写入/下行命令（WritePoint & Action）
-
-驱动支持的命令类型（点位或参数的 `typeId`）与写入值类型要求：
-
+## 4. 写入/下行命令
 - **C_SC_NA_1 / C_SC_TA_1**：Single Command（值应可转为 bool）
 - **C_DC_NA_1 / C_DC_TA_1**：Double Command（值应可转为 u8）
 - **C_RC_NA_1 / C_RC_TA_1**：Step Command（值应可转为 u8）
@@ -120,9 +109,19 @@ Action 的输入参数 `Iec104Parameter` 也携带 `(ioa, typeId)`，用于“�
 - **C_IC_NA_1**：General Interrogation（使用 `startupQoi`）
 - **C_CI_NA_1**：Counter Interrogation（使用 `startupQcc`）
 
-## 5. 进阶文档
+### 4.1 WritePoint / Action Parameter 的 DataType 推荐表（命令类 TypeID → DataType）
+::: tip
+IEC104 写入侧会对 value 做严格类型转换，因此 **Point/Parameter 的 `data_type` 应尽量与命令期望类型一致**，避免隐式转换失败。
+:::
 
-- `TypeID 与建模最佳实践（CA/IOA/点位匹配）`：见 `./typeid.md`
-- `链路定时器/窗口与背压参数解释`：见 `./link-timers.md`
-
-
+| 命令 TypeID | 推荐 DataType | value 是否使用 | 说明 |
+| --- | --- | --- | --- |
+| C_SC_NA_1 / C_SC_TA_1 | Boolean | ✅ | Single Command（bool） |
+| C_DC_NA_1 / C_DC_TA_1 | UInt8 | ✅ | Double Command（u8，取值范围按现场约定） |
+| C_RC_NA_1 / C_RC_TA_1 | UInt8 | ✅ | Step Command（u8） |
+| C_SE_NA_1 / C_SE_TA_1 | Int16 | ✅ | Set Point Normal（i16） |
+| C_SE_NB_1 / C_SE_TB_1 | Int16 | ✅ | Set Point Scaled（i16） |
+| C_SE_NC_1 / C_SE_TC_1 | Float32 | ✅ | Set Point Float（f32） |
+| C_BO_NA_1 / C_BO_TA_1 | Int32 | ✅ | Bits String 32（i32） |
+| C_IC_NA_1 | UInt8（任意） | ❌ | General Interrogation：value 会被忽略，但为了触发命令，建议仍定义一个 dummy 参数（ioa 可填 0） |
+| C_CI_NA_1 | UInt8（任意） | ❌ | Counter Interrogation：同上（ioa 可填 0） |

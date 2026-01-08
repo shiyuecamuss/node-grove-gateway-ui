@@ -3,7 +3,7 @@ title: 'IEC104 TypeID 与点位建模最佳实践'
 description: '如何选择 Point 的 typeId/IOA，如何处理单点/双点/遥测/累计量，以及写命令（C_*）的值类型要求。'
 ---
 
-## 1) 关键心智模型：驱动如何把上送 ASDU 映射到点位
+## 1) 驱动如何把上送 ASDU 映射到点位
 
 NG Gateway IEC104 驱动内部使用 `(typeId, ioa)` 作为 key 来匹配点位：
 
@@ -70,7 +70,9 @@ IEC104 遥测有多种表达：
 - C_SE_*（NC）：f32
 - C_BO_*：i32
 
-> 最佳实践：Point/Parameter 的 `data_type` 与命令语义一致，这样 core 的类型校验和 driver 的转换会更可预测。
+::: tip 最佳实践
+Point/Parameter 的 `data_type` 与命令语义一致，这样 core 的类型校验和 driver 的转换会更可预测。
+:::
 
 ## 4) CA（公共地址）如何建模
 
@@ -78,7 +80,3 @@ CA 被建模为 Device 配置：
 
 - **一个 CA 一个 Device** 是最常见做法
 - 同一 TCP 链路上多个 CA 时，建多个 Device 共享一个 Channel
-
-这样北向路由可以按 device 维度做隔离与授权。
-
-

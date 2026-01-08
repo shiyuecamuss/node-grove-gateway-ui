@@ -3,7 +3,7 @@ title: 'Modbus 地址与 quantity 计算'
 description: 'Modbus address 的 0/1 基、40001/30001 逻辑地址换算，以及不同 DataType 下 quantity 的正确计算方式。'
 ---
 
-## address：你填的到底是什么
+## addres
 
 在 NG Gateway Modbus 驱动里，`address` 表示 **Modbus PDU 的 0 基起始地址**（0..65535）。这和很多手册的“逻辑地址”经常不是同一套体系。
 
@@ -23,7 +23,9 @@ description: 'Modbus address 的 0/1 基、40001/30001 逻辑地址换算，以�
 
 那就直接按手册填。
 
-> 实践建议：用一个“值固定且可验证”的寄存器先校准（比如序列号/型号/固件版本），确认 address 体系无误后再批量建点。
+::: tip 实践建议
+用一个“值固定且可验证”的寄存器先校准（比如序列号/型号/固件版本），确认 address 体系无误后再批量建点。
+:::
 
 ### 2) 4xxxx / 3xxxx / 1xxxx / 0xxxx 的换算
 
@@ -34,9 +36,9 @@ description: 'Modbus address 的 0/1 基、40001/30001 逻辑地址换算，以�
 - 1xxxx：Discrete Inputs（0x02）
 - 0xxxx：Coils（0x01）
 
-这只是“人类可读分区”，并非协议层字段。驱动里分区由 `functionCode` 决定，`address` 只填偏移。
+> 这只是“人类可读分区”，并非协议层字段。驱动里分区由 `functionCode` 决定，`address` 只填偏移。
 
-## quantity：读多少？写多少？
+## quantity
 
 ### 1) 读线圈/离散输入（0x01/0x02）
 
@@ -69,13 +71,3 @@ Action/WritePoint 写入同样使用 `address + quantity`：
 当写入数据类型为 32/64-bit 时，务必保证：
 
 - `quantity` 覆盖数据类型所需的 word 数
-- `byteOrder/wordOrder` 与读路径一致（避免“写进去的值读不出来”）
-
-## 字节序/字序：读写要一致
-
-如果你对一个 `Float32` 点位读出来正常，但写入后读回不一致，最常见原因是：
-
-- 写入时的 `byteOrder/wordOrder` 与读/设备定义不一致
-- 设备侧寄存器定义不是 IEEE754（例如 BCD/定点），需要用 `scale` 或建模成整数后在边缘计算换算
-
-

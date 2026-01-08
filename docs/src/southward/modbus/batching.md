@@ -7,11 +7,7 @@ description: '解读 Modbus 驱动的批量合并算法（maxGap/maxBatch），�
 
 当 Channel 以 Polling 模式轮询采集时，驱动会对每个 Device 的可读点位做批量规划，尽可能把多个点位合并成更少的 Modbus 请求。
 
-该逻辑位于 `@ng-gateway-southward/modbus/src/planner.rs`：
-
-- `ModbusPlanner::plan_read_batches`
-
-## 合并算法（高层语义）
+## 合并算法
 
 对输入点位集合：
 
