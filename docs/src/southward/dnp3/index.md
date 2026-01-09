@@ -17,11 +17,30 @@ NG Gateway DNP3 驱动作为 **Master** 与 Outstation 通信：
 
 ### 2.1 Channel（通道）配置
 
-#### 2.1.1 `connection.type`
+#### 2.1.1 `connection.type`（连接方式）
 
-- tcp：`connection.host/connection.port`
-- udp：`connection.host/connection.port`，可选 `connection.localPort`
-- serial：`connection.path/baudRate/dataBits/stopBits/parity`
+- **`serial：`**：串口/RS-485（推荐用于直连 485 总线）
+- **`tcp`**：TCP（串口服务器/网关）
+- **`udp`**：UDP（串口服务器/网关）
+
+Serial 参数（当 `connection.type = serial：`）：
+
+- **`connection.port`**：串口路径
+- **`connection.baud_rate`**：波特率
+- **`connection.data_bits`**：数据位（默认 8）
+- **`connection.stop_bits`**：停止位（默认 1）
+- **`connection.parity`**：校验位
+
+TCP 参数（当 `connection.type = tcp`）：
+
+- **`connection.host`**：主机
+- **`connection.port`**：端口
+
+UDP 参数（当 `connection.type = udp`）：
+
+- **`connection.host`**：主机
+- **`connection.port`**：端口
+- **`connection.localPort`**：可选，本地UDP端口
 
 #### 2.1.2 Link Layer 地址
 

@@ -3,7 +3,7 @@ title: 'CJT188 地址 / 类型 / DI / field_key'
 description: 'CJ/T 188 设备地址的 14 位 hex 结构、表具类型与表具族（meter family），以及 DI / field_key/scale 的填写与解码语义（对齐当前实现）。'
 ---
 
-## 1) 设备地址（Device.address）
+## 1) 设备地址
 
 驱动将“表类型(T)”与“地址域(A0..A6)”拆分为两个字段（与 CJ/T 188-2018 帧结构一致）：
 
@@ -12,26 +12,54 @@ description: 'CJ/T 188 设备地址的 14 位 hex 结构、表具类型与表具
 
 ### `meterType`（T）
 
-类型码用于区分水/热/燃气/自定义等（并与版本相关）：
+类型码用于区分水/热/燃气/自定义等。
 
-- V2004：标准类型通常为 `0x10/0x20/0x30/0x40`
-- V2018：扩展为码段：
-  - `0x10..=0x19` 水表族（`0x10` 冷水、`0x11` 生活热水、`0x12` 直饮水、`0x13` 中水等）
-  - `0x20..=0x29` 热量表族（`0x20` 热量、`0x21` 冷量、`0x22` 热+冷等）
-  - `0x30..=0x39` 燃气表族
-  - `0x40..=0x49` 自定义表族
+**2018 仪表类型及代码 (CJ/T 188-2018):**
+
+| 仪表类型范围 | 代码 (T) | 仪表说明 |
+|-------------|----------|----------|
+| 10H ~ 19H | 10H | 冷水水表 |
+|  | 11H | 生活热水水表 |
+|  | 12H | 直饮水水表 |
+|  | 13H | 中水水表 |
+| 20H ~ 29H | 20H | 热量表（计热量） |
+|  | 21H | 热量表（计冷量） |
+|  | 22H | 热量表（计热量和冷量） |
+| 30H ~ 39H | 30H | 燃气表 |
+| 40H ~ 49H | — | 自定义仪表 |
+
+**2004 仪表类型及代码 (CJ/T 188-2004):**
+
+| 仪表类型范围 | 代码 (T) | 仪表说明 |
+|-------------|----------|----------|
+| 10H ~ 19H | 10H | 冷水水表 |
+|  | 11H | 生活热水水表 |
+|  | 12H | 直饮水水表 |
+|  | 13H | 中水水表 |
+| 20H ~ 29H | 20H | 热量表（计热量） |
+|  | 21H | 热量表（计冷量） |
+| 30H ~ 39H | 30H | 燃气表 |
+| 40H ~ 49H | 40H | 自定义仪表 |
 
 ### `address`（A6..A0）
 
-地址域由 **7 个字节**组成（A0..A6），每字节通常为 **2 位 BCD**（但现实设备/模拟器也可能使用任意 hex 字节）。
+地址域由 **7 个字节**组成（A0..A6），每字节通常为 **2 位 BCD**。
 
-- **驱动配置格式（推荐）**：`address` 使用 **14 位 hex 字符串**，表示 **A6..A0 字节**（高位在前，符合人类直觉），例如：`00000000EE0001`
+- **驱动配置格式**：`address` 使用 **14 位 hex 字符串**，表示 **A6..A0 字节**（高位在前），例如：`00000000EE0001`
 
-> 备注：规约定义“低地址在前，高地址在后”是指 **在线路上的 A0..A6 字节顺序**；驱动会在协议编解码阶段自动完成 **A6..A0（配置）↔ A0..A6（线序）** 的转换。
+::: tip 备注
+规约定义“低地址在前，高地址在后”是指 **在线路上的 A0..A6 字节顺序**；驱动会在协议编解码阶段自动完成 **A6..A0（配置）↔ A0..A6（线序）** 的转换。
+:::
 
 ## 2) DI（Point.di）
 
-驱动 UI 以 4 位 hex（2 字节）表达 DI（例如 `901F`）；协议线上按“小端”发送为 `1F 90`。
+驱动 UI 以 4 位 hex（2 字节）表达 DI（例如 `901F`）。
+
+**DI 字节序差异**:
+- **2018 版**: 小端（Little-Endian）。`901F` 发送为 `1F 90`。
+- **2004 版**: 大端（Big-Endian）。`901F` 发送为 `90 1F`。
+
+驱动会根据通道配置中的协议版本（Version）自动处理字节序。
 
 实践建议：
 
@@ -60,47 +88,12 @@ CJ/T 188 的 **一个 DI（数据标识）通常代表一组字段**（例如 `9
 
 `field_key` 不是任意字符串，它必须匹配驱动内置 schema 里的字段键：
 
-- 如果 `field_key` 不存在：该点位会被跳过，并在日志里输出 `available_fields`
+- 如果 `field_key` 不存在或不属于该 DI/表具族：该点位会被跳过，并在日志中提示该点位未产出值（你需要按本文的 DI/field_key 列表修正）
 - 如果 `(DI, meterType family)` 找不到 schema：该 DI 解析失败，并在日志里提示（你需要换 DI 或确认 `meterType`）
 
-## 4) scale（Point.scale，可选）
+## 4) DI / field_key
 
-本驱动的“标准解码”以 **DI Schema 内置 decimals** 为准（每个数值字段在 schema 里都有固定 decimals），Point 侧不再提供 `decimals` 覆盖能力。
-
-当现场设备的“小数位/精度”与 schema 不一致时，推荐用 `scale` 做**工程修正**（不会改变 DI 字段结构，也不会影响 DI 分组读取）：
-
-- **工程单位换算**：例如把 “L” 换算成 “m³”（`scale=0.001`），把 “kPa” 换算成 “MPa”（`scale=0.001`）
-- **小数位修正（兼容策略）**：如果 schema 的 decimals 为 \(d_s\)，而现场期望 decimals 为 \(d_e\)，则可设置  
-  `scale = 10^(d_s - d_e)`  
-  例如 schema 按 2 位小数解码，但现场应为 3 位小数：`scale = 10^(2-3) = 0.1`
-
-## 5) 返回值类型（NGValue）与 DataType 建模建议
-
-### 5.1 DataFormat → NGValue（驱动实现语义）
-
-| Schema DataFormat | 典型含义 | 解析后 NGValue 类型 | 单位处理 |
-| --- | --- | --- | --- |
-| `BCD` / `BCDWithUnit` | 数值（带小数） | `Float64` | `BCDWithUnit` 的单位码当前不会随值上报；建议在 Point.unit 手动填写 |
-| `BCDInteger` | 整数（BCD） | `Int64` | - |
-| `Binary` | 二进制无符号整数（小端） | `Int64` | - |
-| `DateTime` | BCD 时间（7 字节，SS mm hh DD MM YY CC） | `Timestamp` | Unix epoch ms（UTC）；协议不带时区，网关按 UTC 解释 |
-| `Status` | 2 字节状态位 | `Int64` | 实际语义为 `u16`（小端），建议按位解析 |
-
-### 5.2 Point.data_type 应该怎么选？
-
-> 重要：CJ/T188 驱动的“解析结果类型”由 schema 决定；`point.data_type` 不会改变驱动的解码方式，但会影响最终上报值类型（驱动会做强转与范围校验）。
-
-推荐：
-
-- 数值字段（`Float64`）：`data_type=Float64`（最稳）
-- 状态位（`status`，实际是 `u16`）：建议 `data_type=UInt16`（更贴近语义），在规则引擎/北向侧再按位解析
-- 时间字段（`datetime`）：`data_type=Timestamp`（Unix ms）
-
-## 6) DI / field_key 全量列表（对齐当前实现）
-
-> 说明：下表来自驱动内置 schema（`ng-driver-cjt188`），并按表具族（Water/Gas/Heat/Common）组织。
-
-### 6.1 Water / Gas
+### 4.1 Water / Gas
 
 | DI（hex） | 含义（Schema 语义） | 可用 field_key（全部） |
 | --- | --- | --- |
@@ -118,13 +111,13 @@ CJ/T 188 的 **一个 DI（数据标识）通常代表一组字段**（例如 `9
 | `settlement_flow` | 结算日/历史结算日累积流量 | `Float64` | `BCDWithUnit(4 + unit)` |
 | `datetime` | 实时时间 | `Timestamp` | Unix epoch ms（UTC） |
 | `status` | 状态位 | `UInt16` | 实际语义为 `u16` 小端；按位解析（见下文） |
-| `freeze_datetime` | 冻结时刻（上 N 次） | `String` | |
+| `freeze_datetime` | 冻结时刻（上 N 次） | `Timestamp` | 7 字节 DateTime → epoch ms（UTC） |
 | `cumulative_flow` | 冻结时刻累积流量 | `Float64` | |
 | `flow_rate` | 冻结时刻瞬时流量 | `Float64` | `BCDWithUnit(4 + unit)`，schema 内置 decimals=4 |
 | `temperature` | 温度 | `Float64` | `BCD(decimals=2)` |
 | `pressure` | 压力 | `Float64` | `BCD(decimals=2)` |
 
-### 6.2 Heat
+### 4.2 Heat
 
 | DI（hex） | 含义（Schema 语义） | 可用 field_key（全部） |
 | --- | --- | --- |
@@ -153,7 +146,7 @@ CJ/T 188 的 **一个 DI（数据标识）通常代表一组字段**（例如 `9
 | `status` | 状态位 | `UInt16` | `u16` 小端 |
 | `settlement_flow` | 历史结算日累积流量（仅 `D200..D2FF`） | `Float64` | `BCDWithUnit` |
 
-### 6.3 Common（所有表具族通用）
+### 4.3 Common（所有表具族通用）
 
 | DI（hex） | 含义（Schema 语义） | 可用 field_key（全部） |
 | --- | --- | --- |
@@ -163,7 +156,7 @@ CJ/T 188 的 **一个 DI（数据标识）通常代表一组字段**（例如 `9
 | `8104` | 抄表日（day） | `reading_day` |
 | `8105` | 购入金额（含状态） | `purchase_seq`, `this_purchase`, `total_purchase`, `remaining`, `status` |
 
-## 7) 状态位（status）字段怎么用
+## 5) 状态位（status）字段
 
 `status` 字段在 schema 解析后语义上是 **`u16` 小端位图**。建议 Point 配置为 `data_type=UInt16`，便于下游按位解析。基础位定义见驱动代码注释：
 
@@ -176,16 +169,3 @@ CJ/T 188 的 **一个 DI（数据标识）通常代表一组字段**（例如 `9
 
 - 把 `status` 建模为一个 Point（`field_key=status`）
 - 在北向或规则引擎里按位解析（或二次映射为多个布尔属性）
-
-数值类点位的解码流程：
-
-1. BCD payload → 按 schema 内置 `decimals` 解码为 f64
-2. 按 `data_type` 强制转换
-3. 应用 `scale`（如设置）
-
-建议：
-
-- schema 内置 `decimals` 表达“BCD 小数位”（用户无需配置）
-- `scale` 表达“工程换算因子”（用户可配置）
-
-> 备注：本页面已经包含 DI/field_key 的说明与清单；请以本驱动内置 schema 与本文档为准（无需额外的 `di-field-keys.md`）。

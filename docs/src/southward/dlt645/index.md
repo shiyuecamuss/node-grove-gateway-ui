@@ -27,16 +27,21 @@ NG Gateway DLT645 驱动的目标是：在一条总线上稳定轮询多个电�
 
 #### 2.1.2 `connection.kind`（连接方式）
 
-- serial：串口/RS-485
-- tcp：TCP（串口服务器）
+- **`Serial`**：串口/RS-485（推荐用于直连 485 总线）
+- **`Tcp`**：TCP（串口服务器/网关）
 
-串口参数（serial）：
+Serial 参数（当 `connection.kind = Serial`）：
 
-- `connection.port` / `baudRate` / `dataBits` / `stopBits` / `parity`
+- **`connection.port`**：串口路径
+- **`connection.baud_rate`**：波特率
+- **`connection.data_bits`**：数据位（默认 8）
+- **`connection.stop_bits`**：停止位（默认 1）
+- **`connection.parity`**：校验位
 
-TCP 参数（tcp）：
+TCP 参数（当 `connection.kind = Tcp`）：
 
-- `connection.host` / `connection.port`
+- **`connection.host`**：主机
+- **`connection.port`**：端口
 
 #### 2.1.3 高级参数
 
